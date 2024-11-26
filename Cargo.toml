@@ -1,0 +1,24 @@
+[package]
+name = "little_weirdo"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "little_weirdo"
+
+[dependencies]
+rand = { version = "0.8.5", default-features = false, features = ["small_rng"] }
+
+[dev-dependencies]
+pitch_calc = "0.12.0"
+hound = "3.5.1"
+cpal = "0.15.3"
+anyhow = "1.0.93"
+clap = { version = "4.0", features = ["derive"] }
+console = "0.15.8"
+midir = "0.10.1"
+midi-control = "0.2.2"
+rtp-rs = "0.6.0"
+
+[[example]] # <--- declare the executable
+name = "streaming-synth"
