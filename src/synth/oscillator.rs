@@ -15,6 +15,7 @@ pub enum Waveform {
     Square10,
     Bass,
     Piano,
+    EightBit,
 }
 
 pub struct Oscillator {
@@ -68,7 +69,7 @@ impl Oscillator {
             Waveform::Sine => osc.waveform_lookup_table = &wavetables::SINE,
             Waveform::Bass => osc.waveform_lookup_table = &wavetables::BASS,
             Waveform::Piano => osc.waveform_lookup_table = &wavetables::PIANO,
-
+            Waveform::EightBit => osc.waveform_lookup_table = &wavetables::EIGHT_BIT,
             _ => {}
         };
         osc.calculate_lookup_table();
