@@ -20,5 +20,5 @@ midir = "0.10.1"
 midi-control = "0.2.2"
 rtp-rs = "0.6.0"
 
-[[example]] # <--- declare the executable
+[[example]] 
 name = "streaming-synth"
