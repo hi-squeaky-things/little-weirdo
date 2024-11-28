@@ -34,3 +34,4 @@ pub struct Patch {
     /// Mono mode enabled or disabled, default is false
     pub mono: bool,
 }
+

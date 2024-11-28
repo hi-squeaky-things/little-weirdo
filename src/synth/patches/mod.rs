@@ -1,0 +1,114 @@
+use super::oscillator::Waveform;
+use super::Patch;
+use super::envelope::Envelop;
+use super::filter::FilterConfig;
+
+pub struct Patches {
+    pub bass_guitar: Patch,
+    pub eletric_piano: Patch,
+    pub gliding_bass_guitar: Patch,
+}
+
+impl Patches {
+    pub fn new() -> Self {
+        Patches {
+            bass_guitar: Patch {
+                voice_1: Waveform::Bass,
+                voice_1_mix_level: 100,
+                voice_2: Waveform::Bass,
+                voice_2_mix_level: 0,
+                lfo_1: 20,
+                lfo_1_mix_level: 0,
+                voice_1_env: Envelop {
+                    attack_time: 10,
+                    decay_time: 10,
+                    release_time: 200,
+                    sustain_level: 80,
+                },
+                voice_2_env: Envelop {
+                    attack_time: 500,
+                    decay_time: 150,
+                    release_time: 150,
+                    sustain_level: 50,
+                },
+                voice_1_detune: 0,
+                voice_2_detune: 14,
+                filter_config: FilterConfig {
+                    cutoff_frequency: 100,
+                    filter_on: true,
+                    _24db: false,
+                },
+                main_gain: 50,
+                glide: false,
+                glide_rate: 30,
+                mono: true,
+            },
+            eletric_piano: Patch {
+                voice_1: Waveform::Piano,
+                voice_1_mix_level: 50,
+                voice_2: Waveform::Piano,
+                voice_2_mix_level: 0,
+                lfo_1: 20,
+                lfo_1_mix_level: 0,
+                voice_1_env: Envelop {
+                    attack_time: 500,
+                    decay_time: 150,
+                    release_time: 150,
+                    sustain_level: 50,
+                },
+                voice_2_env: Envelop {
+                    attack_time: 500,
+                    decay_time: 150,
+                    release_time: 150,
+                    sustain_level: 50,
+                },
+                voice_1_detune: 0,
+                voice_2_detune: 0,
+                filter_config: FilterConfig {
+                    cutoff_frequency: 400,
+                    filter_on: false,
+                    _24db: false,
+                },
+                main_gain: 50,
+                glide: false,
+                glide_rate: 30,
+                mono: true,
+            },
+            gliding_bass_guitar: Patch {
+                voice_1: Waveform::Bass,
+                voice_1_mix_level: 100,
+                voice_2: Waveform::Bass,
+                voice_2_mix_level: 0,
+                lfo_1: 20,
+                lfo_1_mix_level: 0,
+                voice_1_env: Envelop {
+                    attack_time: 10,
+                    decay_time: 10,
+                    release_time: 200,
+                    sustain_level: 80,
+                },
+                voice_2_env: Envelop {
+                    attack_time: 500,
+                    decay_time: 150,
+                    release_time: 150,
+                    sustain_level: 50,
+                },
+                voice_1_detune: 0,
+                voice_2_detune: 14,
+                filter_config: FilterConfig {
+                    cutoff_frequency: 100,
+                    filter_on: true,
+                    _24db: false,
+                },
+                main_gain: 50,
+                glide: true,
+                glide_rate: 30,
+                mono: true,
+            },
+            
+        }
+    }
+}
+
+
+ 

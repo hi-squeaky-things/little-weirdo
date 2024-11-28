@@ -3,7 +3,7 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}
 };
 use cpal::{Device, Sample, StreamConfig};
-use little_weirdo::synth::envelope::Envelop;
+use little_weirdo::synth::{envelope::Envelop, patches::{Patches}};
 use little_weirdo::synth::filter::FilterConfig;
 use little_weirdo::synth::oscillator::Waveform;
 use little_weirdo::synth::patch::Patch;
@@ -32,39 +32,7 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    // TODO: osc for lfo need beter calculation because with 17Hz is need 2823 wavetable lookup entries.
-    let patch = Patch {
-        voice_1: Waveform::EightBit,
-        voice_1_mix_level: 50,
-        voice_2: Waveform::Piano,
-        voice_2_mix_level: 50,
-        lfo_1: 20,
-        lfo_1_mix_level: 0,
-        voice_1_env: Envelop {
-            attack_time: 500,
-            decay_time: 150,
-            release_time: 150,
-            sustain_level: 50,
-        },
-        voice_2_env: Envelop {
-            attack_time: 500,
-            decay_time: 150,
-            release_time: 150,
-            sustain_level: 50,
-        },
-
-        voice_1_detune: 0,
-        voice_2_detune: 14,
-        filter_config: FilterConfig {
-            cutoff_frequency: 400,
-            filter_on: false,
-            _24db: false,
-        },
-        main_gain: 50,
-        glide: false,
-        glide_rate: 30,
-        mono: true,
-    };
+    let patch: Patch = Patches::new().gliding_bass_guitar;
     let mut synth: synth::Synth = synth::Synth::new(44100, patch);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();

@@ -9,6 +9,7 @@ pub mod math;
 pub mod mixer;
 pub mod oscillator;
 pub mod patch;
+pub mod patches;
 
 pub struct Synth {
     pub voice1: oscillator::Oscillator,
