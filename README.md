@@ -16,3 +16,14 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 [`wavetable_freq_lookup.rs`](/examples/wavetable_freq_lookup.rs) This program generates a list of static arrays representing frequency lookups, which can be used in wave table synthesis to map note frequencies to corresponding waveform indices. It calculates these arrays based on the sample rate and frequency values.
 
 [`create_note_to_frequency.rs`](/examples/create_note_to_freq_table.rs) This program calculates and prints the frequencies of all 127 semitone steps in the MIDI range (0-127). The output is a list of frequencies, where each frequency is represented as an integer (in Hz) corresponding to its semitone step number.
+
+## Building
+
+### Library
+`$ cargo build`
+
+### VST3 Plugin
+```
+$ cd plugin/lttl_squeky
+$ cargo xtask bundle lttl_squeaky --release
+```

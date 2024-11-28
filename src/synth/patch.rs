@@ -1,6 +1,6 @@
 //! Patch to config the sounds
  
-use super::{envelope::Envelop, filter::FilterConfig, oscillator::Waveform};
+use super::{envelope::Envelop, filter::FilterConfig, oscillator::Waveform, patches::Patches};
 
 pub struct Patch {
     /// The waveform for voice one, this is one of the available WaveTable waveforms
@@ -35,3 +35,9 @@ pub struct Patch {
     pub mono: bool,
 }
 
+impl Patch {
+    pub fn default() -> Patch {
+        let patch: Patch = Patches::new().gliding_bass_guitar;
+        patch
+    }
+}
