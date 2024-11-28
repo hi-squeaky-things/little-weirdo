@@ -11,13 +11,14 @@
 //! 
 //! Example usage:
 //! ```
-//! use little_weirdo::synth::patches::Patches;
 //! use little_weirdo::synth::patch::Patch;
 //! use little_weirdo::synth::Synth;
 //! // Choose a predefined patch (or create your own).
-//! let patch: Patch = Patches::new().hihat;
+//! let patch: Patch = Patch::default();
 //! // Create an instance of LttL Weirdo.
 //! let mut synth: Synth = Synth::new(44100, patch);
+//! // Start playing a note
+//! synth.note_on(0x00, 0x50, 0xFF);
 //! // Clock LttL Weirdo in a loop.
 //! let sample = synth.clock_and_output();
 //! ```
