@@ -3,18 +3,19 @@ use super::Patch;
 use super::envelope::Envelop;
 use super::filter::FilterConfig;
 
-pub struct Patches {
-    pub bass_guitar: Patch,
-    pub eletric_piano: Patch,
-    pub gliding_bass_guitar: Patch,
-    pub hihat: Patch,
-    
+#[derive(PartialEq)]
+#[derive(Clone, Copy)]
+pub enum Patches {
+    bass_guitar,
+    eletric_piano,
+    gliding_bass_guitar,
+    hihat,
 }
 
 impl Patches {
-    pub fn new() -> Self {
-        Patches {
-            bass_guitar: Patch {
+    pub fn get_patch(name: Patches) -> Patch {
+       match name {
+        Patches::bass_guitar => Patch {
                 voice_1: Waveform::Bass,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::Bass,
@@ -45,7 +46,7 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-            eletric_piano: Patch {
+            Patches::eletric_piano => Patch {
                 voice_1: Waveform::Piano,
                 voice_1_mix_level: 50,
                 voice_2: Waveform::Piano,
@@ -76,7 +77,7 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-            gliding_bass_guitar: Patch {
+            Patches::gliding_bass_guitar => Patch {
                 voice_1: Waveform::Bass,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::Bass,
@@ -107,7 +108,7 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-            hihat: Patch {
+           Patches::hihat => Patch {
                 voice_1: Waveform::EightBit,
                 voice_1_mix_level: 50,
                 voice_2: Waveform::Square10,
