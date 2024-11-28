@@ -7,6 +7,8 @@ pub struct Patches {
     pub bass_guitar: Patch,
     pub eletric_piano: Patch,
     pub gliding_bass_guitar: Patch,
+    pub hihat: Patch,
+    
 }
 
 impl Patches {
@@ -105,7 +107,37 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-            
+            hihat: Patch {
+                voice_1: Waveform::EightBit,
+                voice_1_mix_level: 50,
+                voice_2: Waveform::Square10,
+                voice_2_mix_level: 50,
+                lfo_1: 20,
+                lfo_1_mix_level: 0,
+                voice_1_env: Envelop {
+                    attack_time: 10,
+                    decay_time: 10,
+                    release_time: 10,
+                    sustain_level: 80,
+                },
+                voice_2_env: Envelop {
+                    attack_time: 10,
+                    decay_time: 10,
+                    release_time: 10,
+                    sustain_level: 80,
+                },
+                voice_1_detune: 0,
+                voice_2_detune: 4,
+                filter_config: FilterConfig {
+                    cutoff_frequency: 100,
+                    filter_on: false,
+                    _24db: false,
+                },
+                main_gain: 50,
+                glide: false,
+                glide_rate: 30,
+                mono: true,
+            },
         }
     }
 }
