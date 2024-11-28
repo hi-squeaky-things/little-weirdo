@@ -1,3 +1,4 @@
+//! Oscillator to generate sounds using Wavetable synthesis.
 use super::data::wavetables;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};

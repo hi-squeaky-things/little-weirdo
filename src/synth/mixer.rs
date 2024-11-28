@@ -1,3 +1,4 @@
+//! Mixer to mix all generated signals
 pub struct Mixer {
     pub gain_voice_1: u8,
     pub gain_voice_2: u8,

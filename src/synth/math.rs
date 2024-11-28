@@ -1,3 +1,4 @@
+//! Math function optimized for embedded devices
 /*
     Helper function to calculate the percentage of the given sample and keep the precision on the sample.
 */

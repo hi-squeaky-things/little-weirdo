@@ -1,3 +1,5 @@
+//! Lowpass filter 
+
 #[derive(Copy, Clone)]
 pub struct FilterConfig {
     pub cutoff_frequency: i16,

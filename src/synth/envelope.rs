@@ -1,3 +1,4 @@
+//! Envelope generator
 
 use crate::synth::math::percentage;
 

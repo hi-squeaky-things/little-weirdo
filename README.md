@@ -7,7 +7,7 @@
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.
 
-## Tools
+## Tools & Examples
 
 [`create_wave_table.rs`](/examples/create_wave_table.rs) This program generates a list of static waveforms in the form of arrays of 16-bit integers by reading WAV files from the "data" directory and printing them out as pub static variables. It's to be used to pre-compute and store waveforms that can be reused later.
 

@@ -1,12 +1,10 @@
 use console::Key;
 use cpal::{
-    traits::{DeviceTrait, HostTrait, StreamTrait},
-    FromSample, SizedSample,
+    traits::{DeviceTrait, HostTrait, StreamTrait}
 };
-use cpal::{Device, Host, Sample, Stream, StreamConfig};
+use cpal::{Device, Sample, StreamConfig};
 use little_weirdo::synth::envelope::Envelop;
 use little_weirdo::synth::filter::FilterConfig;
-use little_weirdo::synth::math::percentage;
 use little_weirdo::synth::oscillator::Waveform;
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
@@ -17,7 +15,6 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::TryRecvError;
 use std::thread::{self};
-use std::time::Duration;
 
 fn main() {
     let midi_input = midir::MidiInput::new("MIDITest").unwrap();
