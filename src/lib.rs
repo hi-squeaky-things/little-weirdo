@@ -1,12 +1,27 @@
 #![no_std]
 //! 
-//!  ``` 
-//! __   ____  ____  __      _  _  ____  __  ____  ____   __  
-//!(  ) (_  _)(_  _)(  )    / )( \(  __)(  )(  _ \(    \ /  \ 
-//!/ (_/\ )(    )(  / (_/\  \ /\ / ) _)  )(  )   / ) D ((  O )
-//!\____/(__)  (__) \____/  (_/\_)(____)(__)(__\_)(____/ \__/ 
+//! ```no_run 
+//! //       __   ____  ____  __      _  _  ____  __  ____  ____   __  
+//! //      (  ) (_  _)(_  _)(  )    / )( \(  __)(  )(  _ \(    \ /  \ 
+//! //      / (_/\ )(    )(  / (_/\  \ /\ / ) _)  )(  )   / ) D ((  O )
+//! //      \____/(__)  (__) \____/  (_/\_)(____)(__)(__\_)(____/ \__/ 
+//! //
+//! //       #no-std optimized wave table synthesizer for embedded devices.
 //! ```
-//! #no-std optimized wave table synthesizer for embedded devices.
+//! 
+//! Example usage:
+//! ```
+//! use little_weirdo::synth::patches::Patches;
+//! use little_weirdo::synth::patch::Patch;
+//! use little_weirdo::synth::Synth;
+//! // Choose a predefined patch (or create your own).
+//! let patch: Patch = Patches::new().hihat;
+//! // Create an instance of LttL Weirdo.
+//! let mut synth: Synth = Synth::new(44100, patch);
+//! // Clock LttL Weirdo in a loop.
+//! let sample = synth.clock_and_output();
+//! ```
+
 
 ///
 /// The wave table synthesizer engine.
