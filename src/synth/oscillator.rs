@@ -19,6 +19,23 @@ pub enum Waveform {
     EightBit,
 }
 
+impl Waveform {
+    fn get_waveform_lookup_table(waveform: &Waveform) -> &'static [i16; 600] {
+        match waveform {
+            Waveform::SawTooth => &wavetables::SAWTOOTH,
+            Waveform::Square => &wavetables::SQUARE,
+            Waveform::Triangle => &wavetables::TRIANGLE,
+            Waveform::Sine => &wavetables::SINE,
+            Waveform::Bass => &wavetables::BASS,
+            Waveform::Piano => &wavetables::PIANO,
+            Waveform::EightBit => &wavetables::EIGHT_BIT,
+            Waveform::Square25 => &wavetables::SQUARE_25,
+            Waveform::Square10 => &wavetables::SQUARE_10,
+            Waveform::Noise => &wavetables::SINE, //will be generated in realtime, this is just a placeholder
+        }
+    }
+}
+
 pub struct Oscillator {
     waveform: Waveform,
     pub freq: u16,
@@ -61,18 +78,7 @@ impl Oscillator {
             glide,
             glide_rate,
         };
-        match osc.waveform {
-            Waveform::SawTooth => osc.waveform_lookup_table = &wavetables::SAWTOOTH,
-            Waveform::Square => osc.waveform_lookup_table = &wavetables::SQUARE,
-            Waveform::Square10 => osc.waveform_lookup_table = &wavetables::SQUARE_10,
-            Waveform::Square25 => osc.waveform_lookup_table = &wavetables::SQUARE_25,
-            Waveform::Triangle => osc.waveform_lookup_table = &wavetables::TRIANGLE,
-            Waveform::Sine => osc.waveform_lookup_table = &wavetables::SINE,
-            Waveform::Bass => osc.waveform_lookup_table = &wavetables::BASS,
-            Waveform::Piano => osc.waveform_lookup_table = &wavetables::PIANO,
-            Waveform::EightBit => osc.waveform_lookup_table = &wavetables::EIGHT_BIT,
-            _ => {}
-        };
+        osc.waveform_lookup_table = Waveform::get_waveform_lookup_table(&osc.waveform);
         osc.calculate_lookup_table();
         osc
     }
