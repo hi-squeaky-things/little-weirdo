@@ -10,7 +10,7 @@ pub mod oscillator;
 pub mod patch;
 pub mod patches;
 pub mod effects;
-use effects::Effect;
+use effects::{overdrive::Overdrive, Effect};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -31,6 +31,7 @@ pub struct Synth {
     pub voice1_envelope: envelope::EnvelopeGenerator,
     voice2_envelope: envelope::EnvelopeGenerator,
     pub filter: Filter,
+    pub overdrive: Overdrive,
     pub mixer: Mixer,
     sample_rate: u16,
     voices: u8,
@@ -89,6 +90,7 @@ impl Synth {
             voice_active_count: 0,
             voice_active: [0, 0],
             voices: if patch.mono { 1 } else { 2 },
+            overdrive: Overdrive::new(1000, effects::overdrive::KindOfOverdrive::Soft),
         }
     }
 
@@ -189,6 +191,7 @@ impl Synth {
 
         // Finally, apply main gain setting and return the final sample value
         mix_and_max_gain = math::percentage(filtered_signal, self.mixer.gain_main as i16);
+        mix_and_max_gain = self.overdrive.clock(mix_and_max_gain);
         mix_and_max_gain
     }
 
