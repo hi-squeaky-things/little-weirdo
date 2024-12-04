@@ -1,7 +1,7 @@
 use super::oscillator::Waveform;
 use super::Patch;
 use super::envelope::Envelop;
-use super::filter::FilterConfig;
+use super::effects::filter::FilterConfig;
 
 #[derive(PartialEq)]
 #[derive(Clone, Copy)]

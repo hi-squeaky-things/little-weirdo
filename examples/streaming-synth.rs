@@ -4,7 +4,7 @@ use cpal::{
 };
 use cpal::{Device, Sample, StreamConfig};
 use little_weirdo::synth::{envelope::Envelop, patches::{Patches}};
-use little_weirdo::synth::filter::FilterConfig;
+use little_weirdo::synth::effects::filter::FilterConfig;
 use little_weirdo::synth::oscillator::Waveform;
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};

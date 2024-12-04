@@ -1,23 +1,33 @@
 //use std::println;
 
-use effect::Effect;
 
-use self::{data::frequencies::MIDI2FREQ, filter::Filter, mixer::Mixer, patch::Patch};
 
 pub mod data;
 pub mod envelope;
-pub mod filter;
 pub mod math;
 pub mod mixer;
 pub mod oscillator;
 pub mod patch;
 pub mod patches;
-pub mod effect;
+pub mod effects;
+use effects::Effect;
+
+use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
+
+
+pub trait Clockable {
+    fn clock(&mut self, sample: Option<i16>) -> i16 {
+        match sample {
+            Some(s) => s, // Use the provided sample
+            None => 0,     // Default value if no sample is provided
+        }
+    }
+}
 
 pub struct Synth {
-    pub voice1: oscillator::Oscillator,
-    voice2: oscillator::Oscillator,
-    lfo1: oscillator::Oscillator,
+    pub voice1: oscillator::WaveTableOscillator,
+    voice2: oscillator::WaveTableOscillator,
+    lfo1: oscillator::WaveTableOscillator,
     pub voice1_envelope: envelope::EnvelopeGenerator,
     voice2_envelope: envelope::EnvelopeGenerator,
     pub filter: Filter,
@@ -42,7 +52,7 @@ impl Synth {
     /// It returns a new `Synth` instance with the specified configuration.
     pub fn new(sample_rate: u16, patch: Patch) -> Synth {
         Synth {
-            voice1: oscillator::Oscillator::new(
+            voice1: oscillator::WaveTableOscillator::new(
                 440,
                 patch.voice_1,
                 patch.voice_1_detune,
@@ -50,7 +60,7 @@ impl Synth {
                 patch.glide,
                 patch.glide_rate,
             ),
-            voice2: oscillator::Oscillator::new(
+            voice2: oscillator::WaveTableOscillator::new(
                 440,
                 patch.voice_2,
                 patch.voice_2_detune,
@@ -58,7 +68,7 @@ impl Synth {
                 patch.glide,
                 patch.glide_rate,
             ),
-            lfo1: oscillator::Oscillator::new(
+            lfo1: oscillator::WaveTableOscillator::new(
                 patch.lfo_1 as u16,
                 oscillator::Waveform::Square,
                 0,
@@ -100,7 +110,7 @@ impl Synth {
         // LFOs are used to modulate parameters, this one affects the pitch of voice 1
         let lfo1_waveform = oscillator::Waveform::SawTooth; // Type of wave used by the LFO
         let lfo1_freq = patch.lfo_1 as u16; // Frequency of the LFO (in Hz)
-        self.voice1 = oscillator::Oscillator::new(
+        self.voice1 = oscillator::WaveTableOscillator::new(
             voice1_freq,
             patch.voice_1,
             voice1_detune,
@@ -108,7 +118,7 @@ impl Synth {
             patch.glide,
             patch.glide_rate,
         );
-        self.voice2 = oscillator::Oscillator::new(
+        self.voice2 = oscillator::WaveTableOscillator::new(
             voice2_freq,
             patch.voice_2,
             voice2_detune,
@@ -122,7 +132,7 @@ impl Synth {
         let voice2_env_params = patch.voice_2_env;
 
         self.lfo1 =
-            oscillator::Oscillator::new(lfo1_freq, lfo1_waveform, 0, self.sample_rate, false, 1);
+            oscillator::WaveTableOscillator::new(lfo1_freq, lfo1_waveform, 0, self.sample_rate, false, 1);
 
         self.voice1_envelope =
             envelope::EnvelopeGenerator::new(voice1_env_params, self.sample_rate);
@@ -151,16 +161,16 @@ impl Synth {
     ///
     fn clock(&mut self) -> i16 {
         // Clock the envelopes for Voice 1 and Voice 2
-        let envelope1 = self.voice1_envelope.clock();
-        let envelope2 = self.voice2_envelope.clock();
+        let envelope1 = self.voice1_envelope.clock(None);
+        let envelope2 = self.voice2_envelope.clock(None);
 
         // Generate samples for each voice, taking into account gain settings
         let mut voice_1_sample =
-            math::percentage(self.voice1.clock(), self.mixer.gain_voice_1 as i16);
-        let voice_2_sample = math::percentage(self.voice2.clock(), self.mixer.gain_voice_2 as i16);
+            math::percentage(self.voice1.clock(None), self.mixer.gain_voice_1 as i16);
+        let voice_2_sample = math::percentage(self.voice2.clock(None), self.mixer.gain_voice_2 as i16);
 
         // Clock the Low Frequency Oscillator (LFO) for Voice 1
-        let lfo1 = self.lfo1.clock();
+        let lfo1 = self.lfo1.clock(None);
 
         // Apply LFO modulation to Voice 1 sample if enabled
         if self.mixer.gain_lfo_1 != 0 {

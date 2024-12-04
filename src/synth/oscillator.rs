@@ -1,5 +1,6 @@
-//! Oscillator to generate sounds using Wavetable synthesis.
+//! WaveTableOscillator to generate sounds using Wavetable synthesis.
 use super::data::wavetables;
+use super::Clockable;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
@@ -36,7 +37,7 @@ impl Waveform {
     }
 }
 
-pub struct Oscillator {
+pub struct WaveTableOscillator {
     waveform: Waveform,
     pub freq: u16,
     t: u16,
@@ -53,7 +54,43 @@ pub struct Oscillator {
     glide_rate: u8,
 }
 
-impl Oscillator {
+impl Clockable for WaveTableOscillator {
+    fn clock(&mut self, _sample: Option<i16>) -> i16 {
+        if self.t == self.one_shot_loop {
+            self.t = 0;
+            if self.freq_change {
+                if self.freq != self.target_freq {
+                    if self.freq.abs_diff(self.target_freq) < self.freq_step.abs() as u16 {
+                        self.freq = self.target_freq;
+                        self.freq_change = false;
+                    } else {
+                        self.freq = (self.freq as i16 + self.freq_step) as u16;
+                    }
+                } else {
+                    self.freq_change = false;
+                }
+                self.one_shot_loop = (self.sample_rate / self.freq as u16) as u16;
+                self.calculate_lookup_table();
+            }
+        };
+        let output: i16;
+        match &self.waveform {
+            Waveform::Noise => {
+                output = self
+                    .random
+                    .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
+            }
+            _ => {
+                output = self.waveform_lookup_table[self.lookup_table[self.t as usize] as usize]
+                    / HEADROOM_DIVIDER
+            }
+        }
+        self.t = self.t + 1;
+        output
+    }
+}
+
+impl WaveTableOscillator {
     pub fn new(
         freq: u16,
         waveform: Waveform,
@@ -108,39 +145,5 @@ impl Oscillator {
             }
             self.freq_change = true;
         }
-    }
-
-    pub fn clock(&mut self) -> i16 {
-        if self.t == self.one_shot_loop {
-            self.t = 0;
-            if self.freq_change {
-                if self.freq != self.target_freq {
-                    if self.freq.abs_diff(self.target_freq) < self.freq_step.abs() as u16 {
-                        self.freq = self.target_freq;
-                        self.freq_change = false;
-                    } else {
-                        self.freq = (self.freq as i16 + self.freq_step) as u16;
-                    }
-                } else {
-                    self.freq_change = false;
-                }
-                self.one_shot_loop = (self.sample_rate / self.freq as u16) as u16;
-                self.calculate_lookup_table();
-            }
-        };
-        let output: i16;
-        match &self.waveform {
-            Waveform::Noise => {
-                output = self
-                    .random
-                    .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
-            }
-            _ => {
-                output = self.waveform_lookup_table[self.lookup_table[self.t as usize] as usize]
-                    / HEADROOM_DIVIDER
-            }
-        }
-        self.t = self.t + 1;
-        output
     }
 }

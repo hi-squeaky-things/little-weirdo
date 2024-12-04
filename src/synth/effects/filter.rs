@@ -1,5 +1,5 @@
 //! Lowpass filter 
-use crate::synth::effect::Effect;
+use crate::synth::effects::Effect;
 
 #[derive(Copy, Clone)]
 pub struct FilterConfig {

@@ -1,6 +1,6 @@
 //! Patch to config the sounds
  
-use super::{envelope::Envelop, filter::FilterConfig, oscillator::Waveform, patches::Patches};
+use super::{envelope::Envelop, effects::filter::FilterConfig, oscillator::Waveform, patches::Patches};
 
 pub struct Patch {
     /// The waveform for voice one, this is one of the available WaveTable waveforms

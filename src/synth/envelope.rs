@@ -2,7 +2,7 @@
 
 use crate::synth::math::percentage;
 
-use super::math;
+use super::{math, Clockable};
 
 #[derive(PartialEq)]
 pub enum EnvelopeState {
@@ -37,24 +37,8 @@ pub struct EnvelopeGenerator {
     gate_open_counter: u8,
 }
 
-impl EnvelopeGenerator {
-    pub fn new(envelop: Envelop, sample_rate: u16) -> Self {
-        Self {
-            envelop,
-            gate: false,
-            state: EnvelopeState::Idle,
-            t: 0,
-            clock_counter_1ms: sample_rate / 1000,
-            envelop_divider: 0,
-            current_level: 0,
-            release_level: 0,
-            cycle_end_time: 0,
-            retrigger_level: 0,
-            gate_open_counter: 0,
-        }
-    }
-
-    pub fn clock(&mut self) -> i16 {
+impl Clockable for EnvelopeGenerator {
+    fn clock(&mut self, _sample: Option<i16>) -> i16 {
         if !self.gate && self.state == EnvelopeState::Idle {
             return 0;
         }
@@ -109,6 +93,24 @@ impl EnvelopeGenerator {
         self.t += 1;
         self.current_level = output as i16;
         self.current_level
+    }
+}
+
+impl EnvelopeGenerator {
+    pub fn new(envelop: Envelop, sample_rate: u16) -> Self {
+        Self {
+            envelop,
+            gate: false,
+            state: EnvelopeState::Idle,
+            t: 0,
+            clock_counter_1ms: sample_rate / 1000,
+            envelop_divider: 0,
+            current_level: 0,
+            release_level: 0,
+            cycle_end_time: 0,
+            retrigger_level: 0,
+            gate_open_counter: 0,
+        }
     }
 
     fn transistion_state(&mut self, state: EnvelopeState) {
