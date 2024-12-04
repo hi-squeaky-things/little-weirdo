@@ -11,6 +11,8 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 ## How to use it
 
 ```rust
+#![no_std]
+
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::Synth;
 // Choose a predefined patch (or create your own).

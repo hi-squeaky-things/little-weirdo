@@ -37,7 +37,7 @@ pub struct Patch {
 
 impl Patch {
     pub fn default() -> Patch {
-        let patch: Patch = Patches::get_patch(Patches::bass_guitar);
+        let patch: Patch = Patches::get_patch(Patches::BassGuitar);
         patch
     }
 }

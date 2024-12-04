@@ -1,4 +1,5 @@
 //! Lowpass filter 
+use crate::synth::effect::Effect;
 
 #[derive(Copy, Clone)]
 pub struct FilterConfig {
@@ -15,6 +16,20 @@ pub struct Filter {
     pub filter_on: bool,
     sample_rate: u16,
     _24db: bool,
+}
+
+impl Effect for Filter {
+    fn clock(&mut self, mut sample: i16) -> i16 {
+        if self.filter_on {
+            // put current sample through the low-pass filter
+            if self._24db {
+                sample = self.lowpass_filter(sample);
+            }
+            self.lowpass_filter(sample)
+        } else {
+            sample
+        }
+    }
 }
 
 impl Filter {
@@ -38,17 +53,7 @@ impl Filter {
         let dt = 1.0 / self.sample_rate as f32;
         self.alpha = dt / (rc + dt);
     }
-    pub fn clock(&mut self, mut sample: i16) -> i16 {
-        if self.filter_on {
-            // put current sample through the low-pass filter
-            if self._24db {
-                sample = self.lowpass_filter(sample);
-            }
-            self.lowpass_filter(sample)
-        } else {
-            sample
-        }
-    }
+
 
     pub fn change_freq(&mut self, cv: i16) {
         self.current_cutoff_frequency = self.cutoff_frequency + cv;

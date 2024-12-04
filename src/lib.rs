@@ -11,6 +11,7 @@
 //! 
 //! Example usage:
 //! ```
+//! #![no_std]
 //! use little_weirdo::synth::patch::Patch;
 //! use little_weirdo::synth::Synth;
 //! // Choose a predefined patch (or create your own).

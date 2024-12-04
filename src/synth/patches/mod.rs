@@ -6,16 +6,16 @@ use super::filter::FilterConfig;
 #[derive(PartialEq)]
 #[derive(Clone, Copy)]
 pub enum Patches {
-    bass_guitar,
-    eletric_piano,
-    gliding_bass_guitar,
-    hihat,
+    BassGuitar,
+    EletricPiano,
+    GlidingBassGuitar,
+    Hihat,
 }
 
 impl Patches {
     pub fn get_patch(name: Patches) -> Patch {
        match name {
-        Patches::bass_guitar => Patch {
+        Patches::BassGuitar => Patch {
                 voice_1: Waveform::Bass,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::Bass,
@@ -46,7 +46,7 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-            Patches::eletric_piano => Patch {
+            Patches::EletricPiano => Patch {
                 voice_1: Waveform::Piano,
                 voice_1_mix_level: 50,
                 voice_2: Waveform::Piano,
@@ -77,7 +77,7 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-            Patches::gliding_bass_guitar => Patch {
+            Patches::GlidingBassGuitar => Patch {
                 voice_1: Waveform::Bass,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::Bass,
@@ -108,7 +108,7 @@ impl Patches {
                 glide_rate: 30,
                 mono: true,
             },
-           Patches::hihat => Patch {
+           Patches::Hihat => Patch {
                 voice_1: Waveform::EightBit,
                 voice_1_mix_level: 50,
                 voice_2: Waveform::Square10,

@@ -1,5 +1,7 @@
 //use std::println;
 
+use effect::Effect;
+
 use self::{data::frequencies::MIDI2FREQ, filter::Filter, mixer::Mixer, patch::Patch};
 
 pub mod data;
@@ -10,6 +12,7 @@ pub mod mixer;
 pub mod oscillator;
 pub mod patch;
 pub mod patches;
+pub mod effect;
 
 pub struct Synth {
     pub voice1: oscillator::Oscillator,
@@ -75,7 +78,7 @@ impl Synth {
             sample_rate,
             voice_active_count: 0,
             voice_active: [0, 0],
-            voices: if patch.mono == true { 1 } else { 2 },
+            voices: if patch.mono { 1 } else { 2 },
         }
     }
 

@@ -39,14 +39,14 @@ enum PatchChooser {
 impl Default for LttLSqueaky {
     fn default() -> Self {
 
-        let current_patch = Patches::bass_guitar;
+        let current_patch = Patches::BassGuitar;
         let patch = Patches::get_patch(current_patch);
         let synth = synth::Synth::new(44100, patch);
 
 
         Self {
             params: Arc::new(LttLSqueakyParams::default()),
-            current_patch: Patches::bass_guitar,
+            current_patch: Patches::BassGuitar,
             synth: synth,
         }
     }
@@ -117,16 +117,16 @@ impl Plugin for LttLSqueaky {
         let mut next_event = context.next_event();
         match self.params.patch.value() {
             PatchChooser::bass_guitar => {
-                if self.current_patch != Patches::bass_guitar {
-                    let current_patch = Patches::bass_guitar;
+                if self.current_patch != Patches::BassGuitar {
+                    let current_patch = Patches::BassGuitar;
                     let patch = Patches::get_patch(current_patch);
                     self.current_patch = current_patch;
                     self.synth.load_patch(patch);
                 }
             },
             PatchChooser::eletric_piano => {
-                if self.current_patch != Patches::eletric_piano {
-                    let current_patch = Patches::eletric_piano;
+                if self.current_patch != Patches::EletricPiano {
+                    let current_patch = Patches::EletricPiano;
                     let patch = Patches::get_patch(current_patch);
                     self.current_patch = current_patch;
                     self.synth.load_patch(patch);
