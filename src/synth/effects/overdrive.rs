@@ -3,7 +3,8 @@ use crate::synth::effects::Effect;
 
 pub enum KindOfOverdrive {
     Hard,
-    Soft
+    Soft,
+    Softer,
 }
 
 
@@ -31,6 +32,14 @@ impl Effect for Overdrive {
             }
           } 
           KindOfOverdrive::Soft => {
+            if sample > self.threshold || -sample > self.threshold {
+                if sample > 0 {
+                    return (sample-self.threshold) / 2 + self.threshold;
+                }
+                return (-sample-self.threshold) / 2 - self.threshold;
+            }
+          } 
+          KindOfOverdrive::Softer => {
             if sample > self.threshold || -sample > self.threshold {
                 if sample > 0 {
                     return (sample-self.threshold) / 4 + self.threshold;
