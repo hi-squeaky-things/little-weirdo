@@ -5,26 +5,21 @@ use crate::synth::effects::Effect;
 pub struct FilterConfig {
     pub cutoff_frequency: i16,
     pub filter_on: bool,
-    pub _24db: bool,
 }
 
-pub struct Filter {
+pub struct LowPassFilter {
     previous_sample: f32,
     alpha: f32,
     pub cutoff_frequency: i16,
     current_cutoff_frequency: i16,
     pub filter_on: bool,
     sample_rate: u16,
-    _24db: bool,
 }
 
-impl Effect for Filter {
-    fn clock(&mut self, mut sample: i16) -> i16 {
+impl Effect for LowPassFilter {
+    fn clock(&mut self, sample: i16) -> i16 {
         if self.filter_on {
             // put current sample through the low-pass filter
-            if self._24db {
-                sample = self.lowpass_filter(sample);
-            }
             self.lowpass_filter(sample)
         } else {
             sample
@@ -32,7 +27,7 @@ impl Effect for Filter {
     }
 }
 
-impl Filter {
+impl LowPassFilter {
     pub fn new(sample_rate: u16, config: FilterConfig) -> Self {
         let mut filter = Self {
             cutoff_frequency: config.cutoff_frequency,
@@ -41,7 +36,6 @@ impl Filter {
             alpha: 0.0,
             sample_rate,
             current_cutoff_frequency: config.cutoff_frequency,
-            _24db: config._24db,
         };
         filter.prepare_filter();
         filter

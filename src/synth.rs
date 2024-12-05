@@ -12,7 +12,7 @@ pub mod patches;
 pub mod effects;
 use effects::{overdrive::Overdrive, Effect};
 
-use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
+use self::{data::frequencies::MIDI2FREQ, effects::filter::LowPassFilter, mixer::Mixer, patch::Patch};
 
 
 pub trait Clockable {
@@ -30,13 +30,14 @@ pub struct Synth {
     lfo1: oscillator::WaveTableOscillator,
     pub voice1_envelope: envelope::EnvelopeGenerator,
     voice2_envelope: envelope::EnvelopeGenerator,
-    pub filter: Filter,
+    pub filter: LowPassFilter,
     pub overdrive: Overdrive,
     pub mixer: Mixer,
     sample_rate: u16,
     voices: u8,
     voice_active_count: u8,
     voice_active: [u8; 2],
+    overdrive_active: bool,
 }
 
 ///
@@ -79,7 +80,7 @@ impl Synth {
             ),
             voice1_envelope: envelope::EnvelopeGenerator::new(patch.voice_1_env, sample_rate),
             voice2_envelope: envelope::EnvelopeGenerator::new(patch.voice_2_env, sample_rate),
-            filter: Filter::new(sample_rate, patch.filter_config),
+            filter: LowPassFilter::new(sample_rate, patch.filter_config),
             mixer: Mixer::new(
                 patch.voice_1_mix_level,
                 patch.voice_2_mix_level,
@@ -90,7 +91,8 @@ impl Synth {
             voice_active_count: 0,
             voice_active: [0, 0],
             voices: if patch.mono { 1 } else { 2 },
-            overdrive: Overdrive::new(1000, effects::overdrive::KindOfOverdrive::Soft),
+            overdrive_active: patch.overdrive,
+            overdrive: Overdrive::new(1000, patch.overdrive_mode),
         }
     }
 
@@ -144,7 +146,7 @@ impl Synth {
         // Filter configures how the sound is modified after being generated
         let filter_config = patch.filter_config;
 
-        self.filter = Filter::new(self.sample_rate, filter_config);
+        self.filter = LowPassFilter::new(self.sample_rate, filter_config);
 
         // The mixer controls the overall level of each voice and the main gain
         let mix_levels = (
@@ -153,6 +155,9 @@ impl Synth {
             patch.lfo_1_mix_level,
         );
         let main_gain = patch.main_gain;
+
+        self.overdrive_active = patch.overdrive;
+        self.overdrive = Overdrive::new(1000, patch.overdrive_mode);
 
         self.mixer = Mixer::new(mix_levels.0, mix_levels.1, mix_levels.2, main_gain);
     }
@@ -191,7 +196,7 @@ impl Synth {
 
         // Finally, apply main gain setting and return the final sample value
         mix_and_max_gain = math::percentage(filtered_signal, self.mixer.gain_main as i16);
-        mix_and_max_gain = self.overdrive.clock(mix_and_max_gain);
+        if self.overdrive_active { mix_and_max_gain = self.overdrive.clock(mix_and_max_gain); }
         mix_and_max_gain
     }
 

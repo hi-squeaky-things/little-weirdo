@@ -1,3 +1,4 @@
+//! Effects
 pub mod filter;
 pub mod overdrive;
 

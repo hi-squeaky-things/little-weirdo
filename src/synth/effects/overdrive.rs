@@ -1,3 +1,4 @@
+//! Overdrive 
 use crate::synth::effects::Effect;
 
 pub enum KindOfOverdrive {

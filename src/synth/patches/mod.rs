@@ -1,10 +1,10 @@
+use super::effects::filter::FilterConfig;
+use super::effects::overdrive::KindOfOverdrive;
+use super::envelope::Envelop;
 use super::oscillator::Waveform;
 use super::Patch;
-use super::envelope::Envelop;
-use super::effects::filter::FilterConfig;
 
-#[derive(PartialEq)]
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Patches {
     BassGuitar,
     EletricPiano,
@@ -14,12 +14,12 @@ pub enum Patches {
 
 impl Patches {
     pub fn get_patch(name: Patches) -> Patch {
-       match name {
-        Patches::BassGuitar => Patch {
-                voice_1: Waveform::Bass,
+        match name {
+            Patches::BassGuitar => Patch {
+                voice_1: Waveform::EightBit,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::Bass,
-                voice_2_mix_level: 0,
+                voice_2_mix_level: 50,
                 lfo_1: 20,
                 lfo_1_mix_level: 0,
                 voice_1_env: Envelop {
@@ -29,22 +29,23 @@ impl Patches {
                     sustain_level: 80,
                 },
                 voice_2_env: Envelop {
-                    attack_time: 500,
-                    decay_time: 150,
-                    release_time: 150,
-                    sustain_level: 50,
+                    attack_time: 10,
+                    decay_time: 10,
+                    release_time: 200,
+                    sustain_level: 80,
                 },
                 voice_1_detune: 0,
-                voice_2_detune: 14,
+                voice_2_detune: 4,
                 filter_config: FilterConfig {
-                    cutoff_frequency: 100,
+                    cutoff_frequency: 300,
                     filter_on: true,
-                    _24db: false,
                 },
-                main_gain: 50,
+                main_gain: 80,
                 glide: false,
                 glide_rate: 30,
                 mono: true,
+                overdrive: false,
+                overdrive_mode: KindOfOverdrive::Soft,
             },
             Patches::EletricPiano => Patch {
                 voice_1: Waveform::Piano,
@@ -70,12 +71,13 @@ impl Patches {
                 filter_config: FilterConfig {
                     cutoff_frequency: 400,
                     filter_on: false,
-                    _24db: false,
                 },
                 main_gain: 50,
                 glide: false,
                 glide_rate: 30,
                 mono: true,
+                overdrive: false,
+                overdrive_mode: KindOfOverdrive::Hard,
             },
             Patches::GlidingBassGuitar => Patch {
                 voice_1: Waveform::Bass,
@@ -101,14 +103,15 @@ impl Patches {
                 filter_config: FilterConfig {
                     cutoff_frequency: 100,
                     filter_on: true,
-                    _24db: false,
                 },
                 main_gain: 50,
                 glide: true,
                 glide_rate: 30,
                 mono: true,
+                overdrive: false,
+                overdrive_mode: KindOfOverdrive::Hard,
             },
-           Patches::Hihat => Patch {
+            Patches::Hihat => Patch {
                 voice_1: Waveform::EightBit,
                 voice_1_mix_level: 50,
                 voice_2: Waveform::Square10,
@@ -132,16 +135,14 @@ impl Patches {
                 filter_config: FilterConfig {
                     cutoff_frequency: 100,
                     filter_on: false,
-                    _24db: false,
                 },
                 main_gain: 50,
                 glide: false,
                 glide_rate: 30,
                 mono: true,
+                overdrive: false,
+                overdrive_mode: KindOfOverdrive::Hard,
             },
         }
     }
 }
-
-
- 

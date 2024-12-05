@@ -132,16 +132,22 @@ impl WaveTableOscillator {
         }
     }
 
-    pub fn change_freq(&mut self, freq: u16) {
-        if self.freq != freq {
-            self.target_freq = freq;
+    /// Change the frequency of this oscillator. If glide is set, the oscillator will glide to the new freq. 
+    ///
+    /// # Parameters
+    ///
+    /// * `freq`: The new frequency of this oscillator
+  
+    pub fn change_freq(&mut self, frequency: u16) {
+        if self.freq != frequency {
+            self.target_freq = frequency;
             if self.glide {
-                self.freq_step = (freq as i16 - self.freq as i16) / self.glide_rate as i16;
+                self.freq_step = (frequency as i16 - self.freq as i16) / self.glide_rate as i16;
                 if self.freq_step == 0 {
-                    self.freq_step = (freq as i16 - self.freq as i16) / 2;
+                    self.freq_step = (frequency as i16 - self.freq as i16) / 2;
                 };
             } else {
-                self.freq = freq;
+                self.freq = frequency;
             }
             self.freq_change = true;
         }

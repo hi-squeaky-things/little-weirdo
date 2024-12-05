@@ -1,6 +1,6 @@
 //! Patch to config the sounds
  
-use super::{envelope::Envelop, effects::filter::FilterConfig, oscillator::Waveform, patches::Patches};
+use super::{effects::{filter::FilterConfig, overdrive::{self, KindOfOverdrive}}, envelope::Envelop, oscillator::Waveform, patches::Patches};
 
 pub struct Patch {
     /// The waveform for voice one, this is one of the available WaveTable waveforms
@@ -33,6 +33,9 @@ pub struct Patch {
     pub glide_rate: u8,
     /// Mono mode enabled or disabled, default is false
     pub mono: bool,
+    /// Mono mode enabled or disabled, default is false
+    pub overdrive: bool,
+    pub overdrive_mode: KindOfOverdrive,    
 }
 
 impl Patch {
