@@ -32,7 +32,7 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: Patch = Patch::default();
+    let patch: Patch = Patches::get_patch(Patches::EletricPiano);
     let mut synth: synth::Synth = synth::Synth::new(44100, patch);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -92,7 +92,10 @@ fn setup_device() -> (Device, StreamConfig) {
 
 fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
     match command {
-        MidiMessage::NoteOn(ch, e) => synth.note_on(0, e.key, e.value),
+        MidiMessage::NoteOn(ch, e) => {
+            println!("Note : {:?}", e.key);
+            synth.note_on(0, e.key, e.value)
+        },
         MidiMessage::NoteOff(ch, e) => synth.note_off(0, e.key),
         MidiMessage::ControlChange(ch, e) => {
             if e.control == 70 {
