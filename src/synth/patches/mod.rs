@@ -9,7 +9,7 @@ pub enum Patches {
     BassGuitar,
     EletricPiano,
     GlidingBassGuitar,
-    Hihat,
+    WeirdScience,
 }
 
 impl Patches {
@@ -19,7 +19,7 @@ impl Patches {
                 voice_1: Waveform::Bass,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::EightBit,
-                voice_2_mix_level: 0,
+                voice_2_mix_level: 20,
                 lfo_1: 20,
                 lfo_1_mix_level: 0,
                 voice_1_env: Envelop {
@@ -40,9 +40,9 @@ impl Patches {
                     cutoff_frequency: 500,
                     filter_on: false,
                 },
-                main_gain: 80,
-                glide: false,
-                glide_rate: 30,
+                main_gain: 100,
+                glide: true,
+                glide_rate: 50,
                 mono: true,
                 overdrive: false,
                 overdrive_mode: KindOfOverdrive::Hard,
@@ -111,8 +111,8 @@ impl Patches {
                 overdrive: false,
                 overdrive_mode: KindOfOverdrive::Hard,
             },
-            Patches::Hihat => Patch {
-                voice_1: Waveform::EightBit,
+            Patches::WeirdScience => Patch {
+                voice_1: Waveform::Triangle,
                 voice_1_mix_level: 50,
                 voice_2: Waveform::Square10,
                 voice_2_mix_level: 50,

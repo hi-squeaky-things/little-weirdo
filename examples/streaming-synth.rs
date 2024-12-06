@@ -32,7 +32,7 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: Patch = Patches::get_patch(Patches::EletricPiano);
+    let patch: Patch = Patches::get_patch(Patches::WeirdScience);
     let mut synth: synth::Synth = synth::Synth::new(44100, patch);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
