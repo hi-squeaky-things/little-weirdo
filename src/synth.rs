@@ -37,7 +37,7 @@ pub struct Synth {
     voices: u8,
     voice_active_count: u8,
     voice_active: [u8; 2],
-    overdrive_active: bool,
+    pub overdrive_active: bool,
 }
 
 ///
@@ -293,6 +293,10 @@ impl Synth {
                     }
                 }
             }
+            0x01 => {
+                self.voice1_envelope.close_gate();
+                self.voice2_envelope.close_gate();
+            } 
             _ => {}
         };
     }

@@ -7,7 +7,7 @@ use super::Patch;
 #[derive(PartialEq, Clone, Copy)]
 pub enum Patches {
     BassGuitar,
-    EletricPiano,
+    ElectricPiano,
     GlidingBassGuitar,
     WeirdScience,
 }
@@ -47,7 +47,7 @@ impl Patches {
                 overdrive: false,
                 overdrive_mode: KindOfOverdrive::Hard,
             },
-            Patches::EletricPiano => Patch {
+            Patches::ElectricPiano => Patch {
                 voice_1: Waveform::Piano,
                 voice_1_mix_level: 100,
                 voice_2: Waveform::EightBit,
@@ -114,20 +114,20 @@ impl Patches {
             Patches::WeirdScience => Patch {
                 voice_1: Waveform::Triangle,
                 voice_1_mix_level: 50,
-                voice_2: Waveform::Square10,
+                voice_2: Waveform::EightBit,
                 voice_2_mix_level: 50,
                 lfo_1: 20,
                 lfo_1_mix_level: 0,
                 voice_1_env: Envelop {
-                    attack_time: 10,
-                    decay_time: 10,
-                    release_time: 10,
+                    attack_time: 100,
+                    decay_time: 50,
+                    release_time: 100,
                     sustain_level: 80,
                 },
                 voice_2_env: Envelop {
-                    attack_time: 10,
-                    decay_time: 10,
-                    release_time: 10,
+                    attack_time: 100,
+                    decay_time: 50,
+                    release_time: 100,
                     sustain_level: 80,
                 },
                 voice_1_detune: 0,
@@ -140,8 +140,8 @@ impl Patches {
                 glide: false,
                 glide_rate: 30,
                 mono: true,
-                overdrive: false,
-                overdrive_mode: KindOfOverdrive::Hard,
+                overdrive: true,
+                overdrive_mode: KindOfOverdrive::Softer,
             },
         }
     }
