@@ -113,8 +113,8 @@ impl Patches {
             },
             Patches::WeirdScience => Patch {
                 voice_1: Waveform::Triangle,
-                voice_1_mix_level: 50,
-                voice_2: Waveform::EightBit,
+                voice_1_mix_level: 80,
+                voice_2: Waveform::Noise,
                 voice_2_mix_level: 50,
                 lfo_1: 20,
                 lfo_1_mix_level: 0,
@@ -131,17 +131,17 @@ impl Patches {
                     sustain_level: 80,
                 },
                 voice_1_detune: 0,
-                voice_2_detune: 4,
+                voice_2_detune: 0,
                 filter_config: FilterConfig {
                     cutoff_frequency: 100,
-                    filter_on: false,
+                    filter_on: true,
                 },
                 main_gain: 50,
                 glide: false,
                 glide_rate: 30,
                 mono: true,
                 overdrive: true,
-                overdrive_mode: KindOfOverdrive::Softer,
+                overdrive_mode: KindOfOverdrive::Hard,
             },
         }
     }

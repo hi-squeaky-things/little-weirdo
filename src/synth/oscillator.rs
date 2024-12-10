@@ -138,6 +138,15 @@ impl WaveTableOscillator {
     ///
     /// * `freq`: The new frequency of this oscillator
   
+   pub fn reload(&mut self, waveform: Waveform, detune:i8, glide:bool, glide_rate:u8) {
+     self.waveform = waveform;
+     self.detune = detune;
+     self.glide = glide;
+     self.glide_rate = glide_rate;
+     self.waveform_lookup_table = Waveform::get_waveform_lookup_table(&self.waveform);
+    // self.calculate_lookup_table();
+   }
+
     pub fn change_freq(&mut self, frequency: u16) {
         if self.freq != frequency {
             self.target_freq = frequency;

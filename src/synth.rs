@@ -105,48 +105,16 @@ impl Synth {
     ///
     ///
     pub fn load_patch(&mut self, patch: Patch) {
-        // Create oscillators for both voices with their respective frequencies and detunes
-        let voice1_freq = 440; // The base frequency of the oscillator (A4)
-        let voice2_freq = 440;
-        let voice1_detune = patch.voice_1_detune; // Detune value for voice 1
-        let voice2_detune = patch.voice_2_detune;
+        self.voice1.reload(patch.voice_1, patch.voice_1_detune, patch.glide, patch.glide_rate);
+        self.voice2.reload(patch.voice_2, patch.voice_2_detune, patch.glide, patch.glide_rate);
 
-        // LFOs are used to modulate parameters, this one affects the pitch of voice 1
-        let lfo1_waveform = oscillator::Waveform::SawTooth; // Type of wave used by the LFO
-        let lfo1_freq = patch.lfo_1 as u16; // Frequency of the LFO (in Hz)
-        self.voice1 = oscillator::WaveTableOscillator::new(
-            voice1_freq,
-            patch.voice_1,
-            voice1_detune,
-            self.sample_rate,
-            patch.glide,
-            patch.glide_rate,
-        );
-        self.voice2 = oscillator::WaveTableOscillator::new(
-            voice2_freq,
-            patch.voice_2,
-            voice2_detune,
-            self.sample_rate,
-            patch.glide,
-            patch.glide_rate,
-        );
+        self.lfo1.reload(oscillator::Waveform::SawTooth, 0, false, 1);
+        self.lfo1.change_freq(patch.lfo_1 as u16);
 
-        // Voice envelopes control the volume of each voice over time
-        let voice1_env_params = patch.voice_1_env; // Parameters for the voice 1 envelope (attack, decay, sustain, release)
-        let voice2_env_params = patch.voice_2_env;
-
-        self.lfo1 =
-            oscillator::WaveTableOscillator::new(lfo1_freq, lfo1_waveform, 0, self.sample_rate, false, 1);
-
-        self.voice1_envelope =
-            envelope::EnvelopeGenerator::new(voice1_env_params, self.sample_rate);
-        self.voice2_envelope =
-            envelope::EnvelopeGenerator::new(voice2_env_params, self.sample_rate);
-
-        // Filter configures how the sound is modified after being generated
-        let filter_config = patch.filter_config;
-
-        self.filter = LowPassFilter::new(self.sample_rate, filter_config);
+        self.voice1_envelope.reload(patch.voice_1_env);
+        self.voice2_envelope.reload(patch.voice_2_env);
+        
+        self.filter.reload(patch.filter_config);
 
         // The mixer controls the overall level of each voice and the main gain
         let mix_levels = (
@@ -157,9 +125,10 @@ impl Synth {
         let main_gain = patch.main_gain;
 
         self.overdrive_active = patch.overdrive;
-        self.overdrive = Overdrive::new(1000, patch.overdrive_mode);
+        self.overdrive.kind =  patch.overdrive_mode;
 
         self.mixer = Mixer::new(mix_levels.0, mix_levels.1, mix_levels.2, main_gain);
+        
     }
 
     ///

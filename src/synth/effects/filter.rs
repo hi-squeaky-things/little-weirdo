@@ -41,6 +41,12 @@ impl LowPassFilter {
         filter
     }
 
+    pub fn reload(&mut self, config: FilterConfig) {
+        self.cutoff_frequency = config.cutoff_frequency;
+        self.filter_on = config.filter_on;
+        self.prepare_filter();
+    }
+
     fn prepare_filter(&mut self) {
         let rc = 1.0 / (self.current_cutoff_frequency as f32 * 2.0 * core::f32::consts::PI);
         // time per sample

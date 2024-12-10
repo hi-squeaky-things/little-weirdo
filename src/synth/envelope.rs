@@ -113,6 +113,10 @@ impl EnvelopeGenerator {
         }
     }
 
+    pub fn reload(&mut self, envelop: Envelop) {
+        self.envelop = envelop;
+    }
+
     fn transistion_state(&mut self, state: EnvelopeState) {
         self.state = state;
         self.t = 0;
