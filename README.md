@@ -46,5 +46,5 @@ $ cargo build
 ### LttL Weirdo - VST3/Clap Plugin 
 ```
 $ cd plugin/lttl_squeaky
-$ cargo xtask bundle lttl_squeaaky --release
+$ cargo xtask bundle lttl_squeaky --release
 ```
