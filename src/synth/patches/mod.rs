@@ -1,5 +1,5 @@
 use super::effects::filter::FilterConfig;
-use super::effects::overdrive::KindOfOverdrive;
+use super::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use super::envelope::Envelop;
 use super::oscillator::Waveform;
 use super::Patch;
@@ -44,8 +44,11 @@ impl Patches {
                 glide: true,
                 glide_rate: 50,
                 mono: true,
-                overdrive: false,
-                overdrive_mode: KindOfOverdrive::Hard,
+                overdrive: OverdriveConfiguration {
+                    threshold:1000,
+                    kind: KindOfOverdrive::Hard,
+                    pass_through: true,
+                },
             },
             Patches::ElectricPiano => Patch {
                 voice_1: Waveform::Piano,
@@ -76,8 +79,11 @@ impl Patches {
                 glide: false,
                 glide_rate: 30,
                 mono: true,
-                overdrive: false,
-                overdrive_mode: KindOfOverdrive::Soft,
+                overdrive: OverdriveConfiguration {
+                    threshold:1000,
+                    kind: KindOfOverdrive::Hard,
+                    pass_through: true,
+                },
             },
             Patches::GlidingBassGuitar => Patch {
                 voice_1: Waveform::Bass,
@@ -108,8 +114,11 @@ impl Patches {
                 glide: true,
                 glide_rate: 30,
                 mono: true,
-                overdrive: false,
-                overdrive_mode: KindOfOverdrive::Hard,
+                overdrive: OverdriveConfiguration {
+                    threshold:1000,
+                    kind: KindOfOverdrive::Hard,
+                    pass_through: true,
+                },
             },
             Patches::WeirdScience => Patch {
                 voice_1: Waveform::Triangle,
@@ -140,8 +149,11 @@ impl Patches {
                 glide: false,
                 glide_rate: 30,
                 mono: true,
-                overdrive: true,
-                overdrive_mode: KindOfOverdrive::Hard,
+                overdrive: OverdriveConfiguration {
+                    threshold:1000,
+                    kind: KindOfOverdrive::Hard,
+                    pass_through: true,
+                }
             },
         }
     }

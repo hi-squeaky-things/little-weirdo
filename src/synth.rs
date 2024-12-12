@@ -37,7 +37,6 @@ pub struct Synth {
     voices: u8,
     voice_active_count: u8,
     voice_active: [u8; 2],
-    pub overdrive_active: bool,
 }
 
 ///
@@ -91,8 +90,7 @@ impl Synth {
             voice_active_count: 0,
             voice_active: [0, 0],
             voices: if patch.mono { 1 } else { 2 },
-            overdrive_active: patch.overdrive,
-            overdrive: Overdrive::new(1000, patch.overdrive_mode),
+            overdrive: Overdrive::new(patch.overdrive),
         }
     }
 
@@ -124,8 +122,7 @@ impl Synth {
         );
         let main_gain = patch.main_gain;
 
-        self.overdrive_active = patch.overdrive;
-        self.overdrive.kind =  patch.overdrive_mode;
+        self.overdrive.reload(patch.overdrive);
 
         self.mixer = Mixer::new(mix_levels.0, mix_levels.1, mix_levels.2, main_gain);
         
@@ -165,7 +162,7 @@ impl Synth {
 
         // Finally, apply main gain setting and return the final sample value
         mix_and_max_gain = math::percentage(filtered_signal, self.mixer.gain_main as i16);
-        if self.overdrive_active { mix_and_max_gain = self.overdrive.clock(mix_and_max_gain); }
+        mix_and_max_gain = self.overdrive.clock(mix_and_max_gain); 
         mix_and_max_gain
     }
 

@@ -7,44 +7,54 @@ pub enum KindOfOverdrive {
     Softer,
 }
 
+pub struct OverdriveConfiguration {
+    pub threshold: i16,
+    pub kind: KindOfOverdrive,
+    pub pass_through: bool,
+}
 
 pub struct Overdrive {
-   pub threshold: i16,
-   pub kind: KindOfOverdrive,
+   pub config: OverdriveConfiguration
 }
 
 impl Overdrive {
-    pub fn new( threshold: i16, kind: KindOfOverdrive) -> Self {
+    pub fn new( config: OverdriveConfiguration) -> Self {
         Self {
-            threshold,
-            kind
+            config,
         }
+    }
+
+    pub fn reload(&mut self, config: OverdriveConfiguration) {
+        self.config = config;
     }
 }
  
 
 impl Effect for Overdrive {
     fn clock(&mut self, sample: i16) -> i16 {
-        match self.kind {
+        if self.config.pass_through {
+            return sample
+        }
+        match self.config.kind {
           KindOfOverdrive::Hard => {
-            if sample > self.threshold || -sample > self.threshold {
-                return self.threshold;
+            if sample > self.config.threshold || -sample > self.config.threshold {
+                return self.config.threshold;
             }
           } 
           KindOfOverdrive::Soft => {
-            if sample > self.threshold || -sample > self.threshold {
+            if sample > self.config.threshold || -sample > self.config.threshold {
                 if sample > 0 {
-                    return (sample-self.threshold) / 2 + self.threshold;
+                    return (sample-self.config.threshold) / 2 + self.config.threshold;
                 }
-                return (-sample-self.threshold) / 2 - self.threshold;
+                return (-sample-self.config.threshold) / 2 - self.config.threshold;
             }
           } 
           KindOfOverdrive::Softer => {
-            if sample > self.threshold || -sample > self.threshold {
+            if sample > self.config.threshold || -sample > self.config.threshold {
                 if sample > 0 {
-                    return (sample-self.threshold) / 4 + self.threshold;
+                    return (sample-self.config.threshold) / 4 + self.config.threshold;
                 }
-                return (-sample-self.threshold) / 4 - self.threshold;
+                return (-sample-self.config.threshold) / 4 - self.config.threshold;
             }
           } 
         }

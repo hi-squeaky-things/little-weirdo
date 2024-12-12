@@ -1,4 +1,4 @@
-/// generated using examples/create_note_to_freq_table.rs
+/// auto generated using examples/create_note_to_freq_table.rs
 pub static MIDI2FREQ: [u16; 127] = [
     8, 8, 9, 9, 10, 10, 11, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 27, 29, 30, 32,
     34, 36, 38, 41, 43, 46, 48, 51, 54, 58, 61, 65, 69, 73, 77, 82, 87, 92, 97, 103, 109, 116, 123,
