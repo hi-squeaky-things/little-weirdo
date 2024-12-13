@@ -1,7 +1,8 @@
 use super::effects::filter::FilterConfig;
 use super::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
-use super::envelope::Envelop;
-use super::oscillator::Waveform;
+use super::envelope::EnvelopConfiguration;
+use super::mixer::MixerConfiguration;
+use super::wavetable_oscillator::{WaveTableOscillatorConfig, Waveform};
 use super::Patch;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -15,146 +16,64 @@ pub enum Patches {
 impl Patches {
     pub fn get_patch(name: Patches) -> Patch {
         match name {
-            Patches::BassGuitar => Patch {
-                voice_1: Waveform::Bass,
-                voice_1_mix_level: 100,
-                voice_2: Waveform::EightBit,
-                voice_2_mix_level: 20,
-                lfo_1: 20,
-                lfo_1_mix_level: 0,
-                voice_1_env: Envelop {
-                    attack_time: 100,
-                    decay_time: 100,
-                    release_time: 100,
-                    sustain_level: 50,
-                },
-                voice_2_env: Envelop {
-                    attack_time: 10,
-                    decay_time: 10,
-                    release_time: 200,
+            _ => Patch { 
+                voice_1: WaveTableOscillatorConfig {
+                    waveform: Waveform::Piano,
+                    glide: false,
+                    glide_rate: 0,
+                    detune: 0,
+                    freq: 440,
+                }, 
+                voice_1_env: EnvelopConfiguration { 
+                    attack_time: 10, 
+                    decay_time: 10, 
+                    release_time: 100, 
+                    sustain_level: 80 
+                }, 
+                voice_2: WaveTableOscillatorConfig {
+                    waveform: Waveform::Piano,
+                    glide: false,
+                    glide_rate: 0,
+                    detune: 4,
+                    freq: 440,
+                },  
+                voice_3_env: EnvelopConfiguration { 
+                    attack_time: 10, 
+                    decay_time: 10, 
+                    release_time: 100, 
                     sustain_level: 80,
                 },
-                voice_1_detune: 0,
-                voice_2_detune: 4,
-                filter_config: FilterConfig {
-                    cutoff_frequency: 500,
-                    filter_on: false,
-                },
-                main_gain: 100,
-                glide: true,
-                glide_rate: 50,
-                mono: true,
-                overdrive: OverdriveConfiguration {
-                    threshold:1000,
-                    kind: KindOfOverdrive::Hard,
-                    pass_through: true,
-                },
-            },
-            Patches::ElectricPiano => Patch {
-                voice_1: Waveform::Piano,
-                voice_1_mix_level: 100,
-                voice_2: Waveform::EightBit,
-                voice_2_mix_level: 10,
-                lfo_1: 20,
-                lfo_1_mix_level: 0,
-                voice_1_env: Envelop {
-                    attack_time: 20,
-                    decay_time: 20,
-                    release_time: 500,
+                voice_3: WaveTableOscillatorConfig {
+                    waveform: Waveform::Piano,
+                    glide: false,
+                    glide_rate: 0,
+                    detune: 6,
+                    freq: 440,
+                },  
+                voice_2_env: EnvelopConfiguration { 
+                    attack_time: 10, 
+                    decay_time: 10, 
+                    release_time: 100, 
                     sustain_level: 80,
                 },
-                voice_2_env: Envelop {
-                    attack_time: 20,
-                    decay_time: 20,
-                    release_time: 500,
-                    sustain_level: 80,
+                filter_config: FilterConfig { 
+                    cutoff_frequency: 440, 
+                    filter_on: true, 
+                }, 
+                mixer_config: MixerConfiguration { 
+                    gain_voice_1: 33, 
+                    gain_voice_2: 33, 
+                    gain_voice_3: 33,
+                    gain_main: 50, 
                 },
-                voice_1_detune: 0,
-                voice_2_detune: 0,
-                filter_config: FilterConfig {
-                    cutoff_frequency: 400,
-                    filter_on: false,
-                },
-                main_gain: 50,
-                glide: false,
-                glide_rate: 30,
-                mono: true,
-                overdrive: OverdriveConfiguration {
-                    threshold:1000,
-                    kind: KindOfOverdrive::Hard,
-                    pass_through: true,
-                },
-            },
-            Patches::GlidingBassGuitar => Patch {
-                voice_1: Waveform::Bass,
-                voice_1_mix_level: 100,
-                voice_2: Waveform::Bass,
-                voice_2_mix_level: 0,
-                lfo_1: 20,
-                lfo_1_mix_level: 0,
-                voice_1_env: Envelop {
-                    attack_time: 10,
-                    decay_time: 10,
-                    release_time: 200,
-                    sustain_level: 80,
-                },
-                voice_2_env: Envelop {
-                    attack_time: 500,
-                    decay_time: 150,
-                    release_time: 150,
-                    sustain_level: 50,
-                },
-                voice_1_detune: 0,
-                voice_2_detune: 14,
-                filter_config: FilterConfig {
-                    cutoff_frequency: 100,
-                    filter_on: true,
-                },
-                main_gain: 50,
-                glide: true,
-                glide_rate: 30,
-                mono: true,
-                overdrive: OverdriveConfiguration {
-                    threshold:1000,
-                    kind: KindOfOverdrive::Hard,
-                    pass_through: true,
-                },
-            },
-            Patches::WeirdScience => Patch {
-                voice_1: Waveform::Triangle,
-                voice_1_mix_level: 80,
-                voice_2: Waveform::Noise,
-                voice_2_mix_level: 50,
-                lfo_1: 20,
-                lfo_1_mix_level: 0,
-                voice_1_env: Envelop {
-                    attack_time: 100,
-                    decay_time: 50,
-                    release_time: 100,
-                    sustain_level: 80,
-                },
-                voice_2_env: Envelop {
-                    attack_time: 100,
-                    decay_time: 50,
-                    release_time: 100,
-                    sustain_level: 80,
-                },
-                voice_1_detune: 0,
-                voice_2_detune: 0,
-                filter_config: FilterConfig {
-                    cutoff_frequency: 100,
-                    filter_on: true,
-                },
-                main_gain: 50,
-                glide: false,
-                glide_rate: 30,
-                mono: true,
-                overdrive: OverdriveConfiguration {
-                    threshold:1000,
-                    kind: KindOfOverdrive::Hard,
-                    pass_through: true,
-                }
+                overdrive_config: OverdriveConfiguration { 
+                    threshold: 1000, 
+                    kind: KindOfOverdrive::Softer, 
+                    pass_through: true, 
+                }, 
+                mono: true 
             },
         }
     }
 }
+

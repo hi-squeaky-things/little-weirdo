@@ -1,39 +1,32 @@
 //! Patch to config the sounds
  
-use super::{effects::{filter::FilterConfig, overdrive::{self, KindOfOverdrive, Overdrive, OverdriveConfiguration}}, envelope::Envelop, oscillator::Waveform, patches::Patches};
+use super::{effects::{filter::FilterConfig, overdrive::{self, KindOfOverdrive, Overdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patches::Patches, wavetable_oscillator::{WaveTableOscillatorConfig, Waveform}};
 
 pub struct Patch {
     /// The waveform for voice one, this is one of the available WaveTable waveforms
-    pub voice_1: Waveform,
-    /// Detune value for voice 1 (range -100 to 100)
-    pub voice_1_detune: i8,
-    /// Mix level for voice 1 (range 0 to 127)
-    pub voice_1_mix_level: u8,
-    /// The waveform for voice two, this is one of the available WaveTable waveforms
-    pub voice_2: Waveform,
-    /// Detune value for voice 2 (range -100 to 100)
-    pub voice_2_detune: i8,
-    /// Mix level for voice 2 (range 0 to 127)
-    pub voice_2_mix_level: u8,
-    /// LFO frequency
-    pub lfo_1: u8,
-    /// Level of the first LFO modulation signal (range 0 to 100%)
-    pub lfo_1_mix_level: u8,
+    pub voice_1: WaveTableOscillatorConfig,
     /// Envelope settings for voice 1
-    pub voice_1_env: Envelop,
+    pub voice_1_env: EnvelopConfiguration,
+
+    /// The waveform for voice two, this is one of the available WaveTable waveforms
+    pub voice_2: WaveTableOscillatorConfig,
     /// Envelope settings for voice 2
-    pub voice_2_env: Envelop,
+    pub voice_2_env: EnvelopConfiguration,
+
+
+    /// The waveform for voice two, this is one of the available WaveTable waveforms
+    pub voice_3: WaveTableOscillatorConfig,
+    /// Envelope settings for voice 2
+    pub voice_3_env: EnvelopConfiguration,
+
+
     /// Filter configuration, including cutoff and resonance
     pub filter_config: FilterConfig,
-    /// Overall main volume level (range 0 to 127)
-    pub main_gain: u8,
-    /// Glide function enabled or disabled
-    pub glide: bool,
-    /// How fast you glide from one note to another (in Ms)
-    pub glide_rate: u8,
+    pub mixer_config: MixerConfiguration,
+    pub overdrive_config: OverdriveConfiguration,    
+
     /// Mono mode enabled or disabled, default is false
     pub mono: bool,
-    pub overdrive: OverdriveConfiguration,    
 }
 
 impl Patch {

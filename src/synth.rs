@@ -6,7 +6,7 @@ pub mod data;
 pub mod envelope;
 pub mod math;
 pub mod mixer;
-pub mod oscillator;
+pub mod wavetable_oscillator;
 pub mod patch;
 pub mod patches;
 pub mod effects;
@@ -25,18 +25,22 @@ pub trait Clockable {
 }
 
 pub struct Synth {
-    pub voice1: oscillator::WaveTableOscillator,
-    voice2: oscillator::WaveTableOscillator,
-    lfo1: oscillator::WaveTableOscillator,
-    pub voice1_envelope: envelope::EnvelopeGenerator,
+    voice1: wavetable_oscillator::WaveTableOscillator,
+    voice2: wavetable_oscillator::WaveTableOscillator,
+    voice3: wavetable_oscillator::WaveTableOscillator,
+ 
+  //  lfo1: oscillator::WaveTableOscillator,
+    voice1_envelope: envelope::EnvelopeGenerator,
     voice2_envelope: envelope::EnvelopeGenerator,
-    pub filter: LowPassFilter,
-    pub overdrive: Overdrive,
-    pub mixer: Mixer,
+    voice3_envelope: envelope::EnvelopeGenerator,
+    filter: LowPassFilter,
+    overdrive: Overdrive,
+    mixer: Mixer,
     sample_rate: u16,
     voices: u8,
     voice_active_count: u8,
     voice_active: [u8; 2],
+    velocity: u8,
 }
 
 ///
@@ -53,44 +57,38 @@ impl Synth {
     /// It returns a new `Synth` instance with the specified configuration.
     pub fn new(sample_rate: u16, patch: Patch) -> Synth {
         Synth {
-            voice1: oscillator::WaveTableOscillator::new(
-                440,
+            voice1: wavetable_oscillator::WaveTableOscillator::new(
                 patch.voice_1,
-                patch.voice_1_detune,
-                sample_rate,
-                patch.glide,
-                patch.glide_rate,
+                sample_rate
             ),
-            voice2: oscillator::WaveTableOscillator::new(
-                440,
+            voice2: wavetable_oscillator::WaveTableOscillator::new(
                 patch.voice_2,
-                patch.voice_2_detune,
-                sample_rate,
-                patch.glide,
-                patch.glide_rate,
+                sample_rate
             ),
-            lfo1: oscillator::WaveTableOscillator::new(
+            voice3: wavetable_oscillator::WaveTableOscillator::new(
+                patch.voice_3,
+                sample_rate
+            ),
+           /*  lfo1: oscillator::WaveTableOscillator::new(
                 patch.lfo_1 as u16,
                 oscillator::Waveform::Square,
                 0,
                 sample_rate,
                 false,
                 1,
-            ),
+            ),*/
             voice1_envelope: envelope::EnvelopeGenerator::new(patch.voice_1_env, sample_rate),
             voice2_envelope: envelope::EnvelopeGenerator::new(patch.voice_2_env, sample_rate),
+            voice3_envelope: envelope::EnvelopeGenerator::new(patch.voice_3_env, sample_rate),
+          
             filter: LowPassFilter::new(sample_rate, patch.filter_config),
-            mixer: Mixer::new(
-                patch.voice_1_mix_level,
-                patch.voice_2_mix_level,
-                patch.lfo_1_mix_level,
-                patch.main_gain,
-            ),
+            mixer: Mixer::new(patch.mixer_config),
             sample_rate,
             voice_active_count: 0,
             voice_active: [0, 0],
             voices: if patch.mono { 1 } else { 2 },
-            overdrive: Overdrive::new(patch.overdrive),
+            overdrive: Overdrive::new(patch.overdrive_config),
+            velocity: 0,
         }
     }
 
@@ -103,29 +101,23 @@ impl Synth {
     ///
     ///
     pub fn load_patch(&mut self, patch: Patch) {
-        self.voice1.reload(patch.voice_1, patch.voice_1_detune, patch.glide, patch.glide_rate);
-        self.voice2.reload(patch.voice_2, patch.voice_2_detune, patch.glide, patch.glide_rate);
+        self.voice1.reload(patch.voice_1);
+        self.voice2.reload(patch.voice_2);
+        self.voice3.reload(patch.voice_3);
 
-        self.lfo1.reload(oscillator::Waveform::SawTooth, 0, false, 1);
-        self.lfo1.change_freq(patch.lfo_1 as u16);
+       // self.lfo1.reload(oscillator::Waveform::SawTooth, 0, false, 1);
+       // self.lfo1.change_freq(patch.lfo_1 as u16);
 
         self.voice1_envelope.reload(patch.voice_1_env);
         self.voice2_envelope.reload(patch.voice_2_env);
+        self.voice3_envelope.reload(patch.voice_3_env);
         
+        //effects
         self.filter.reload(patch.filter_config);
+        self.overdrive.reload(patch.overdrive_config);
 
-        // The mixer controls the overall level of each voice and the main gain
-        let mix_levels = (
-            patch.voice_1_mix_level,
-            patch.voice_2_mix_level,
-            patch.lfo_1_mix_level,
-        );
-        let main_gain = patch.main_gain;
-
-        self.overdrive.reload(patch.overdrive);
-
-        self.mixer = Mixer::new(mix_levels.0, mix_levels.1, mix_levels.2, main_gain);
-        
+        //mix
+        self.mixer.reload(patch.mixer_config);
     }
 
     ///
@@ -136,32 +128,26 @@ impl Synth {
         // Clock the envelopes for Voice 1 and Voice 2
         let envelope1 = self.voice1_envelope.clock(None);
         let envelope2 = self.voice2_envelope.clock(None);
+        let envelope3 = self.voice3_envelope.clock(None);
 
         // Generate samples for each voice, taking into account gain settings
-        let mut voice_1_sample =
-            math::percentage(self.voice1.clock(None), self.mixer.gain_voice_1 as i16);
-        let voice_2_sample = math::percentage(self.voice2.clock(None), self.mixer.gain_voice_2 as i16);
+        let voice_1_sample = math::percentage(self.voice1.clock(None), self.mixer.config.gain_voice_1 as i16);
+        let voice_2_sample = math::percentage(self.voice2.clock(None), self.mixer.config.gain_voice_2 as i16);
+        let voice_3_sample = math::percentage(self.voice3.clock(None), self.mixer.config.gain_voice_3 as i16);
 
-        // Clock the Low Frequency Oscillator (LFO) for Voice 1
-        let lfo1 = self.lfo1.clock(None);
-
-        // Apply LFO modulation to Voice 1 sample if enabled
-        if self.mixer.gain_lfo_1 != 0 {
-            voice_1_sample = ((voice_1_sample as i32 * lfo1 as i32) / (i16::MAX as i32 / 2)) as i16;
-        }
-
+       
         // Mix the two voices together, taking into account envelope and velocity settings
         let mut mix_and_max_gain = math::percentage(voice_1_sample, envelope1)
-            + math::percentage(voice_2_sample, envelope2);
+            + math::percentage(voice_2_sample, envelope2) + math::percentage(voice_3_sample, envelope3);
 
         // Apply velocity modulation to the mix
-        mix_and_max_gain = math::percentage(mix_and_max_gain, self.mixer.velocity as i16);
+        mix_and_max_gain = math::percentage(mix_and_max_gain, self.velocity as i16);
 
         // Pass the mixed signal through the filter
         let filtered_signal = self.filter.clock(mix_and_max_gain);
 
         // Finally, apply main gain setting and return the final sample value
-        mix_and_max_gain = math::percentage(filtered_signal, self.mixer.gain_main as i16);
+        mix_and_max_gain = math::percentage(filtered_signal, self.mixer.config.gain_main as i16);
         mix_and_max_gain = self.overdrive.clock(mix_and_max_gain); 
         mix_and_max_gain
     }
@@ -182,17 +168,17 @@ impl Synth {
         match voice {
             0x00 => {
                 // Update the mixer velocity for this voice
-                self.mixer.velocity = velocity;
+                self.velocity = velocity;
 
                 // If we have only one voice, play both voices with a detune
                 if self.voices == 1 {
-                    let mut freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.detune) as usize];
+                    let mut freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.config.detune) as usize];
                     // Update the frequency of the first voice
                     self.voice1.change_freq(freq);
                     // Open the gate for the first voice envelope
                     self.voice1_envelope.open_gate();
 
-                    freq = MIDI2FREQ[(note as i8 + self.voice2.detune) as usize];
+                    freq = MIDI2FREQ[(note as i8 + self.voice2.config.detune) as usize];
                     // Update the frequency of the second voice
                     self.voice2.change_freq(freq);
                     // Open the gate for the second voice envelope
@@ -209,14 +195,14 @@ impl Synth {
                     match self.voice_active_count {
                         0 => {
                             // Update the frequency of the first active voice (first voice)
-                            let freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.detune) as usize];
+                            let freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.config.detune) as usize];
                             self.voice1.change_freq(freq);
                             // Open the gate for the first voice envelope
                             self.voice1_envelope.open_gate();
                         }
                         1 => {
                             // Update the frequency of the second active voice (second voice)
-                            let freq = MIDI2FREQ[(note as i8 + self.voice2.detune) as usize];
+                            let freq = MIDI2FREQ[(note as i8 + self.voice2.config.detune) as usize];
                             self.voice2.change_freq(freq);
                             // Open the gate for the second voice envelope
                             self.voice2_envelope.open_gate();

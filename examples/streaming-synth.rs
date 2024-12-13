@@ -3,9 +3,9 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}
 };
 use cpal::{Device, Sample, StreamConfig};
-use little_weirdo::synth::{envelope::Envelop, patches::{Patches}};
+use little_weirdo::synth::{envelope::EnvelopConfiguration, patches::{Patches}};
 use little_weirdo::synth::effects::filter::FilterConfig;
-use little_weirdo::synth::oscillator::Waveform;
+use little_weirdo::synth::wavetable_oscillator::Waveform;
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
 use midi_control::{self, MidiMessage};
@@ -32,7 +32,7 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: Patch = Patches::get_patch(Patches::WeirdScience);
+    let patch: Patch = Patches::get_patch(Patches::BassGuitar);
     let mut synth: synth::Synth = synth::Synth::new(44100, patch);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -92,15 +92,13 @@ fn setup_device() -> (Device, StreamConfig) {
 
 fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
     match command {
-        MidiMessage::NoteOn(ch, e) => {
-            println!("Note : {:?}", e.key);
-            synth.note_on(0, e.key, e.value)
-        },
+        MidiMessage::NoteOn(ch, e) => synth.note_on(0, e.key, e.value),
         MidiMessage::NoteOff(ch, e) => synth.note_off(0, e.key),
-        MidiMessage::ControlChange(ch, e) => {
-            if e.control == 70 {
-                //synth.filter.change_freq(e.value as i16 * 10);
-            };
+        MidiMessage::ProgramChange(ch, e) => {
+            match e {
+                0 => {},
+                _ => {}
+            }
         }
         _ => {}
     }

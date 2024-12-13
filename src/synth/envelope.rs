@@ -13,7 +13,7 @@ pub enum EnvelopeState {
     Release,
 }
 
-pub struct Envelop {
+pub struct EnvelopConfiguration {
     pub attack_time: i16,
     pub decay_time: i16,
     pub release_time: i16,
@@ -22,7 +22,7 @@ pub struct Envelop {
 
 pub struct EnvelopeGenerator {
     // Configuration
-    pub envelop: Envelop,
+    pub envelop: EnvelopConfiguration,
     // Control
     gate: bool,
     // Runtime State
@@ -97,7 +97,7 @@ impl Clockable for EnvelopeGenerator {
 }
 
 impl EnvelopeGenerator {
-    pub fn new(envelop: Envelop, sample_rate: u16) -> Self {
+    pub fn new(envelop: EnvelopConfiguration, sample_rate: u16) -> Self {
         Self {
             envelop,
             gate: false,
@@ -113,7 +113,7 @@ impl EnvelopeGenerator {
         }
     }
 
-    pub fn reload(&mut self, envelop: Envelop) {
+    pub fn reload(&mut self, envelop: EnvelopConfiguration) {
         self.envelop = envelop;
     }
 

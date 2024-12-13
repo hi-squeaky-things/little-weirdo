@@ -1,20 +1,27 @@
 //! Mixer to mix all generated signals
-pub struct Mixer {
+pub struct MixerConfiguration {
     pub gain_voice_1: u8,
     pub gain_voice_2: u8,
-    pub gain_lfo_1: u8,
+    pub gain_voice_3: u8,
+    
+ //   pub gain_lfo_1: u8,
     pub gain_main: u8,
-    pub velocity: u8,
+//    pub velocity: u8,
 }
 
+pub struct Mixer {
+    pub config: MixerConfiguration,
+}
+
+
 impl Mixer {
-    pub fn new(gain_voice_1: u8, gain_voice_2: u8, gain_lfo_1: u8, gain_main: u8) -> Self {
+    pub fn new(config: MixerConfiguration) -> Self {
         Self {
-          gain_voice_1,
-          gain_voice_2,
-          gain_lfo_1,
-          gain_main,
-          velocity: 0,
+            config
         }
+    }
+
+    pub fn reload(&mut self, config: MixerConfiguration) {
+        self.config = config;
     }
 }
