@@ -18,9 +18,9 @@ impl Patches {
         match name {
             _ => Patch { 
                 voice_1: WaveTableOscillatorConfig {
-                    waveform: Waveform::Piano,
+                    waveform: Waveform::EightBit,
                     glide: false,
-                    glide_rate: 10,
+                    glide_rate: 0,
                     detune: 0,
                     freq: 440,
                 }, 
@@ -31,10 +31,10 @@ impl Patches {
                     sustain_level: 80 
                 }, 
                 voice_2: WaveTableOscillatorConfig {
-                    waveform: Waveform::Piano,
+                    waveform: Waveform::SawTooth,
                     glide: false,
                     glide_rate: 0,
-                    detune: 2,
+                    detune: 0,
                     freq: 440,
                 },  
                 voice_3_env: EnvelopConfiguration { 
@@ -44,10 +44,10 @@ impl Patches {
                     sustain_level: 80,
                 },
                 voice_3: WaveTableOscillatorConfig {
-                    waveform: Waveform::Piano,
+                    waveform: Waveform::Square10,
                     glide: false,
                     glide_rate: 0,
-                    detune: 4,
+                    detune: 0,
                     freq: 440,
                 },  
                 voice_2_env: EnvelopConfiguration { 
@@ -57,8 +57,8 @@ impl Patches {
                     sustain_level: 80,
                 },
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 440, 
-                    filter_on: false, 
+                    cutoff_frequency: 2000, 
+                    filter_on: true, 
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voice_1: 20, 
