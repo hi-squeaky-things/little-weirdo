@@ -37,9 +37,6 @@ pub struct Synth {
     overdrive: Overdrive,
     mixer: Mixer,
     sample_rate: u16,
-    voices: u8,
-    voice_active_count: u8,
-    voice_active: [u8; 2],
     velocity: u8,
 }
 
@@ -69,14 +66,6 @@ impl Synth {
                 patch.voice_3,
                 sample_rate
             ),
-           /*  lfo1: oscillator::WaveTableOscillator::new(
-                patch.lfo_1 as u16,
-                oscillator::Waveform::Square,
-                0,
-                sample_rate,
-                false,
-                1,
-            ),*/
             voice1_envelope: envelope::EnvelopeGenerator::new(patch.voice_1_env, sample_rate),
             voice2_envelope: envelope::EnvelopeGenerator::new(patch.voice_2_env, sample_rate),
             voice3_envelope: envelope::EnvelopeGenerator::new(patch.voice_3_env, sample_rate),
@@ -84,9 +73,6 @@ impl Synth {
             filter: LowPassFilter::new(sample_rate, patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             sample_rate,
-            voice_active_count: 0,
-            voice_active: [0, 0],
-            voices: if patch.mono { 1 } else { 2 },
             overdrive: Overdrive::new(patch.overdrive_config),
             velocity: 0,
         }
@@ -159,98 +145,42 @@ impl Synth {
     /// * `voice`: The voice number (0x00)
     /// * `note`: The MIDI note number (0-108)
     /// * `velocity`: The velocity of the note (0-127)
-    pub fn note_on(&mut self, voice: u8, note: u8, velocity: u8) {
+    pub fn note_on(&mut self, note: u8, velocity: u8) {
         // Cap note range between C0 and C8
         if note < 24 || note > 108 {
             return;
         }
+        // Update the mixer velocity for this voice
+        self.velocity = velocity;
 
-        match voice {
-            0x00 => {
-                // Update the mixer velocity for this voice
-                self.velocity = velocity;
+        // If we have only one voice, play both voices with a detune
+        let mut freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.config.detune) as usize];
+        // Update the frequency of the first voice
+        self.voice1.change_freq(freq);
+        // Open the gate for the first voice envelope
+        self.voice1_envelope.open_gate();
 
-                // If we have only one voice, play both voices with a detune
-                if self.voices == 1 {
-                    let mut freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.config.detune) as usize];
-                    // Update the frequency of the first voice
-                    self.voice1.change_freq(freq);
-                    // Open the gate for the first voice envelope
-                    self.voice1_envelope.open_gate();
+        freq = MIDI2FREQ[(note as i8 + self.voice2.config.detune) as usize];
+        // Update the frequency of the second voice
+        self.voice2.change_freq(freq);
+        // Open the gate for the second voice envelope
+        self.voice2_envelope.open_gate();
 
-                    freq = MIDI2FREQ[(note as i8 + self.voice2.config.detune) as usize];
-                    // Update the frequency of the second voice
-                    self.voice2.change_freq(freq);
-                    // Open the gate for the second voice envelope
-                    self.voice2_envelope.open_gate();
-                } else {
-                    // If we have multiple voices, play them one by one
-                    if self.voice_active_count > 1 {
-                        // Reset the active voice count
-                        self.voice_active_count = 0;
-                    }
-                    // Add a new note to the active voices array
-                    self.voice_active[self.voice_active_count as usize] = note;
 
-                    match self.voice_active_count {
-                        0 => {
-                            // Update the frequency of the first active voice (first voice)
-                            let freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.config.detune) as usize];
-                            self.voice1.change_freq(freq);
-                            // Open the gate for the first voice envelope
-                            self.voice1_envelope.open_gate();
-                        }
-                        1 => {
-                            // Update the frequency of the second active voice (second voice)
-                            let freq = MIDI2FREQ[(note as i8 + self.voice2.config.detune) as usize];
-                            self.voice2.change_freq(freq);
-                            // Open the gate for the second voice envelope
-                            self.voice2_envelope.open_gate();
-                        }
-                        _ => {}
-                    };
-
-                    // Increment the active voice count
-                    self.voice_active_count += 1;
-                }
-            }
-            _ => {} // Ignore other voices
-        }
+        freq = MIDI2FREQ[(note as i8 + self.voice3.config.detune) as usize];
+        // Update the frequency of the second voice
+        self.voice3.change_freq(freq);
+        // Open the gate for the second voice envelope
+        self.voice3_envelope.open_gate();
     }
 
-    pub fn note_off(&mut self, voice: u8, note: u8) {
+    pub fn note_off(&mut self, note: u8) {
         if note < 21 || note > 108 {
             return;
         }
-        match voice {
-            0x00 => {
-                if self.voices == 1 {
-                    self.voice1_envelope.close_gate();
-                    self.voice2_envelope.close_gate();
-                } else {
-                    for i in 0..2 {
-                        if self.voice_active[i as usize] == note {
-                            match i {
-                                0 => {
-                                    self.voice1_envelope.close_gate();
-                                    self.voice_active[i as usize] = 0;
-                                }
-                                1 => {
-                                    self.voice2_envelope.close_gate();
-                                    self.voice_active[i as usize] = 0;
-                                }
-                                _ => {}
-                            }
-                        }
-                    }
-                }
-            }
-            0x01 => {
-                self.voice1_envelope.close_gate();
-                self.voice2_envelope.close_gate();
-            } 
-            _ => {}
-        };
+        self.voice1_envelope.close_gate();
+        self.voice2_envelope.close_gate();
+        self.voice3_envelope.close_gate();
     }
     ///
     /// Returns a 16-bit sample value representing the synthesized audio signal.

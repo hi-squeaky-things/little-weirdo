@@ -92,8 +92,8 @@ fn setup_device() -> (Device, StreamConfig) {
 
 fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
     match command {
-        MidiMessage::NoteOn(ch, e) => synth.note_on(0, e.key, e.value),
-        MidiMessage::NoteOff(ch, e) => synth.note_off(0, e.key),
+        MidiMessage::NoteOn(ch, e) => synth.note_on(e.key, e.value),
+        MidiMessage::NoteOff(ch, e) => synth.note_off( e.key),
         MidiMessage::ProgramChange(ch, e) => {
             match e {
                 0 => {},
@@ -106,10 +106,10 @@ fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
 
 fn play_note(synth: &mut synth::Synth, key: Key) {
     if key.eq(&Key::Char('c')) {
-        synth.note_on(0, 48, 100);
+        synth.note_on( 48, 100);
     }
     if key.eq(&Key::Char('d')) {
-        synth.note_off(0, 48);
+        synth.note_off( 48);
     }
 }
 

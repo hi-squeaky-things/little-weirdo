@@ -20,7 +20,7 @@ impl Patches {
                 voice_1: WaveTableOscillatorConfig {
                     waveform: Waveform::Piano,
                     glide: false,
-                    glide_rate: 0,
+                    glide_rate: 10,
                     detune: 0,
                     freq: 440,
                 }, 
@@ -34,7 +34,7 @@ impl Patches {
                     waveform: Waveform::Piano,
                     glide: false,
                     glide_rate: 0,
-                    detune: 4,
+                    detune: 2,
                     freq: 440,
                 },  
                 voice_3_env: EnvelopConfiguration { 
@@ -47,7 +47,7 @@ impl Patches {
                     waveform: Waveform::Piano,
                     glide: false,
                     glide_rate: 0,
-                    detune: 6,
+                    detune: 4,
                     freq: 440,
                 },  
                 voice_2_env: EnvelopConfiguration { 
@@ -58,12 +58,12 @@ impl Patches {
                 },
                 filter_config: FilterConfig { 
                     cutoff_frequency: 440, 
-                    filter_on: true, 
+                    filter_on: false, 
                 }, 
                 mixer_config: MixerConfiguration { 
-                    gain_voice_1: 33, 
-                    gain_voice_2: 33, 
-                    gain_voice_3: 33,
+                    gain_voice_1: 20, 
+                    gain_voice_2: 20, 
+                    gain_voice_3: 20,
                     gain_main: 50, 
                 },
                 overdrive_config: OverdriveConfiguration { 
