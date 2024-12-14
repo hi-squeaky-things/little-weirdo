@@ -12,7 +12,7 @@ pub mod patches;
 pub mod effects;
 use effects::{overdrive::Overdrive, Effect};
 
-use self::{data::frequencies::MIDI2FREQ, effects::filter::LowPassFilter, mixer::Mixer, patch::Patch};
+use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
 
 pub trait Clockable {
@@ -33,10 +33,9 @@ pub struct Synth {
     voice1_envelope: envelope::EnvelopeGenerator,
     voice2_envelope: envelope::EnvelopeGenerator,
     voice3_envelope: envelope::EnvelopeGenerator,
-    filter: LowPassFilter,
+    filter: Filter,
     overdrive: Overdrive,
     mixer: Mixer,
-    sample_rate: u16,
     velocity: u8,
 }
 
@@ -70,9 +69,8 @@ impl Synth {
             voice2_envelope: envelope::EnvelopeGenerator::new(patch.voice_2_env, sample_rate),
             voice3_envelope: envelope::EnvelopeGenerator::new(patch.voice_3_env, sample_rate),
           
-            filter: LowPassFilter::new(sample_rate, patch.filter_config),
+            filter: Filter::new(sample_rate, patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
-            sample_rate,
             overdrive: Overdrive::new(patch.overdrive_config),
             velocity: 0,
         }

@@ -1,4 +1,4 @@
-use super::effects::filter::FilterConfig;
+use super::effects::filter::{FilterConfig, KindOfFilter};
 use super::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use super::envelope::EnvelopConfiguration;
 use super::mixer::MixerConfiguration;
@@ -34,7 +34,7 @@ impl Patches {
                     waveform: Waveform::SawTooth,
                     glide: false,
                     glide_rate: 0,
-                    detune: 0,
+                    detune: 4,
                     freq: 440,
                 },  
                 voice_3_env: EnvelopConfiguration { 
@@ -47,7 +47,7 @@ impl Patches {
                     waveform: Waveform::Square10,
                     glide: false,
                     glide_rate: 0,
-                    detune: 0,
+                    detune: 7,
                     freq: 440,
                 },  
                 voice_2_env: EnvelopConfiguration { 
@@ -58,7 +58,8 @@ impl Patches {
                 },
                 filter_config: FilterConfig { 
                     cutoff_frequency: 2000, 
-                    filter_on: true, 
+                    pass_through: true, 
+                    kind_of_filter: KindOfFilter::Low
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voice_1: 20, 
@@ -71,7 +72,6 @@ impl Patches {
                     kind: KindOfOverdrive::Softer, 
                     pass_through: true, 
                 }, 
-                mono: true 
             },
         }
     }

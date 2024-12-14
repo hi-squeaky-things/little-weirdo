@@ -2,23 +2,30 @@
 use crate::synth::effects::Effect;
 
 #[derive(Copy, Clone)]
-pub struct FilterConfig {
-    pub cutoff_frequency: i16,
-    pub filter_on: bool,
+pub enum KindOfFilter{
+    Low,
+    High,
 }
 
-pub struct LowPassFilter {
+
+#[derive(Copy, Clone)]
+pub struct FilterConfig {
+    pub cutoff_frequency: i16,
+    pub kind_of_filter: KindOfFilter,
+    pub pass_through: bool,
+}
+
+pub struct Filter {
+    config: FilterConfig,
     previous_sample: f32,
     alpha: f32,
-    pub cutoff_frequency: i16,
     current_cutoff_frequency: i16,
-    pub filter_on: bool,
     sample_rate: u16,
 }
 
-impl Effect for LowPassFilter {
+impl Effect for Filter {
     fn clock(&mut self, sample: i16) -> i16 {
-        if self.filter_on {
+        if self.config.pass_through {
             // put current sample through the low-pass filter
             self.lowpass_filter(sample)
         } else {
@@ -27,11 +34,10 @@ impl Effect for LowPassFilter {
     }
 }
 
-impl LowPassFilter {
+impl Filter {
     pub fn new(sample_rate: u16, config: FilterConfig) -> Self {
         let mut filter = Self {
-            cutoff_frequency: config.cutoff_frequency,
-            filter_on: config.filter_on,
+            config: config,
             previous_sample: 0.0,
             alpha: 0.0,
             sample_rate,
@@ -42,8 +48,7 @@ impl LowPassFilter {
     }
 
     pub fn reload(&mut self, config: FilterConfig) {
-        self.cutoff_frequency = config.cutoff_frequency;
-        self.filter_on = config.filter_on;
+        self.config = config;
         self.prepare_filter();
     }
 
@@ -56,7 +61,7 @@ impl LowPassFilter {
 
 
     pub fn change_freq(&mut self, cv: i16) {
-        self.current_cutoff_frequency = self.cutoff_frequency + cv;
+        self.current_cutoff_frequency = self.config.cutoff_frequency + cv;
         self.prepare_filter();
     }
 
