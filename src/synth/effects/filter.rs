@@ -39,8 +39,7 @@ impl Effect for Filter {
 impl Filter {
     const FX_SHIFT:u16 = 16;
     const SHIFTED_1: u16 = u16::MAX;
-
-
+    
     pub fn new(sample_rate: u16, config: FilterConfig) -> Self {
         let mut filter = Self {
             config: config,
