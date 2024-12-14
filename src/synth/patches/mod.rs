@@ -57,9 +57,10 @@ impl Patches {
                     sustain_level: 80,
                 },
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 2000, 
-                    pass_through: true, 
-                    kind_of_filter: KindOfFilter::Low
+                    cutoff_frequency: 5_000, 
+                    resonance: 20_000,
+                    disabled: false, 
+                    kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voice_1: 20, 
@@ -70,7 +71,7 @@ impl Patches {
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
                     kind: KindOfOverdrive::Softer, 
-                    pass_through: true, 
+                    disabled: true, 
                 }, 
             },
         }

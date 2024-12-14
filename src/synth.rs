@@ -120,20 +120,20 @@ impl Synth {
         let voice_3_sample = math::percentage(self.voice3.clock(None), self.mixer.config.gain_voice_3 as i16);
 
        
-        // Mix the two voices together, taking into account envelope and velocity settings
-        let mut mix_and_max_gain = math::percentage(voice_1_sample, envelope1)
+        // Mix the three voices together, taking into account envelope and velocity settings
+        let mut sound_mixing = math::percentage(voice_1_sample, envelope1)
             + math::percentage(voice_2_sample, envelope2) + math::percentage(voice_3_sample, envelope3);
 
-        // Apply velocity modulation to the mix
-        mix_and_max_gain = math::percentage(mix_and_max_gain, self.velocity as i16);
+        // Apply velocity to the mix
+        sound_mixing = math::percentage(sound_mixing, self.velocity as i16);
 
         // Pass the mixed signal through the filter
-        let filtered_signal = self.filter.clock(mix_and_max_gain);
+        let filtered_signal = self.filter.clock(sound_mixing);
 
         // Finally, apply main gain setting and return the final sample value
-        mix_and_max_gain = math::percentage(filtered_signal, self.mixer.config.gain_main as i16);
-        mix_and_max_gain = self.overdrive.clock(mix_and_max_gain); 
-        mix_and_max_gain
+        sound_mixing = math::percentage(filtered_signal, self.mixer.config.gain_main as i16);
+        sound_mixing = self.overdrive.clock(sound_mixing); 
+        sound_mixing
     }
 
     /// Let the LttL Weirdo Wavetable Synthesizer engine play a specific note on the right voice and with a velocity.
@@ -145,9 +145,7 @@ impl Synth {
     /// * `velocity`: The velocity of the note (0-127)
     pub fn note_on(&mut self, note: u8, velocity: u8) {
         // Cap note range between C0 and C8
-        if note < 24 || note > 108 {
-            return;
-        }
+        if self.range_safeguard(note) { return };
         // Update the mixer velocity for this voice
         self.velocity = velocity;
 
@@ -173,9 +171,6 @@ impl Synth {
     }
 
     pub fn note_off(&mut self, note: u8) {
-        if note < 21 || note > 108 {
-            return;
-        }
         self.voice1_envelope.close_gate();
         self.voice2_envelope.close_gate();
         self.voice3_envelope.close_gate();
@@ -187,5 +182,12 @@ impl Synth {
     ///
     pub fn clock_and_output(&mut self) -> i16 {
         self.clock()
+    }
+
+    fn range_safeguard(&mut self, note: u8) -> bool {
+        if note < 24 || note > 108 {
+            return true
+        }
+        false
     }
 }

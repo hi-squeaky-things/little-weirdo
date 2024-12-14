@@ -10,7 +10,7 @@ pub enum KindOfOverdrive {
 pub struct OverdriveConfiguration {
     pub threshold: i16,
     pub kind: KindOfOverdrive,
-    pub pass_through: bool,
+    pub disabled: bool,
 }
 
 pub struct Overdrive {
@@ -32,7 +32,7 @@ impl Overdrive {
 
 impl Effect for Overdrive {
     fn clock(&mut self, sample: i16) -> i16 {
-        if self.config.pass_through {
+        if self.config.disabled {
             return sample
         }
         match self.config.kind {
