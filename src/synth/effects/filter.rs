@@ -37,7 +37,7 @@ impl Effect for Filter {
 }
 
 impl Filter {
-    const FX_SHIFT: u32 = 16;
+    const FX_SHIFT:u16 = 16;
     const SHIFTED_1: u16 = u16::MAX;
 
 

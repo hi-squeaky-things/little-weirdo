@@ -57,10 +57,10 @@ impl Patches {
                     sustain_level: 80,
                 },
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 5_000, 
-                    resonance: 20_000,
+                    cutoff_frequency: 10_000, 
+                    resonance: 0,
                     disabled: false, 
-                    kind_of_filter: KindOfFilter::Low,
+                    kind_of_filter: KindOfFilter::High,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voice_1: 20, 
