@@ -109,7 +109,7 @@ impl Synth {
     fn clock(&mut self) -> i16 {
         // Generate samples for each voice, taking into account gain settings
     
-        let mut generate_voices: [i16;3] = [0,0,0];
+        let mut generate_voices: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];
         let mut sound_mixing: i16 = 0;
         for i in 0..AMOUNT_OF_VOICE {
             generate_voices[i] = math::percentage(self.voices[i].clock(None), self.envelops[i].clock(None));
