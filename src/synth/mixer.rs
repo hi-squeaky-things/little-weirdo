@@ -3,10 +3,7 @@ pub struct MixerConfiguration {
     pub gain_voice_1: u8,
     pub gain_voice_2: u8,
     pub gain_voice_3: u8,
-    
- //   pub gain_lfo_1: u8,
     pub gain_main: u8,
-//    pub velocity: u8,
 }
 
 pub struct Mixer {

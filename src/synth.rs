@@ -71,7 +71,7 @@ impl Synth {
             ],
 
     
-            filter: Filter::new(sample_rate, patch.filter_config),
+            filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
             velocity: 0,
@@ -106,16 +106,15 @@ impl Synth {
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     ///
     fn clock(&mut self) -> i16 {
-        // Clock the envelopes for Voice 1 and Voice 2
-        let envelope1 = self.envelops[0].clock(None);
-        let envelope2 = self.envelops[1].clock(None);
-        let envelope3 = self.envelops[2].clock(None);
-
         // Generate samples for each voice, taking into account gain settings
         let voice_1_sample = math::percentage(self.voices[0].clock(None), self.mixer.config.gain_voice_1 as i16);
         let voice_2_sample = math::percentage(self.voices[1].clock(None), self.mixer.config.gain_voice_2 as i16);
         let voice_3_sample = math::percentage(self.voices[2].clock(None), self.mixer.config.gain_voice_3 as i16);
 
+        // Clock the envelopes for Voice 1 and Voice 2
+        let envelope1 = self.envelops[0].clock(None);
+        let envelope2 = self.envelops[1].clock(None);
+        let envelope3 = self.envelops[2].clock(None);
        
         // Mix the three voices together, taking into account envelope and velocity settings
         let mut sound_mixing = math::percentage(voice_1_sample, envelope1)

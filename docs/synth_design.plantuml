@@ -1,0 +1,38 @@
+@startuml
+
+state filter_ON <<choice>>
+state overdrive_ON <<choice>>
+
+
+[*] --> OSC1
+[*] --> OSC2
+[*] --> OSC3
+
+OSC1 --> GAIN1
+OSC2 --> GAIN2
+OSC3 --> GAIN3
+
+GAIN1 --> ENV1
+GAIN2 --> ENV2
+GAIN3 --> ENV3
+
+ENV1 --> MIX
+ENV2 --> MIX
+ENV3 --> MIX
+
+MIX --> filter_ON
+
+filter_ON --> FILTER
+filter_ON --> GAIN
+FILTER --> GAIN
+
+GAIN --> overdrive_ON
+
+
+overdrive_ON --> [*]
+overdrive_ON --> OVERDRIVE
+
+
+OVERDRIVE --> [*]
+
+@enduml

@@ -63,7 +63,7 @@ impl Patches {
 
                 filter_config: FilterConfig { 
                     cutoff_frequency: 4_000, 
-                    resonance: 20_000,
+                    resonance: 40_000,
                     disabled: false, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
