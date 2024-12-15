@@ -24,10 +24,11 @@ pub trait Clockable {
     }
 }
 
+pub const AMOUNT_OF_VOICE:usize = 3;
+
 pub struct Synth {
-    voices: [wavetable_oscillator::WaveTableOscillator;3],
-    envelops: [envelope::EnvelopeGenerator;3],
-   
+    voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE],
+    envelops: [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE], 
     filter: Filter,
     overdrive: Overdrive,
     mixer: Mixer,
@@ -46,8 +47,8 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: Patch) -> Synth {
-        Synth {
+    pub fn new(sample_rate: u16, patch: Patch) -> Self {
+        Self {
 
             voices: [
                 wavetable_oscillator::WaveTableOscillator::new(
@@ -88,7 +89,7 @@ impl Synth {
     ///
     pub fn load_patch(&mut self, patch: Patch) {
       
-        for i in 0..2 {
+        for i in 0..AMOUNT_OF_VOICE {
             self.voices[i].reload(patch.voices[i]);
             self.envelops[i].reload(patch.envelops[i]);
         }
@@ -110,7 +111,7 @@ impl Synth {
     
         let mut generate_voices: [i16;3] = [0,0,0];
         let mut sound_mixing: i16 = 0;
-        for i in 0..2 {
+        for i in 0..AMOUNT_OF_VOICE {
             generate_voices[i] = math::percentage(self.voices[i].clock(None), self.envelops[i].clock(None));
             generate_voices[i] = math::percentage( generate_voices[i], self.mixer.config.gain_voices[i] as i16);
             sound_mixing = sound_mixing + generate_voices[i];
@@ -141,7 +142,7 @@ impl Synth {
         self.velocity = velocity;
 
         // If we have only one voice, play both voices with a detune
-        for i in 0..2 {
+        for i in 0..AMOUNT_OF_VOICE {
             let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
             // Update the frequency of the first voice
             self.voices[i].change_freq(freq);
@@ -151,7 +152,7 @@ impl Synth {
      }
 
     pub fn note_off(&mut self, note: u8) {
-        for i in 0..2 {
+        for i in 0..AMOUNT_OF_VOICE {
             self.envelops[i].close_gate();
         }
     }
