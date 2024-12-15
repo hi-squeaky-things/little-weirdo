@@ -170,6 +170,13 @@ impl Synth {
         self.clock()
     }
 
+    pub fn change_main_volume(&mut self, velocity: u8) {
+       // self.mixer.config.gain_main = velocity;
+       let mut config = self.filter.config;
+       config.cutoff_frequency = velocity as u16 * 255;
+        self.filter.reload(config);
+    }
+
     fn range_safeguard(&mut self, note: u8) -> bool {
         if note < 24 || note > 108 {
             return true

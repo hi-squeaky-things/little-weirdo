@@ -20,7 +20,7 @@ pub struct FilterConfig {
 }
 
 pub struct Filter {
-    config: FilterConfig,
+   pub config: FilterConfig,
     buf0: i64,
     buf1: i64,
     feedback: u32,

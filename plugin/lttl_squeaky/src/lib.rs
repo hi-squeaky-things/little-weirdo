@@ -1,7 +1,7 @@
 use nih_plug::prelude::*;
 use std::{f32::consts, u16};
 use std::sync::Arc;
-use little_weirdo::synth::{envelope::Envelop, patches::{Patches}};
+use little_weirdo::synth::{patches::{Patches}};
 use little_weirdo::synth::effects::filter::FilterConfig;
 use little_weirdo::synth::wavetable_oscillator::Waveform;
 use little_weirdo::synth::patch::Patch;
@@ -141,10 +141,10 @@ impl Plugin for LttLSqueaky {
 
                     match event {
                         NoteEvent::NoteOn { note, velocity, .. } => {
-                            self.synth.note_on(0, note, 100)
+                            self.synth.note_on( note, 100)
                         }
                         NoteEvent::NoteOff { note, .. }  => {
-                            self.synth.note_off(0, note)
+                            self.synth.note_off( note)
                         }
                         NoteEvent::PolyPressure { note, pressure, .. } =>
                         {
