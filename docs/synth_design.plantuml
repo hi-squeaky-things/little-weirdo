@@ -1,38 +1,35 @@
 @startuml
+title LttL Weirdo Synth design
+:EVERY_SAMPLE;
+start
+    split
+       #LightBlue:OSC1;
+       #LightBlue:ENV1;
+       :GAIN1;
+    split again
+        #LightBlue:OSC2;
+        #LightBlue:ENV2;
+        :GAIN2;
+    split again
+        #LightBlue:OSC3;
+        #LightBlue:ENV3;
+        :GAIN3;
+    end split
+        :MIX (+);
+if (Filter Enabled) equals (Yes)  then
+   #LightBlue:FILTER;
+else (No)
+endif
 
-state filter_ON <<choice>>
-state overdrive_ON <<choice>>
+:GAIN-MAIN;
 
+if (Overdrive Enabled) equals (Yes) then
+   #LightBlue:OVERDRIVE;
+else (No)
+endif
 
-[*] --> OSC1
-[*] --> OSC2
-[*] --> OSC3
+:SAMPLE_OUT;
 
-OSC1 --> GAIN1
-OSC2 --> GAIN2
-OSC3 --> GAIN3
-
-GAIN1 --> ENV1
-GAIN2 --> ENV2
-GAIN3 --> ENV3
-
-ENV1 --> MIX
-ENV2 --> MIX
-ENV3 --> MIX
-
-MIX --> filter_ON
-
-filter_ON --> FILTER
-filter_ON --> GAIN
-FILTER --> GAIN
-
-GAIN --> overdrive_ON
-
-
-overdrive_ON --> [*]
-overdrive_ON --> OVERDRIVE
-
-
-OVERDRIVE --> [*]
-
+end
 @enduml
+

@@ -107,20 +107,15 @@ impl Synth {
     ///
     fn clock(&mut self) -> i16 {
         // Generate samples for each voice, taking into account gain settings
-        let voice_1_sample = math::percentage(self.voices[0].clock(None), self.mixer.config.gain_voice_1 as i16);
-        let voice_2_sample = math::percentage(self.voices[1].clock(None), self.mixer.config.gain_voice_2 as i16);
-        let voice_3_sample = math::percentage(self.voices[2].clock(None), self.mixer.config.gain_voice_3 as i16);
-
-        // Clock the envelopes for Voice 1 and Voice 2
-        let envelope1 = self.envelops[0].clock(None);
-        let envelope2 = self.envelops[1].clock(None);
-        let envelope3 = self.envelops[2].clock(None);
-       
-        // Mix the three voices together, taking into account envelope and velocity settings
-        let mut sound_mixing = math::percentage(voice_1_sample, envelope1)
-            + math::percentage(voice_2_sample, envelope2) + math::percentage(voice_3_sample, envelope3);
-
-        // Apply velocity to the mix
+    
+        let mut generate_voices: [i16;3] = [0,0,0];
+        let mut sound_mixing: i16 = 0;
+        for i in 0..2 {
+            generate_voices[i] = math::percentage(self.voices[i].clock(None), self.envelops[i].clock(None));
+            generate_voices[i] = math::percentage( generate_voices[i], self.mixer.config.gain_voices[i] as i16);
+            sound_mixing = sound_mixing + generate_voices[i];
+        }
+     
         sound_mixing = math::percentage(sound_mixing, self.velocity as i16);
 
         // Pass the mixed signal through the filter

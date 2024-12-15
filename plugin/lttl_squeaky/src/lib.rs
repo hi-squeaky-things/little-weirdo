@@ -125,8 +125,8 @@ impl Plugin for LttLSqueaky {
                 }
             },
             PatchChooser::eletric_piano => {
-                if self.current_patch != Patches::ElectricPiano {
-                    let current_patch = Patches::ElectricPiano;
+                if self.current_patch != Patches::BassGuitarFourth {
+                    let current_patch = Patches::BassGuitarFourth;
                     let patch = Patches::get_patch(current_patch);
                     self.current_patch = current_patch;
                     self.synth.load_patch(patch);
