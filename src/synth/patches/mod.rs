@@ -94,7 +94,7 @@ impl Patches {
                         waveform: Waveform::Bass,
                         glide: false,
                         glide_rate: 0,
-                        detune: 0,
+                        detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
@@ -127,18 +127,18 @@ impl Patches {
                 ],
 
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 4_000, 
-                    resonance: 40_000,
+                    cutoff_frequency: 1_000, 
+                    resonance: 30_000,
                     disabled: false, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        20,
-                        20,
+                        50,
+                        50,
                         0,
                     ],
-                    gain_main: 50, 
+                    gain_main: 100, 
                 },
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
@@ -159,14 +159,14 @@ impl Patches {
                         waveform: Waveform::Bass,
                         glide: false,
                         glide_rate: 0,
-                        detune: 0,
+                        detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
                         waveform: Waveform::Bass,
                         glide: false,
                         glide_rate: 0,
-                        detune: 0,
+                        detune: 7,
                         freq: 440,
                     }, 
                 ],

@@ -62,16 +62,17 @@ impl Filter {
     }
 
     fn filter(&mut self, sample: i16) -> i16 {
-        let band = (self.buf0 - self.buf1) as i32;
-        let high = sample as i64 - self.buf0;
-        let x = fx_mul(self.feedback as i64, band);
-        self.buf0 = self.buf0 + fx_mul(high + x, self.config.cutoff_frequency as i32);
-        self.buf1 = self.buf1 + ifx_mul(band, self.config.cutoff_frequency) as i64;
+        let highpass = sample as i64 - self.buf0;
+        let bandpass = (self.buf0 - self.buf1) as i32;
+       
+        let feedback_on_bandpass = fx_mul(self.feedback as i64, bandpass);
+        self.buf0 = self.buf0 + fx_mul(highpass + feedback_on_bandpass, self.config.cutoff_frequency as i32);
+        self.buf1 = self.buf1 + ifx_mul(bandpass, self.config.cutoff_frequency) as i64;
         let out: i16;
         match self.config.kind_of_filter {
             KindOfFilter::Low => out = self.buf1 as i16,
-            KindOfFilter::High => out = high as i16,
-            KindOfFilter::Band => out = band as i16,
+            KindOfFilter::High => out = highpass as i16,
+            KindOfFilter::Band => out = bandpass as i16,
             KindOfFilter::Notch => out = (sample as i64 - self.buf0 + self.buf1) as i16,
         }
         return out;
