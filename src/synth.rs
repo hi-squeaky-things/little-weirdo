@@ -25,14 +25,9 @@ pub trait Clockable {
 }
 
 pub struct Synth {
-    voice1: wavetable_oscillator::WaveTableOscillator,
-    voice2: wavetable_oscillator::WaveTableOscillator,
-    voice3: wavetable_oscillator::WaveTableOscillator,
- 
-  //  lfo1: oscillator::WaveTableOscillator,
-    voice1_envelope: envelope::EnvelopeGenerator,
-    voice2_envelope: envelope::EnvelopeGenerator,
-    voice3_envelope: envelope::EnvelopeGenerator,
+    voices: [wavetable_oscillator::WaveTableOscillator;3],
+    envelops: [envelope::EnvelopeGenerator;3],
+   
     filter: Filter,
     overdrive: Overdrive,
     mixer: Mixer,
@@ -53,22 +48,29 @@ impl Synth {
     /// It returns a new `Synth` instance with the specified configuration.
     pub fn new(sample_rate: u16, patch: Patch) -> Synth {
         Synth {
-            voice1: wavetable_oscillator::WaveTableOscillator::new(
-                patch.voice_1,
-                sample_rate
-            ),
-            voice2: wavetable_oscillator::WaveTableOscillator::new(
-                patch.voice_2,
-                sample_rate
-            ),
-            voice3: wavetable_oscillator::WaveTableOscillator::new(
-                patch.voice_3,
-                sample_rate
-            ),
-            voice1_envelope: envelope::EnvelopeGenerator::new(patch.voice_1_env, sample_rate),
-            voice2_envelope: envelope::EnvelopeGenerator::new(patch.voice_2_env, sample_rate),
-            voice3_envelope: envelope::EnvelopeGenerator::new(patch.voice_3_env, sample_rate),
-          
+
+            voices: [
+                wavetable_oscillator::WaveTableOscillator::new(
+                    patch.voices[0],
+                    sample_rate
+                ),
+                wavetable_oscillator::WaveTableOscillator::new(
+                    patch.voices[1],
+                    sample_rate
+                ),
+                wavetable_oscillator::WaveTableOscillator::new(
+                    patch.voices[2],
+                    sample_rate
+                ),
+            ],  
+
+            envelops: [
+                envelope::EnvelopeGenerator::new(patch.envelops[0], sample_rate),
+                envelope::EnvelopeGenerator::new(patch.envelops[1], sample_rate),
+                envelope::EnvelopeGenerator::new(patch.envelops[2], sample_rate),
+            ],
+
+    
             filter: Filter::new(sample_rate, patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -85,17 +87,12 @@ impl Synth {
     ///
     ///
     pub fn load_patch(&mut self, patch: Patch) {
-        self.voice1.reload(patch.voice_1);
-        self.voice2.reload(patch.voice_2);
-        self.voice3.reload(patch.voice_3);
+      
+        for i in 0..2 {
+            self.voices[i].reload(patch.voices[i]);
+            self.envelops[i].reload(patch.envelops[i]);
+        }
 
-       // self.lfo1.reload(oscillator::Waveform::SawTooth, 0, false, 1);
-       // self.lfo1.change_freq(patch.lfo_1 as u16);
-
-        self.voice1_envelope.reload(patch.voice_1_env);
-        self.voice2_envelope.reload(patch.voice_2_env);
-        self.voice3_envelope.reload(patch.voice_3_env);
-        
         //effects
         self.filter.reload(patch.filter_config);
         self.overdrive.reload(patch.overdrive_config);
@@ -110,14 +107,14 @@ impl Synth {
     ///
     fn clock(&mut self) -> i16 {
         // Clock the envelopes for Voice 1 and Voice 2
-        let envelope1 = self.voice1_envelope.clock(None);
-        let envelope2 = self.voice2_envelope.clock(None);
-        let envelope3 = self.voice3_envelope.clock(None);
+        let envelope1 = self.envelops[0].clock(None);
+        let envelope2 = self.envelops[1].clock(None);
+        let envelope3 = self.envelops[2].clock(None);
 
         // Generate samples for each voice, taking into account gain settings
-        let voice_1_sample = math::percentage(self.voice1.clock(None), self.mixer.config.gain_voice_1 as i16);
-        let voice_2_sample = math::percentage(self.voice2.clock(None), self.mixer.config.gain_voice_2 as i16);
-        let voice_3_sample = math::percentage(self.voice3.clock(None), self.mixer.config.gain_voice_3 as i16);
+        let voice_1_sample = math::percentage(self.voices[0].clock(None), self.mixer.config.gain_voice_1 as i16);
+        let voice_2_sample = math::percentage(self.voices[1].clock(None), self.mixer.config.gain_voice_2 as i16);
+        let voice_3_sample = math::percentage(self.voices[2].clock(None), self.mixer.config.gain_voice_3 as i16);
 
        
         // Mix the three voices together, taking into account envelope and velocity settings
@@ -150,30 +147,19 @@ impl Synth {
         self.velocity = velocity;
 
         // If we have only one voice, play both voices with a detune
-        let mut freq: u16 = MIDI2FREQ[(note as i8 + self.voice1.config.detune) as usize];
-        // Update the frequency of the first voice
-        self.voice1.change_freq(freq);
-        // Open the gate for the first voice envelope
-        self.voice1_envelope.open_gate();
-
-        freq = MIDI2FREQ[(note as i8 + self.voice2.config.detune) as usize];
-        // Update the frequency of the second voice
-        self.voice2.change_freq(freq);
-        // Open the gate for the second voice envelope
-        self.voice2_envelope.open_gate();
-
-
-        freq = MIDI2FREQ[(note as i8 + self.voice3.config.detune) as usize];
-        // Update the frequency of the second voice
-        self.voice3.change_freq(freq);
-        // Open the gate for the second voice envelope
-        self.voice3_envelope.open_gate();
-    }
+        for i in 0..2 {
+            let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
+            // Update the frequency of the first voice
+            self.voices[i].change_freq(freq);
+            // Open the gate for the first voice envelope
+            self.envelops[i].open_gate();
+        }
+     }
 
     pub fn note_off(&mut self, note: u8) {
-        self.voice1_envelope.close_gate();
-        self.voice2_envelope.close_gate();
-        self.voice3_envelope.close_gate();
+        for i in 0..2 {
+            self.envelops[i].close_gate();
+        }
     }
     ///
     /// Returns a 16-bit sample value representing the synthesized audio signal.

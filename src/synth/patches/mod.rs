@@ -17,50 +17,55 @@ impl Patches {
     pub fn get_patch(name: Patches) -> Patch {
         match name {
             _ => Patch { 
-                voice_1: WaveTableOscillatorConfig {
-                    waveform: Waveform::Bass,
-                    glide: false,
-                    glide_rate: 0,
-                    detune: 0,
-                    freq: 440,
-                }, 
-                voice_1_env: EnvelopConfiguration { 
-                    attack_time: 10, 
-                    decay_time: 10, 
-                    release_time: 100, 
-                    sustain_level: 80 
-                }, 
-                voice_2: WaveTableOscillatorConfig {
-                    waveform: Waveform::Bass,
-                    glide: false,
-                    glide_rate: 0,
-                    detune: 4,
-                    freq: 440,
-                },  
-                voice_3_env: EnvelopConfiguration { 
-                    attack_time: 10, 
-                    decay_time: 10, 
-                    release_time: 100, 
-                    sustain_level: 80,
-                },
-                voice_3: WaveTableOscillatorConfig {
-                    waveform: Waveform::EightBit,
-                    glide: false,
-                    glide_rate: 0,
-                    detune: 7,
-                    freq: 440,
-                },  
-                voice_2_env: EnvelopConfiguration { 
-                    attack_time: 10, 
-                    decay_time: 10, 
-                    release_time: 100, 
-                    sustain_level: 80,
-                },
+                voices: [
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Bass,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 0,
+                        freq: 440,
+                    }, 
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Bass,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 0,
+                        freq: 440,
+                    }, 
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Bass,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 0,
+                        freq: 440,
+                    }, 
+                ],
+                envelops: [
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
+                ],
+
                 filter_config: FilterConfig { 
                     cutoff_frequency: 4_000, 
                     resonance: 20_000,
                     disabled: false, 
-                    kind_of_filter: KindOfFilter::Notch,
+                    kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voice_1: 20, 

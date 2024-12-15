@@ -12,7 +12,7 @@ pub enum EnvelopeState {
     Sustain,
     Release,
 }
-
+#[derive(Copy, Clone)]
 pub struct EnvelopConfiguration {
     pub attack_time: i16,
     pub decay_time: i16,
