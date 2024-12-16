@@ -10,7 +10,9 @@ pub mod wavetable_oscillator;
 pub mod patch;
 pub mod patches;
 pub mod effects;
+pub mod router;
 use effects::{overdrive::Overdrive, Effect};
+use router::{Router, VoiceToEnvelopRoute};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -29,6 +31,7 @@ pub const AMOUNT_OF_VOICE:usize = 4;
 pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE],
     envelops: [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE], 
+    router: Router,
     filter: Filter,
     overdrive: Overdrive,
     mixer: Mixer,
@@ -55,6 +58,7 @@ impl Synth {
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
+            router: Router::new(patch.routering_config),
             velocity: 0,
         }
     }
@@ -108,12 +112,20 @@ impl Synth {
         // Generate samples for each voice, taking into account gain settings
     
         let mut generate_voices: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];
+        let mut generate_env: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];
+        
         let mut sound_mixing: i16 = 0;
         for i in 0..AMOUNT_OF_VOICE {
-            generate_voices[i] = math::percentage(self.voices[i].clock(None), self.envelops[i].clock(None));
+            generate_voices[i] = self.voices[i].clock(None);
+            generate_env[i] = self.envelops[i].clock(None);            
+        }
+
+        for i in 0..AMOUNT_OF_VOICE {
+            generate_voices[i] = math::percentage(generate_voices[i], generate_env[self.router.config.voices_to_envelop[i].env as usize]);
             generate_voices[i] = math::percentage( generate_voices[i], self.mixer.config.gain_voices[i] as i16);
             sound_mixing = sound_mixing + generate_voices[i];
         }
+
      
         sound_mixing = math::percentage(sound_mixing, self.velocity as i16);
 

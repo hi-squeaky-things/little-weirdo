@@ -1,0 +1,27 @@
+//! Routing the signals
+
+use super::AMOUNT_OF_VOICE;
+
+pub struct VoiceToEnvelopRoute {
+    pub env: u8,
+}
+pub struct RoutingConfiguration {
+    pub voices_to_envelop: [VoiceToEnvelopRoute;AMOUNT_OF_VOICE],
+}
+
+pub struct Router {
+    pub config: RoutingConfiguration,
+}
+
+
+impl Router {
+    pub fn new(config: RoutingConfiguration) -> Self {
+        Self {
+            config
+        }
+    }
+
+    pub fn reload(&mut self, config: RoutingConfiguration) {
+        self.config = config;
+    }
+}

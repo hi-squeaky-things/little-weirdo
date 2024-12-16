@@ -2,6 +2,7 @@ use super::effects::filter::{FilterConfig, KindOfFilter};
 use super::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use super::envelope::EnvelopConfiguration;
 use super::mixer::MixerConfiguration;
+use super::router::{RoutingConfiguration, VoiceToEnvelopRoute};
 use super::wavetable_oscillator::{WaveTableOscillatorConfig, Waveform};
 use super::Patch;
 
@@ -73,7 +74,22 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
-
+                routering_config: RoutingConfiguration {
+                    voices_to_envelop: [
+                        VoiceToEnvelopRoute {
+                            env: 0,
+                        },
+                        VoiceToEnvelopRoute {
+                            env: 1,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 2,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 3,
+                        },  
+                        ]
+                },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 4_000, 
                     resonance: 40_000,
@@ -152,7 +168,22 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
-
+                routering_config: RoutingConfiguration {
+                    voices_to_envelop: [
+                        VoiceToEnvelopRoute {
+                            env: 0,
+                        },
+                        VoiceToEnvelopRoute {
+                            env: 1,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 2,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 3,
+                        },  
+                        ]
+                },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
                     resonance: 30_000,
@@ -231,7 +262,22 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
-
+                routering_config: RoutingConfiguration {
+                    voices_to_envelop: [
+                        VoiceToEnvelopRoute {
+                            env: 0,
+                        },
+                        VoiceToEnvelopRoute {
+                            env: 1,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 2,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 3,
+                        },  
+                        ]
+                },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 4_000, 
                     resonance: 40_000,
@@ -270,14 +316,14 @@ impl Patches {
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Square,
+                        waveform: Waveform::EightBit,
                         glide: false,
                         glide_rate: 0,
                         detune: 7,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Square,
+                        waveform: Waveform::EightBit,
                         glide: false,
                         glide_rate: 0,
                         detune: 9,
@@ -286,16 +332,16 @@ impl Patches {
                 ],
                 envelops: [
                     EnvelopConfiguration { 
-                        attack_time: 100, 
-                        decay_time: 10, 
-                        release_time: 100, 
-                        sustain_level: 80 
+                        attack_time: 2000, 
+                        decay_time: 50, 
+                        release_time: 1000, 
+                        sustain_level: 50 
                     }, 
                     EnvelopConfiguration { 
                         attack_time: 100, 
                         decay_time: 10, 
                         release_time: 100, 
-                        sustain_level: 80 
+                        sustain_level: 50 
                     }, 
                     EnvelopConfiguration { 
                         attack_time: 100, 
@@ -310,7 +356,22 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
-
+                routering_config: RoutingConfiguration {
+                    voices_to_envelop: [
+                        VoiceToEnvelopRoute {
+                            env: 0,
+                        },
+                        VoiceToEnvelopRoute {
+                            env: 0,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 1,
+                        },  
+                        VoiceToEnvelopRoute {
+                            env: 1,
+                        },  
+                        ]
+                },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 7_000, 
                     resonance: 0,
@@ -319,12 +380,12 @@ impl Patches {
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        20,
-                        20,
-                        20,
-                        20,
+                        10,
+                        10,
+                        10,
+                        10,
                     ],
-                    gain_main: 50, 
+                    gain_main: 20, 
                 },
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
