@@ -14,6 +14,10 @@ start
         #LightBlue:OSC3;
         #LightBlue:ENV3;
         :GAIN3;
+    split again
+        #LightBlue:OSC4;
+        #LightBlue:ENV4;
+        :GAIN4;
     end split
         :MIX (+);
 if (Filter Enabled) equals (Yes)  then

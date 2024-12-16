@@ -24,7 +24,7 @@ pub trait Clockable {
     }
 }
 
-pub const AMOUNT_OF_VOICE:usize = 3;
+pub const AMOUNT_OF_VOICE:usize = 4;
 
 pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE],
@@ -48,30 +48,10 @@ impl Synth {
     ///
     /// It returns a new `Synth` instance with the specified configuration.
     pub fn new(sample_rate: u16, patch: Patch) -> Self {
+        
         Self {
-
-            voices: [
-                wavetable_oscillator::WaveTableOscillator::new(
-                    patch.voices[0],
-                    sample_rate
-                ),
-                wavetable_oscillator::WaveTableOscillator::new(
-                    patch.voices[1],
-                    sample_rate
-                ),
-                wavetable_oscillator::WaveTableOscillator::new(
-                    patch.voices[2],
-                    sample_rate
-                ),
-            ],  
-
-            envelops: [
-                envelope::EnvelopeGenerator::new(patch.envelops[0], sample_rate),
-                envelope::EnvelopeGenerator::new(patch.envelops[1], sample_rate),
-                envelope::EnvelopeGenerator::new(patch.envelops[2], sample_rate),
-            ],
-
-    
+            voices: Synth::init_voices(sample_rate, &patch),  
+            envelops:  Synth::init_envs(sample_rate, &patch),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -79,6 +59,24 @@ impl Synth {
         }
     }
 
+    fn init_envs(sample_rate:u16, patch: &Patch) ->  [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE]{
+        let envelops: [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE] = array_init::array_init(|i: usize| {
+            envelope::EnvelopeGenerator::new(patch.envelops[i], sample_rate)
+        });
+        envelops
+    }
+
+    fn init_voices(sample_rate:u16, patch: &Patch) ->  [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] {
+        let voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] = array_init::array_init(|i: usize| {
+            wavetable_oscillator::WaveTableOscillator::new(
+                patch.voices[i],
+                sample_rate
+            )
+        });
+        voices
+    }
+ 
+ 
     ///
     ///  Loads a synth patch into the LttL Weirdo Wavetable Synthesizer engine, configuring all necessary components.
     ///

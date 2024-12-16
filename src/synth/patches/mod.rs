@@ -39,8 +39,21 @@ impl Patches {
                         detune: 0,
                         freq: 440,
                     }, 
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Bass,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 0,
+                        freq: 440,
+                    }, 
                 ],
                 envelops: [
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
                     EnvelopConfiguration { 
                         attack_time: 100, 
                         decay_time: 10, 
@@ -70,6 +83,7 @@ impl Patches {
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
                         20,
+                        0,
                         0,
                         0,
                     ],
@@ -104,8 +118,21 @@ impl Patches {
                         detune: 0,
                         freq: 440,
                     }, 
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Bass,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 0,
+                        freq: 440,
+                    }, 
                 ],
                 envelops: [
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
                     EnvelopConfiguration { 
                         attack_time: 100, 
                         decay_time: 10, 
@@ -136,6 +163,7 @@ impl Patches {
                     gain_voices: [
                         50,
                         50,
+                        0,
                         0,
                     ],
                     gain_main: 100, 
@@ -169,8 +197,21 @@ impl Patches {
                         detune: 7,
                         freq: 440,
                     }, 
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Bass,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 0,
+                        freq: 440,
+                    }, 
                 ],
                 envelops: [
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
                     EnvelopConfiguration { 
                         attack_time: 100, 
                         decay_time: 10, 
@@ -202,6 +243,7 @@ impl Patches {
                         20,
                         20,
                         20,
+                        0,
                     ],
                     gain_main: 50, 
                 },
@@ -214,24 +256,31 @@ impl Patches {
             Patches::WeirdScience => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Square10,
+                        waveform: Waveform::Square,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        waveform: Waveform::Square,
                         glide: false,
                         glide_rate: 0,
-                        detune: 0,
+                        detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        waveform: Waveform::Square,
                         glide: false,
                         glide_rate: 0,
-                        detune: 0,
+                        detune: 7,
+                        freq: 440,
+                    }, 
+                    WaveTableOscillatorConfig {
+                        waveform: Waveform::Square,
+                        glide: false,
+                        glide_rate: 0,
+                        detune: 9,
                         freq: 440,
                     }, 
                 ],
@@ -254,26 +303,33 @@ impl Patches {
                         release_time: 100, 
                         sustain_level: 80 
                     }, 
+                    EnvelopConfiguration { 
+                        attack_time: 100, 
+                        decay_time: 10, 
+                        release_time: 100, 
+                        sustain_level: 80 
+                    }, 
                 ],
 
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 4_000, 
+                    cutoff_frequency: 7_000, 
                     resonance: 0,
                     disabled: false, 
-                    kind_of_filter: KindOfFilter::High,
+                    kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        50,
-                        0,
-                        0,
+                        20,
+                        20,
+                        20,
+                        20,
                     ],
                     gain_main: 50, 
                 },
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
                     kind: KindOfOverdrive::Soft, 
-                    disabled: false, 
+                    disabled: true, 
                 }, 
             },
         }
