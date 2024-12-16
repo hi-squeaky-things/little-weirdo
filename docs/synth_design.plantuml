@@ -19,7 +19,8 @@ start
         #LightBlue:ENV4;
         :GAIN4;
     end split
-        :MIX (+);
+    :MIX;
+    :VELOCITY;
 if (Filter Enabled) equals (Yes)  then
    #LightBlue:FILTER;
 else (No)

@@ -156,9 +156,18 @@ impl Plugin for LttLSqueaky {
                
 
             }
-            let synth_sample_after_clock = self.synth.clock_and_output() as f32 / u16::MAX as f32;
+            let output = self.synth.clock_and_output();
+            let left = output[0] as f32 / u16::MAX as f32;
+            let right = output[1] as f32 / u16::MAX as f32;
+            let mut count = 0;
             for sample in channel_samples {
-                *sample = synth_sample_after_clock;
+                if count == 0 {
+                    *sample = left;
+                } else {
+                    *sample = right;
+
+                }
+                count = count + 1;
             }
         }
 

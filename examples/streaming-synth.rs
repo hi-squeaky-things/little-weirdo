@@ -32,7 +32,7 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: Patch = Patches::get_patch(Patches::WeirdScience);
+    let patch: Patch = Patches::get_patch(Patches::BassGuitar);
     let mut synth: synth::Synth = synth::Synth::new(44100, patch);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -63,9 +63,19 @@ fn main() {
                     Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
                 }
                 for frame in data.chunks_mut(2) {
-                    let synth_sample_after_clock = Sample::from_sample(synth.clock_and_output());
+                    let output = synth.clock_and_output();
+                    let left:f32 = Sample::from_sample(output[0]);
+                    let right:f32 = Sample::from_sample(output[1]);
+                
+                    let mut count = 0;
                     for sample in frame.iter_mut() {
-                        *sample = synth_sample_after_clock;
+                        if count == 0 {
+                            *sample = left;
+                        } else {
+                            *sample = right;
+
+                        }
+                        count = count + 1;
                     }
                 }
             },
@@ -94,12 +104,6 @@ fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
     match command {
         MidiMessage::NoteOn(ch, e) => synth.note_on(e.key, e.value),
         MidiMessage::NoteOff(ch, e) => synth.note_off( e.key),
-        MidiMessage::ProgramChange(ch, e) => {
-            match e {
-                0 => {},
-                _ => {}
-            }
-        }
         _ => {}
     }
 }

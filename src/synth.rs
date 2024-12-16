@@ -27,6 +27,8 @@ pub trait Clockable {
 }
 
 pub const AMOUNT_OF_VOICE:usize = 4;
+pub const AMOUNT_OF_OUTPUT_CHANNELS:usize = 2;
+
 
 pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE],
@@ -108,34 +110,32 @@ impl Synth {
     /// Returns a 16-bit sample value representing the synthesized audio signal.
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     ///
-    fn clock(&mut self) -> i16 {
-        // Generate samples for each voice, taking into account gain settings
-    
+    fn clock(&mut self) -> [i16;2] {
         let mut generate_voices: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];
-        let mut generate_env: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];
-        
-        let mut sound_mixing: i16 = 0;
+        let mut generate_env: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];        
+        let mut sound_mixing: [i16;AMOUNT_OF_OUTPUT_CHANNELS] = [0;AMOUNT_OF_OUTPUT_CHANNELS];
+        // clock voices and envelops once
         for i in 0..AMOUNT_OF_VOICE {
             generate_voices[i] = self.voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);            
         }
-
+        // run and route voices through envelops and apply gain.
         for i in 0..AMOUNT_OF_VOICE {
             generate_voices[i] = math::percentage(generate_voices[i], generate_env[self.router.config.voices_to_envelop[i].env as usize]);
-            generate_voices[i] = math::percentage( generate_voices[i], self.mixer.config.gain_voices[i] as i16);
-            sound_mixing = sound_mixing + generate_voices[i];
+            generate_voices[i] = math::percentage(generate_voices[i], self.velocity as i16);
+            generate_voices[i] = math::percentage(generate_voices[i], self.mixer.config.gain_voices[i] as i16);
+            sound_mixing[0] = sound_mixing[0] + generate_voices[i];
         }
-
-     
-        sound_mixing = math::percentage(sound_mixing, self.velocity as i16);
+        
+        sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
-        let filtered_signal = self.filter.clock(sound_mixing);
+        sound_mixing[0] = self.filter.clock(sound_mixing[0]);
 
         // Finally, apply main gain setting and return the final sample value
-        sound_mixing = math::percentage(filtered_signal, self.mixer.config.gain_main as i16);
-        sound_mixing = self.overdrive.clock(sound_mixing); 
-        sound_mixing
+        sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
+        sound_mixing[0] = self.overdrive.clock(sound_mixing[0]); 
+       [sound_mixing[0],sound_mixing[0]]
     }
 
     /// Let the LttL Weirdo Wavetable Synthesizer engine play a specific note on the right voice and with a velocity.
@@ -171,7 +171,7 @@ impl Synth {
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     /// You need to compensate the delta time yourself.
     ///
-    pub fn clock_and_output(&mut self) -> i16 {
+    pub fn clock_and_output(&mut self) -> [i16;2] {
         self.clock()
     }
 
