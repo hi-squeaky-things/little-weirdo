@@ -168,9 +168,14 @@ impl Synth {
     }
 
     pub fn change_cutoff(&mut self, velocity: u8) {
-        // self.mixer.config.gain_main = velocity;
         let mut config = self.filter.config;
         config.cutoff_frequency = velocity as u16 * 255;
+         self.filter.reload(config);
+     }
+
+     pub fn change_resonance(&mut self, velocity: u8) {
+        let mut config = self.filter.config;
+        config.resonance = velocity as u16 * 255;
          self.filter.reload(config);
      }
 
