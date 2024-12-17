@@ -2,8 +2,8 @@ use super::effects::filter::{FilterConfig, KindOfFilter};
 use super::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use super::envelope::EnvelopConfiguration;
 use super::mixer::MixerConfiguration;
-use super::router::{RoutingConfiguration, VoiceToEnvelopRoute};
-use super::wavetable_oscillator::{WaveTableOscillatorConfig, Waveform};
+use super::router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute};
+use super::wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig, Waveform};
 use super::Patch;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -20,9 +20,9 @@ impl Patches {
             Patches::BassGuitar => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::EightBit,
-                        glide: false,
-                        glide_rate: 0,
+                        waveform: Waveform::Bass,
+                        glide: true,
+                        glide_rate: 10,
                         detune: 0,
                         freq: 440,
                     }, 
@@ -74,6 +74,10 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
+                lfo: WaveTableLoFreqOscillatorConfig {
+                    waveform: Waveform::EightBit,
+                    time: 50,
+                },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
                         VoiceToEnvelopRoute {
@@ -88,17 +92,21 @@ impl Patches {
                         VoiceToEnvelopRoute {
                             env: 3,
                         },  
-                        ]
+                        ],
+                    voice_to_lfo : VoiceToLFORoute {
+                        enable: true,
+                        voice: 0,
+                    },
                 },   
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 4_000, 
-                    resonance: 40_000,
-                    disabled: true, 
+                    cutoff_frequency: 5_000, 
+                    resonance: 0,
+                    disabled: false, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        100,
+                        60,
                         0,
                         0,
                         0,
@@ -106,7 +114,7 @@ impl Patches {
                     gain_main: 100, 
                 },
                 overdrive_config: OverdriveConfiguration { 
-                    threshold: 1000, 
+                    threshold: 2000, 
                     kind: KindOfOverdrive::Softer, 
                     disabled: true, 
                 }, 
@@ -168,6 +176,10 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
+                lfo: WaveTableLoFreqOscillatorConfig {
+                    waveform: Waveform::Sine,
+                    time: 1,
+                },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
                         VoiceToEnvelopRoute {
@@ -182,7 +194,11 @@ impl Patches {
                         VoiceToEnvelopRoute {
                             env: 3,
                         },  
-                        ]
+                        ],
+                        voice_to_lfo : VoiceToLFORoute {
+                            enable: false,
+                            voice: 0,
+                        },
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
@@ -262,6 +278,10 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
+                lfo: WaveTableLoFreqOscillatorConfig {
+                    waveform: Waveform::Sine,
+                    time: 1,
+                },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
                         VoiceToEnvelopRoute {
@@ -276,7 +296,11 @@ impl Patches {
                         VoiceToEnvelopRoute {
                             env: 3,
                         },  
-                        ]
+                        ],
+                        voice_to_lfo : VoiceToLFORoute {
+                            enable: false,
+                            voice: 0,
+                        },
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 4_000, 
@@ -302,7 +326,7 @@ impl Patches {
             Patches::WeirdScience => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Square,
+                        waveform: Waveform::Sine,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
@@ -356,6 +380,10 @@ impl Patches {
                         sustain_level: 80 
                     }, 
                 ],
+                lfo: WaveTableLoFreqOscillatorConfig {
+                    waveform: Waveform::Sine,
+                    time: 1,
+                },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
                         VoiceToEnvelopRoute {
@@ -365,27 +393,31 @@ impl Patches {
                             env: 0,
                         },  
                         VoiceToEnvelopRoute {
-                            env: 1,
+                            env: 0,
                         },  
                         VoiceToEnvelopRoute {
-                            env: 1,
+                            env: 0,
                         },  
-                        ]
+                        ],
+                        voice_to_lfo : VoiceToLFORoute {
+                            enable: false,
+                            voice: 0,
+                        },
                 },   
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 7_000, 
+                    cutoff_frequency: 10_000, 
                     resonance: 0,
-                    disabled: false, 
-                    kind_of_filter: KindOfFilter::Low,
+                    disabled: true, 
+                    kind_of_filter: KindOfFilter::High,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        10,
-                        10,
-                        10,
-                        10,
+                        100,
+                        0,
+                        0,
+                        0,
                     ],
-                    gain_main: 20, 
+                    gain_main: 100, 
                 },
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 

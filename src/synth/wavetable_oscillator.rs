@@ -4,7 +4,7 @@ use super::Clockable;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-const HEADROOM_DIVIDER: i16 = 2;
+const HEADROOM_DIVIDER: i16 = 1;
 
 #[derive(PartialEq, Debug,Copy, Clone)]
 pub enum Waveform {
@@ -37,6 +37,10 @@ impl Waveform {
     }
 }
 
+pub struct WaveTableLoFreqOscillatorConfig {
+    pub waveform: Waveform,
+    pub time: u16, //   100 x seconde   
+}
 
 #[derive(Copy, Clone)]
 pub struct WaveTableOscillatorConfig {
@@ -59,45 +63,67 @@ pub struct WaveTableOscillator {
     waveform_lookup_table: &'static [i16; 600],
     target_freq: u16,
     freq_step: i16,
+    speed: u16,
+    last_output: i16,
+    speed_count: u16,
 }
 
 impl Clockable for WaveTableOscillator {
     fn clock(&mut self, _sample: Option<i16>) -> i16 {
-        if self.t == self.one_shot_loop {
-            self.t = 0;
-            if self.freq_change {
-                if self.config.freq != self.target_freq {
-                    if self.config.freq.abs_diff(self.target_freq) < self.freq_step.abs() as u16 {
-                        self.config.freq = self.target_freq;
-                        self.freq_change = false;
+        self.speed_count = self.speed_count + 1;
+        if self.speed == self.speed_count {
+            self.speed_count = 0;
+            if self.t == self.one_shot_loop {
+                self.t = 0;
+                if self.freq_change {
+                    if self.config.freq != self.target_freq {
+                        if self.config.freq.abs_diff(self.target_freq) < self.freq_step.abs() as u16 {
+                            self.config.freq = self.target_freq;
+                            self.freq_change = false;
+                        } else {
+                            self.config.freq = (self.config.freq as i16 + self.freq_step) as u16;
+                        }
                     } else {
-                        self.config.freq = (self.config.freq as i16 + self.freq_step) as u16;
+                        self.freq_change = false;
                     }
-                } else {
-                    self.freq_change = false;
+                    self.one_shot_loop = (self.sample_rate / self.config.freq as u16) as u16;
+                    self.calculate_lookup_table();
                 }
-                self.one_shot_loop = (self.sample_rate / self.config.freq as u16) as u16;
-                self.calculate_lookup_table();
+            };
+            let output: i16;
+            match &self.config.waveform {
+                Waveform::Noise => {
+                    output = self
+                        .random
+                        .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
+                }
+                _ => {
+                    output = self.waveform_lookup_table[self.lookup_table[self.t as usize] as usize]
+                        / HEADROOM_DIVIDER
+                }
             }
-        };
-        let output: i16;
-        match &self.config.waveform {
-            Waveform::Noise => {
-                output = self
-                    .random
-                    .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
-            }
-            _ => {
-                output = self.waveform_lookup_table[self.lookup_table[self.t as usize] as usize]
-                    / HEADROOM_DIVIDER
-            }
+            self.t = self.t + 1;
+            self.last_output = output;
         }
-        self.t = self.t + 1;
-        output
+        self.last_output
     }
 }
 
 impl WaveTableOscillator {
+
+    pub fn new_lfo(config: WaveTableLoFreqOscillatorConfig, sample_rate: u16) -> Self {
+        let new_config = WaveTableOscillatorConfig {
+            waveform: config.waveform,
+            glide: false,
+            glide_rate: 0,
+            detune: 0,
+            freq: 400,
+        };
+        let mut osc = Self::new(new_config, sample_rate);
+        osc.speed = 4 * config.time as u16;
+        osc
+    }
+
     pub fn new(
        config: WaveTableOscillatorConfig,
        sample_rate: u16
@@ -113,6 +139,9 @@ impl WaveTableOscillator {
             waveform_lookup_table: &wavetables::SINE,
             target_freq: config.freq,
             freq_step: 0,
+            last_output: 0,
+            speed_count: 0,
+            speed: 1,
         };
         osc.waveform_lookup_table = Waveform::get_waveform_lookup_table(&osc.config.waveform);
         osc.calculate_lookup_table();

@@ -13,6 +13,7 @@ pub mod effects;
 pub mod router;
 use effects::{overdrive::Overdrive, Effect};
 use router::{Router, VoiceToEnvelopRoute};
+use wavetable_oscillator::WaveTableOscillator;
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -33,6 +34,7 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS:usize = 2;
 pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE],
     envelops: [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE], 
+    lfo: WaveTableOscillator,
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
@@ -57,6 +59,7 @@ impl Synth {
         Self {
             voices: Synth::init_voices(sample_rate, &patch),  
             envelops:  Synth::init_envs(sample_rate, &patch),
+            lfo: WaveTableOscillator::new_lfo(patch.lfo, sample_rate),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -119,6 +122,14 @@ impl Synth {
             generate_voices[i] = self.voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);            
         }
+
+        if self.router.config.voice_to_lfo.enable {
+            let lfo:i32 = self.lfo.clock(None) as i32 + i16::MAX as i32;
+            let lfo_percentage = (lfo as u32 * 100) / u16::MAX as u32;
+            generate_voices[self.router.config.voice_to_lfo.voice as usize] = math::percentage(generate_voices[self.router.config.voice_to_lfo.voice as usize],lfo_percentage as i16);
+        }
+
+
         // run and route voices through envelops and apply gain.
         for i in 0..AMOUNT_OF_VOICE {
             generate_voices[i] = math::percentage(generate_voices[i], generate_env[self.router.config.voices_to_envelop[i].env as usize]);
