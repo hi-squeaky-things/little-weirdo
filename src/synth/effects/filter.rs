@@ -15,7 +15,7 @@ pub struct FilterConfig {
     pub cutoff_frequency: u16,
     pub resonance: u16,
     pub kind_of_filter: KindOfFilter,
-    pub disabled: bool,
+    pub enabled: bool,
 }
 
 pub struct Filter {
@@ -27,10 +27,10 @@ pub struct Filter {
 
 impl Effect for Filter {
     fn clock(&mut self, sample: i16) -> i16 {
-        if self.config.disabled {
-            sample
-        } else {
+        if self.config.enabled {
             self.filter(sample)
+        } else {
+            sample
         }
     }
 }

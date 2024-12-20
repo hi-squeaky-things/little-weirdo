@@ -75,7 +75,7 @@ impl Patches {
                     }, 
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
-                    waveform: Waveform::EightBit,
+                    waveform: Waveform::Sine,
                     time: 50,
                 },
                 routering_config: RoutingConfiguration {
@@ -94,14 +94,15 @@ impl Patches {
                         },  
                         ],
                     voice_to_lfo : VoiceToLFORoute {
-                        enable: true,
+                        enable: false,
                         voice: 0,
                     },
+                    lfo_to_filter: true,
                 },   
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 5_000, 
-                    resonance: 0,
-                    disabled: false, 
+                    cutoff_frequency: 1_000, 
+                    resonance: 5_000,
+                    enabled: true, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
@@ -111,12 +112,12 @@ impl Patches {
                         0,
                         0,
                     ],
-                    gain_main: 100, 
+                    gain_main: 50, 
                 },
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 2000, 
                     kind: KindOfOverdrive::Softer, 
-                    disabled: true, 
+                    enabled: false, 
                 }, 
             },
             Patches::BassGuitarFourth => Patch { 
@@ -199,11 +200,12 @@ impl Patches {
                             enable: false,
                             voice: 0,
                         },
+                        lfo_to_filter: false,
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
                     resonance: 30_000,
-                    disabled: false, 
+                    enabled: false, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
@@ -218,7 +220,7 @@ impl Patches {
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
                     kind: KindOfOverdrive::Softer, 
-                    disabled: true, 
+                    enabled: true, 
                 }, 
             },
             Patches::BassGuitarMajor => Patch { 
@@ -280,7 +282,7 @@ impl Patches {
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
                     waveform: Waveform::Sine,
-                    time: 1,
+                    time: 10,
                 },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
@@ -298,29 +300,31 @@ impl Patches {
                         },  
                         ],
                         voice_to_lfo : VoiceToLFORoute {
-                            enable: false,
+                            enable: true,
                             voice: 0,
                         },
+                        lfo_to_filter: false,
+
                 },   
                 filter_config: FilterConfig { 
-                    cutoff_frequency: 4_000, 
-                    resonance: 40_000,
-                    disabled: true, 
+                    cutoff_frequency: 1_000, 
+                    resonance: 0,
+                    enabled: true, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        33,
-                        33,
-                        33,
+                        20,
+                        10,
+                        10,
                         0,
                     ],
-                    gain_main: 140, 
+                    gain_main: 80, 
                 },
                 overdrive_config: OverdriveConfiguration { 
-                    threshold: 2000, 
+                    threshold: 1000, 
                     kind: KindOfOverdrive::Softer, 
-                    disabled: true, 
+                    enabled: true, 
                 }, 
             },
             Patches::WeirdScience => Patch { 
@@ -403,11 +407,12 @@ impl Patches {
                             enable: false,
                             voice: 0,
                         },
+                        lfo_to_filter: false,
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 10_000, 
                     resonance: 0,
-                    disabled: true, 
+                    enabled: true, 
                     kind_of_filter: KindOfFilter::High,
                 }, 
                 mixer_config: MixerConfiguration { 
@@ -422,7 +427,7 @@ impl Patches {
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
                     kind: KindOfOverdrive::Soft, 
-                    disabled: true, 
+                    enabled: true, 
                 }, 
             },
         }

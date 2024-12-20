@@ -1,5 +1,5 @@
 //! WaveTableOscillator to generate sounds using Wavetable synthesis.
-use super::data::wavetables;
+use super::data::wavetables::{self, Wavetable};
 use super::Clockable;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -21,7 +21,7 @@ pub enum Waveform {
 }
 
 impl Waveform {
-    fn get_waveform_lookup_table(waveform: &Waveform) -> &'static [i16; 600] {
+    fn get_waveform_lookup_table(waveform: &Waveform) -> &'static Wavetable{
         match waveform {
             Waveform::SawTooth => &wavetables::SAWTOOTH,
             Waveform::Square => &wavetables::SQUARE,
@@ -60,7 +60,7 @@ pub struct WaveTableOscillator {
     random: SmallRng,
     sample_rate: u16,
     lookup_table: [u16; 3000],
-    waveform_lookup_table: &'static [i16; 600],
+    waveform_lookup_table: &'static Wavetable,
     target_freq: u16,
     freq_step: i16,
     speed: u16,
@@ -98,7 +98,7 @@ impl Clockable for WaveTableOscillator {
                         .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
                 }
                 _ => {
-                    output = self.waveform_lookup_table[self.lookup_table[self.t as usize] as usize]
+                    output = self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize]
                         / HEADROOM_DIVIDER
                 }
             }

@@ -123,9 +123,10 @@ impl Synth {
             generate_env[i] = self.envelops[i].clock(None);            
         }
 
+        let lfo:i32 = self.lfo.clock(None) as i32;
+        let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
+
         if self.router.config.voice_to_lfo.enable {
-            let lfo:i32 = self.lfo.clock(None) as i32 + i16::MAX as i32;
-            let lfo_percentage = (lfo as u32 * 100) / u16::MAX as u32;
             generate_voices[self.router.config.voice_to_lfo.voice as usize] = math::percentage(generate_voices[self.router.config.voice_to_lfo.voice as usize],lfo_percentage as i16);
         }
 
@@ -141,6 +142,14 @@ impl Synth {
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
+        if self.router.config.lfo_to_filter {
+            let lfo_filter =  1_000 + math::percentage(5_000,lfo_percentage as i16);
+            if  self.filter.config.cutoff_frequency != lfo_filter as u16 {
+                let mut config = self.filter.config;
+                config.cutoff_frequency = lfo_filter as u16;
+                self.filter.reload(config);
+            }
+        }
         sound_mixing[0] = self.filter.clock(sound_mixing[0]);
 
         // Finally, apply main gain setting and return the final sample value
