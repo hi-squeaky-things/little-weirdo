@@ -21,7 +21,7 @@ impl Patches {
                 voices: [
                     WaveTableOscillatorConfig {
                         waveform: Waveform::Bass,
-                        glide: true,
+                        glide: false,
                         glide_rate: 10,
                         detune: 0,
                         freq: 440,
@@ -76,7 +76,7 @@ impl Patches {
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
                     waveform: Waveform::Sine,
-                    time: 50,
+                    time: 5,
                 },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
@@ -97,7 +97,7 @@ impl Patches {
                         enable: false,
                         voice: 0,
                     },
-                    lfo_to_filter: true,
+                    lfo_to_filter: false,
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
@@ -179,7 +179,7 @@ impl Patches {
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
                     waveform: Waveform::Sine,
-                    time: 1,
+                    time: 10,
                 },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
@@ -197,15 +197,15 @@ impl Patches {
                         },  
                         ],
                         voice_to_lfo : VoiceToLFORoute {
-                            enable: false,
+                            enable: true,
                             voice: 0,
                         },
                         lfo_to_filter: false,
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
-                    resonance: 30_000,
-                    enabled: false, 
+                    resonance: 0,
+                    enabled: true, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
