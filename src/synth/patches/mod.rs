@@ -300,7 +300,7 @@ impl Patches {
                         },  
                         ],
                         voice_to_lfo : VoiceToLFORoute {
-                            enable: true,
+                            enable: false,
                             voice: 0,
                         },
                         lfo_to_filter: false,
@@ -314,17 +314,17 @@ impl Patches {
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        20,
-                        10,
-                        10,
+                        25,
+                        25,
+                        25,
                         0,
                     ],
-                    gain_main: 80, 
+                    gain_main: 50, 
                 },
                 overdrive_config: OverdriveConfiguration { 
                     threshold: 1000, 
                     kind: KindOfOverdrive::Softer, 
-                    enabled: true, 
+                    enabled: false, 
                 }, 
             },
             Patches::WeirdScience => Patch { 

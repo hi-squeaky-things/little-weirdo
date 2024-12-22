@@ -1,6 +1,6 @@
 //! Lowpass filter
 use crate::synth::effects::Effect;
-use crate::synth::math::{self, fx_mul, ifx_mul, ucfx_mul};
+use crate::synth::math::{fx_mul, ifx_mul, ucfx_mul};
 
 #[derive(Copy, Clone)]
 pub enum KindOfFilter {

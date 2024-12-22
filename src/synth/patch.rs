@@ -1,6 +1,6 @@
 //! Patch to config the sounds
  
-use super::{effects::{filter::FilterConfig, overdrive::OverdriveConfiguration}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patches::Patches, router::RoutingConfiguration, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}, Synth, AMOUNT_OF_VOICE};
+use super::{effects::{filter::FilterConfig, overdrive::OverdriveConfiguration}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patches::Patches, router::RoutingConfiguration, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}, AMOUNT_OF_VOICE};
 
 pub struct Patch {
     pub voices: [WaveTableOscillatorConfig;AMOUNT_OF_VOICE],

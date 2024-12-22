@@ -12,7 +12,7 @@ pub mod patches;
 pub mod effects;
 pub mod router;
 use effects::{overdrive::Overdrive, Effect};
-use router::{Router, VoiceToEnvelopRoute};
+use router::Router;
 use wavetable_oscillator::WaveTableOscillator;
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
@@ -181,7 +181,7 @@ impl Synth {
         }
      }
 
-    pub fn note_off(&mut self, note: u8) {
+    pub fn note_off(&mut self, _note: u8) {
         for i in 0..AMOUNT_OF_VOICE {
             self.envelops[i].close_gate();
         }
