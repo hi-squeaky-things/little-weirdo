@@ -1,3 +1,4 @@
+use little_weirdo::synth::data::wavetables::SOUND_BANK_0;
 use nih_plug::prelude::*;
 use std::{f32::consts, u16};
 use std::sync::Arc;
@@ -40,7 +41,7 @@ impl Default for LttLSqueaky {
 
         let current_patch = Patches::BassGuitar;
         let patch = Patches::get_patch(current_patch);
-        let synth = synth::Synth::new(44100, patch);
+        let synth = synth::Synth::new(44100, patch, &SOUND_BANK_0);
 
 
         Self {
