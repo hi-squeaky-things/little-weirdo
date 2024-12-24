@@ -3,7 +3,7 @@ use super::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use super::envelope::EnvelopConfiguration;
 use super::mixer::MixerConfiguration;
 use super::router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute};
-use super::wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig, Waveform};
+use super::wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig};
 use super::Patch;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -20,28 +20,28 @@ impl Patches {
             Patches::BassGuitar => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 4,
                         glide: false,
                         glide_rate: 10,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
@@ -75,7 +75,7 @@ impl Patches {
                     }, 
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
-                    waveform: Waveform::Sine,
+                     soundbank_index: 0,
                     time: 5,
                 },
                 routering_config: RoutingConfiguration {
@@ -102,12 +102,12 @@ impl Patches {
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
                     resonance: 5_000,
-                    enabled: true, 
+                    enabled: false, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        60,
+                        100,
                         0,
                         0,
                         0,
@@ -123,28 +123,28 @@ impl Patches {
             Patches::BassGuitarFourth => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
@@ -178,7 +178,7 @@ impl Patches {
                     }, 
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
-                    waveform: Waveform::Sine,
+                     soundbank_index: 0,
                     time: 10,
                 },
                 routering_config: RoutingConfiguration {
@@ -226,28 +226,28 @@ impl Patches {
             Patches::BassGuitarMajor => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 7,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Bass,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
@@ -281,7 +281,7 @@ impl Patches {
                     }, 
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
-                    waveform: Waveform::Sine,
+                     soundbank_index: 0,
                     time: 10,
                 },
                 routering_config: RoutingConfiguration {
@@ -330,28 +330,28 @@ impl Patches {
             Patches::WeirdScience => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Sine,
+                         soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::Square,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::EightBit,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 7,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        waveform: Waveform::EightBit,
+                        soundbank_index: 0,
                         glide: false,
                         glide_rate: 0,
                         detune: 9,
@@ -385,7 +385,7 @@ impl Patches {
                     }, 
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
-                    waveform: Waveform::Sine,
+                     soundbank_index: 0,
                     time: 1,
                 },
                 routering_config: RoutingConfiguration {

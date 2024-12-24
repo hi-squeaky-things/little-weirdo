@@ -1,50 +1,20 @@
 //! WaveTableOscillator to generate sounds using Wavetable synthesis.
-use super::data::wavetables::{self, Wavetable};
+use super::data::wavetables::{self, Wavetable, SOUND_BANK_0};
 use super::Clockable;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
 const HEADROOM_DIVIDER: i16 = 1;
 
-#[derive(PartialEq, Debug,Copy, Clone)]
-pub enum Waveform {
-    Sine,
-    Square,
-    SawTooth,
-    Noise,
-    Triangle,
-    Square25,
-    Square10,
-    Bass,
-    Piano,
-    EightBit,
-}
-
-impl Waveform {
-    fn get_waveform_lookup_table(waveform: &Waveform) -> &'static Wavetable{
-        match waveform {
-            Waveform::SawTooth => &wavetables::SAWTOOTH,
-            Waveform::Square => &wavetables::SQUARE,
-            Waveform::Triangle => &wavetables::TRIANGLE,
-            Waveform::Sine => &wavetables::SINE,
-            Waveform::Bass => &wavetables::BASS,
-            Waveform::Piano => &wavetables::PIANO,
-            Waveform::EightBit => &wavetables::EIGHT_BIT,
-            Waveform::Square25 => &wavetables::SQUARE_25,
-            Waveform::Square10 => &wavetables::SQUARE_10,
-            Waveform::Noise => &wavetables::SINE, //will be generated in realtime, this is just a placeholder
-        }
-    }
-}
 
 pub struct WaveTableLoFreqOscillatorConfig {
-    pub waveform: Waveform,
+    pub soundbank_index: u8,
     pub time: u16, //   100 x seconde   
 }
 
 #[derive(Copy, Clone)]
 pub struct WaveTableOscillatorConfig {
-    pub waveform: Waveform,
+    pub soundbank_index: u8,
     pub glide: bool,
     pub glide_rate: u8,
     pub detune: i8,
@@ -91,14 +61,18 @@ impl Clockable for WaveTableOscillator {
                 }
             };
             let output: i16;
-            match &self.config.waveform {
-                Waveform::Noise => {
+            match &self.config.soundbank_index {
+                255 => {
                     output = self
                         .random
                         .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
                 }
                 _ => {
-                    output = self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize]
+                    output = i16::from_le_bytes([
+                        self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize * 2]
+                        ,
+                        self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize * 2 + 1]
+                    ])
                         / HEADROOM_DIVIDER
                 }
             }
@@ -113,7 +87,7 @@ impl WaveTableOscillator {
 
     pub fn new_lfo(config: WaveTableLoFreqOscillatorConfig, sample_rate: u16) -> Self {
         let new_config = WaveTableOscillatorConfig {
-            waveform: config.waveform,
+            soundbank_index: config.soundbank_index,
             glide: false,
             glide_rate: 0,
             detune: 0,
@@ -136,14 +110,16 @@ impl WaveTableOscillator {
             random: SmallRng::seed_from_u64(23702372039u64),
             sample_rate,
             lookup_table: [0u16; 3000],
-            waveform_lookup_table: &wavetables::SINE,
+            waveform_lookup_table: &SOUND_BANK_0.wavetables[0],
             target_freq: config.freq,
             freq_step: 0,
             last_output: 0,
             speed_count: 0,
             speed: 1,
         };
-        osc.waveform_lookup_table = Waveform::get_waveform_lookup_table(&osc.config.waveform);
+        if (osc.config.soundbank_index != 255) {
+            osc.waveform_lookup_table = &SOUND_BANK_0.wavetables[osc.config.soundbank_index as usize];
+        }
         osc.calculate_lookup_table();
         osc
     }
@@ -168,7 +144,7 @@ impl WaveTableOscillator {
   
    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
      self.config = config;
-     self.waveform_lookup_table = Waveform::get_waveform_lookup_table(&self.config.waveform);
+     self.waveform_lookup_table = &SOUND_BANK_0.wavetables[self.config.soundbank_index as usize];
    }
 
     pub fn change_freq(&mut self, frequency: u16) {

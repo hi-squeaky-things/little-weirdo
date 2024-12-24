@@ -5,7 +5,7 @@ use cpal::{
 use cpal::{Device, Sample, StreamConfig};
 use little_weirdo::synth::{envelope::EnvelopConfiguration, patches::{Patches}};
 use little_weirdo::synth::effects::filter::FilterConfig;
-use little_weirdo::synth::wavetable_oscillator::Waveform;
+
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
 use midi_control::{self, MidiMessage};
