@@ -4,8 +4,6 @@ use super::Clockable;
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
-const HEADROOM_DIVIDER: i16 = 1;
-
 
 pub struct WaveTableLoFreqOscillatorConfig {
     pub soundbank_index: u8,
@@ -65,15 +63,13 @@ impl Clockable for WaveTableOscillator {
                 255 => {
                     output = self
                         .random
-                        .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
+                        .gen_range((i16::MIN + 1000)..(i16::MAX - 1000));
                 }
                 _ => {
-                    output = i16::from_ne_bytes([
-                        self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize * 2]
-                        ,
-                        self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize * 2 + 1]
-                    ])
-                        / HEADROOM_DIVIDER
+                    let index = self.lookup_table[self.t as usize] as usize * 2;
+                    let b1 = (self.waveform_lookup_table.data[index + 1] as i16) << 8;
+                    let b2 = self.waveform_lookup_table.data[index] as i16;
+                      output = (b1 | b2);
                 }
             }
             self.t = self.t + 1;
