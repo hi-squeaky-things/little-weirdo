@@ -69,7 +69,7 @@ impl Clockable for WaveTableOscillator {
                     let index = self.lookup_table[self.t as usize] as usize * 2;
                     let b1 = (self.waveform_lookup_table.data[index + 1] as i16) << 8;
                     let b2 = self.waveform_lookup_table.data[index] as i16;
-                      output = (b1 | b2);
+                    output = b1 | b2;
                 }
             }
             self.t = self.t + 1;

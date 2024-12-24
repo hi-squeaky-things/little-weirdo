@@ -1,11 +1,11 @@
-/// auto generated using examples/create_wave_table.rs
-
 #[derive(Copy, Clone, Debug)]
 pub struct Wavetable {
-    pub data: [u8; 1200]
+    // 600 samples  = 1200 bytes = 1.2 Kb
+    pub data: [u8; 1_200]
 }
 
 pub struct SoundBank {
+    // 10 x 1.2Kb = 12Kb per Soundbank
     pub wavetables: [Wavetable; 10]
 }
 
