@@ -29,7 +29,6 @@ impl Overdrive {
     }
 }
  
-
 impl Effect for Overdrive {
     fn clock(&mut self, sample: i16) -> i16 {
         if !self.config.enabled {

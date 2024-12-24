@@ -10,9 +10,6 @@ pub struct VoiceToLFORoute {
     pub enable: bool, 
 }
 
-
-
-
 pub struct RoutingConfiguration {
     pub voices_to_envelop: [VoiceToEnvelopRoute;AMOUNT_OF_VOICE],
     pub voice_to_lfo: VoiceToLFORoute,

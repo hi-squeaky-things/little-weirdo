@@ -20,17 +20,17 @@ impl Patches {
             Patches::BassGuitar => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        soundbank_index: 9,
+                        soundbank_index: 6,
                         glide: false,
                         glide_rate: 10,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        soundbank_index: 0,
+                        soundbank_index: 7,
                         glide: false,
                         glide_rate: 0,
-                        detune: 0,
+                        detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {

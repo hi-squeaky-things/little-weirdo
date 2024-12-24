@@ -1,6 +1,6 @@
 
 use cpal::Sample;
-use little_weirdo::synth::{self, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
+use little_weirdo::synth::{self, data::wavetables::SOUND_BANK_0, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
 
 const SAMPLE_RATE:u16 = 44_100;
 const CLIPPING:u16 = 32_000;
@@ -28,8 +28,8 @@ fn main() {
         freq: 220,
     };
 
-    let mut lfo: WaveTableOscillator = WaveTableOscillator::new_lfo(lfo_config, SAMPLE_RATE);
-    let mut osc:WaveTableOscillator = WaveTableOscillator::new(osc_conf, SAMPLE_RATE);
+    let mut lfo: WaveTableOscillator = WaveTableOscillator::new_lfo(lfo_config,&SOUND_BANK_0 ,SAMPLE_RATE);
+    let mut osc:WaveTableOscillator = WaveTableOscillator::new(osc_conf, &SOUND_BANK_0, SAMPLE_RATE);
         for n in 0..SAMPLE_RATE {
             let output_lfo = lfo.clock(None);
             writer.write_sample(output_lfo).unwrap();

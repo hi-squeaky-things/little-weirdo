@@ -3,7 +3,7 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}
 };
 use cpal::{Device, Sample, StreamConfig};
-use little_weirdo::synth::{envelope::EnvelopConfiguration, patches::{Patches}};
+use little_weirdo::synth::{data::wavetables::SOUND_BANK_0, envelope::EnvelopConfiguration, patches::Patches};
 use little_weirdo::synth::effects::filter::FilterConfig;
 
 use little_weirdo::synth::patch::Patch;
@@ -33,7 +33,7 @@ fn main() {
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
     let patch: Patch = Patches::get_patch(Patches::BassGuitar);
-    let mut synth: synth::Synth = synth::Synth::new(44100, patch);
+    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &SOUND_BANK_0);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
 

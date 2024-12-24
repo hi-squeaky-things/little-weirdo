@@ -11,6 +11,7 @@ pub mod patch;
 pub mod patches;
 pub mod effects;
 pub mod router;
+use data::wavetables::SoundBank;
 use effects::{overdrive::Overdrive, Effect};
 use router::Router;
 use wavetable_oscillator::WaveTableOscillator;
@@ -40,6 +41,7 @@ pub struct Synth {
     overdrive: Overdrive,
     mixer: Mixer,
     velocity: u8,
+    _soundbank: &'static SoundBank,
 }
 
 ///
@@ -54,12 +56,13 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: Patch) -> Self {
+    pub fn new(sample_rate: u16, patch: Patch, soundbank: &'static SoundBank) -> Self {
         
         Self {
-            voices: Synth::init_voices(sample_rate, &patch),  
+            _soundbank: soundbank,
+            voices: Synth::init_voices(sample_rate, soundbank, &patch),  
             envelops:  Synth::init_envs(sample_rate, &patch),
-            lfo: WaveTableOscillator::new_lfo(patch.lfo, sample_rate),
+            lfo: WaveTableOscillator::new_lfo(patch.lfo, soundbank, sample_rate),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -75,10 +78,11 @@ impl Synth {
         envelops
     }
 
-    fn init_voices(sample_rate:u16, patch: &Patch) ->  [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] {
+    fn init_voices(sample_rate:u16, soundbank: &'static SoundBank, patch: &Patch) ->  [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] {
         let voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] = array_init::array_init(|i: usize| {
             wavetable_oscillator::WaveTableOscillator::new(
                 patch.voices[i],
+                soundbank,
                 sample_rate
             )
         });
@@ -174,9 +178,9 @@ impl Synth {
         // If we have only one voice, play both voices with a detune
         for i in 0..AMOUNT_OF_VOICE {
             let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
-            // Update the frequency of the first voice
+            // Update the frequency of the voices
             self.voices[i].change_freq(freq);
-            // Open the gate for the first voice envelope
+            // Open the gate for all voice envelops
             self.envelops[i].open_gate();
         }
      }

@@ -5,8 +5,6 @@ use hound::WavReader;
 const  SOUNDBANK_ORIGINAL: &str = "./data/soundbank_0/original";
 const  SOUNDBANK_OUTPUT: &str = "./data/soundbank_0/src";
 
-
-
 fn main() {
     let soundbank_original_source_path = Path::new(SOUNDBANK_ORIGINAL);
     let soundbank_source_path = Path::new(SOUNDBANK_OUTPUT);
