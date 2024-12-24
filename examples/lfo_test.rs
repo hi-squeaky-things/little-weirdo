@@ -1,6 +1,6 @@
 
 use cpal::Sample;
-use little_weirdo::synth::{self, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig, Waveform}, Clockable};
+use little_weirdo::synth::{self, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
 
 const SAMPLE_RATE:u16 = 44_100;
 const CLIPPING:u16 = 32_000;
@@ -16,16 +16,16 @@ fn main() {
     let mut writer = hound::WavWriter::create("lfo_test.wav", spec).unwrap();
 
     let mut lfo_config = WaveTableLoFreqOscillatorConfig {
-        waveform: Waveform::SawTooth,
+        soundbank_index: 4,
         time: 5, // 0.5 sec 
     };
 
     let mut osc_conf = WaveTableOscillatorConfig {
-        waveform: Waveform::Bass,
+        soundbank_index: 4,
         glide: false,
         glide_rate: 0,
         detune: 0,
-        freq: 440,
+        freq: 220,
     };
 
     let mut lfo: WaveTableOscillator = WaveTableOscillator::new_lfo(lfo_config, SAMPLE_RATE);
