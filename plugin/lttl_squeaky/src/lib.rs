@@ -3,7 +3,6 @@ use std::{f32::consts, u16};
 use std::sync::Arc;
 use little_weirdo::synth::{patches::{Patches}};
 use little_weirdo::synth::effects::filter::FilterConfig;
-use little_weirdo::synth::wavetable_oscillator::Waveform;
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
 
