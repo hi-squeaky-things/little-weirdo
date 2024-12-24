@@ -68,7 +68,7 @@ impl Clockable for WaveTableOscillator {
                         .gen_range((i16::MIN / HEADROOM_DIVIDER)..(i16::MAX / HEADROOM_DIVIDER));
                 }
                 _ => {
-                    output = i16::from_le_bytes([
+                    output = i16::from_ne_bytes([
                         self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize * 2]
                         ,
                         self.waveform_lookup_table.data[self.lookup_table[self.t as usize] as usize * 2 + 1]
