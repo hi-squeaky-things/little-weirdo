@@ -6,7 +6,7 @@ pub struct Wavetable {
 }
 
 pub struct SoundBank {
-    pub wavetables: [Wavetable; 8]
+    pub wavetables: [Wavetable; 10]
 }
 
 pub static SOUND_BANK_0:SoundBank = SoundBank {
@@ -35,6 +35,12 @@ pub static SOUND_BANK_0:SoundBank = SoundBank {
          Wavetable {
              data: *include_bytes!("../../../data/soundbank_0/src/wav7.lwt") 
          },
+         Wavetable {
+            data: *include_bytes!("../../../data/soundbank_0/src/wav8.lwt") 
+        },
+        Wavetable {
+            data: *include_bytes!("../../../data/soundbank_0/src/wav9.lwt") 
+        },
     ],
 };
 

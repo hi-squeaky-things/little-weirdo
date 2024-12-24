@@ -20,7 +20,7 @@ impl Patches {
             Patches::BassGuitar => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        soundbank_index: 4,
+                        soundbank_index: 9,
                         glide: false,
                         glide_rate: 10,
                         detune: 0,
@@ -107,7 +107,7 @@ impl Patches {
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        100,
+                        50,
                         0,
                         0,
                         0,
