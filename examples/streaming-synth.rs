@@ -7,7 +7,7 @@ use little_weirdo::synth::effects::filter::FilterConfig;
 
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
-use little_weirdo_soundbanks::{patches::Patches, soundbanks::SOUND_BANK_PURE_ELEKTROc};
+use little_weirdo_soundbanks::{patches::Patches, soundbanks::SOUND_BANK_PURE_ELEKTRO};
 use midi_control::{self, MidiMessage};
 use midir;
 use std::sync::mpsc;
