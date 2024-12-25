@@ -1,4 +1,4 @@
-use little_weirdo::synth::data::wavetables::SOUND_BANK_0;
+use little_weirdo_soundbanks::SOUND_BANK_0;
 use nih_plug::prelude::*;
 use std::{f32::consts, u16};
 use std::sync::Arc;

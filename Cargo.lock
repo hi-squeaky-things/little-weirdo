@@ -889,6 +889,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
+name = "little-weirdo-soundbanks"
+version = "0.1.0"
+dependencies = [
+ "hound",
+ "little_weirdo",
+]
+
+[[package]]
 name = "little_weirdo"
 version = "0.1.0"
 dependencies = [
@@ -898,6 +906,7 @@ dependencies = [
  "console",
  "cpal",
  "hound",
+ "little-weirdo-soundbanks",
  "midi-control",
  "midir 0.10.1",
  "pitch_calc",
@@ -925,6 +934,7 @@ checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 name = "lttl_squeaky"
 version = "0.1.0"
 dependencies = [
+ "little-weirdo-soundbanks",
  "little_weirdo",
  "nih_plug",
 ]

@@ -14,7 +14,7 @@
 //! 
 //! use little_weirdo::synth::patch::Patch;
 //! use little_weirdo::synth::Synth;
-//! use little_weirdo::synth::data::wavetables::SOUND_BANK_0;
+//! use little_weirdo_soundbanks::SOUND_BANK_0;
 //! fn main() {
 //!     // Choose a predefined patch (or create your own).
 //!     let patch: Patch = Patch::default();

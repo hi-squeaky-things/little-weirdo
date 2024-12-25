@@ -20,21 +20,21 @@ impl Patches {
             Patches::BassGuitar => Patch { 
                 voices: [
                     WaveTableOscillatorConfig {
-                        soundbank_index: 6,
-                        glide: false,
+                        soundbank_index: 3,
+                        glide: true,
                         glide_rate: 10,
                         detune: 0,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        soundbank_index: 7,
+                        soundbank_index: 2,
                         glide: false,
                         glide_rate: 0,
                         detune: 4,
                         freq: 440,
                     }, 
                     WaveTableOscillatorConfig {
-                        soundbank_index: 0,
+                        soundbank_index: 5,
                         glide: false,
                         glide_rate: 0,
                         detune: 0,
@@ -75,8 +75,8 @@ impl Patches {
                     }, 
                 ],
                 lfo: WaveTableLoFreqOscillatorConfig {
-                     soundbank_index: 0,
-                    time: 5,
+                     soundbank_index: 9,
+                    time: 400,
                 },
                 routering_config: RoutingConfiguration {
                     voices_to_envelop: [
@@ -95,29 +95,29 @@ impl Patches {
                         ],
                     voice_to_lfo : VoiceToLFORoute {
                         enable: false,
-                        voice: 0,
+                        voice: 2,
                     },
-                    lfo_to_filter: false,
+                    lfo_to_filter: true,
                 },   
                 filter_config: FilterConfig { 
                     cutoff_frequency: 1_000, 
-                    resonance: 5_000,
-                    enabled: false, 
+                    resonance: 20_000,
+                    enabled: true, 
                     kind_of_filter: KindOfFilter::Low,
                 }, 
                 mixer_config: MixerConfiguration { 
                     gain_voices: [
-                        50,
-                        0,
-                        0,
+                        30,
+                        30,
+                        30,
                         0,
                     ],
                     gain_main: 50, 
                 },
                 overdrive_config: OverdriveConfiguration { 
-                    threshold: 2000, 
+                    threshold: 3300, 
                     kind: KindOfOverdrive::Softer, 
-                    enabled: false, 
+                    enabled: true, 
                 }, 
             },
             Patches::BassGuitarFourth => Patch { 

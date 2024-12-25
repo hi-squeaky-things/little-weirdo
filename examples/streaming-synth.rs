@@ -3,11 +3,12 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}
 };
 use cpal::{Device, Sample, StreamConfig};
-use little_weirdo::synth::{data::wavetables::SOUND_BANK_0, envelope::EnvelopConfiguration, patches::Patches};
+use little_weirdo::synth::patches::Patches;
 use little_weirdo::synth::effects::filter::FilterConfig;
 
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
+use little_weirdo_soundbanks::SOUND_BANK_0;
 use midi_control::{self, MidiMessage};
 use midir;
 use std::sync::mpsc;

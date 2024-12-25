@@ -10,38 +10,3 @@ pub struct SoundBank {
     pub wavetables: [Wavetable; 10]
 }
 
-pub static SOUND_BANK_0:SoundBank = SoundBank {
-    wavetables: [
-        Wavetable {
-           data: *include_bytes!("../../../data/soundbank_0/src/wav0.lwt"),
-        },
-        Wavetable {
-            data: *include_bytes!("../../../data/soundbank_0/src/wav1.lwt") 
-        },
-        Wavetable {
-            data: *include_bytes!("../../../data/soundbank_0/src/wav2.lwt") 
-         },
-         Wavetable {
-             data: *include_bytes!("../../../data/soundbank_0/src/wav3.lwt") 
-         },
-         Wavetable {
-            data: *include_bytes!("../../../data/soundbank_0/src/wav4.lwt") 
-         },
-         Wavetable {
-             data: *include_bytes!("../../../data/soundbank_0/src/wav5.lwt") 
-         },
-         Wavetable {
-            data: *include_bytes!("../../../data/soundbank_0/src/wav6.lwt") 
-         },
-         Wavetable {
-             data: *include_bytes!("../../../data/soundbank_0/src/wav7.lwt") 
-         },
-         Wavetable {
-            data: *include_bytes!("../../../data/soundbank_0/src/wav8.lwt") 
-        },
-        Wavetable {
-            data: *include_bytes!("../../../data/soundbank_0/src/wav9.lwt") 
-        },
-    ],
-};
-

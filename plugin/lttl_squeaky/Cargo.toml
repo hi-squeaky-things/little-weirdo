@@ -18,6 +18,7 @@ nih_plug = { git = "https://github.com/robbert-vdh/nih-plug.git", features = ["a
 # the GPL compatibility requirement
 # nih_plug = { git = "https://github.com/robbert-vdh/nih-plug.git", default-features = false, features = ["assert_process_allocs"] }
 little_weirdo = { path = "../../" }
+little-weirdo-soundbanks = { path = "../../../little-weirdo-soundbanks"}
 
 [profile.release]
 lto = "thin"

@@ -1,6 +1,7 @@
 
 use cpal::Sample;
-use little_weirdo::synth::{self, data::wavetables::SOUND_BANK_0, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
+use little_weirdo::synth::{self, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
+use little_weirdo_soundbanks::SOUND_BANK_0;
 
 const SAMPLE_RATE:u16 = 44_100;
 const CLIPPING:u16 = 32_000;
