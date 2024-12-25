@@ -14,12 +14,14 @@
 //! 
 //! use little_weirdo::synth::patch::Patch;
 //! use little_weirdo::synth::Synth;
-//! use little_weirdo_soundbanks::SOUND_BANK_0;
+//! use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
+//! use little_weirdo_soundbanks::patches::Patches;
+//! 
 //! fn main() {
 //!     // Choose a predefined patch (or create your own).
-//!     let patch: Patch = Patch::default();
+//!     let patch: Patch = Patches::get_patch(Patches::BassGuitar);
 //!     // Create an instance of LttL Weirdo.
-//!     let mut synth: Synth = Synth::new(44100, patch, &SOUND_BANK_0);
+//!     let mut synth: Synth = Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
 //!     // Start playing a note
 //!     synth.note_on(0x50, 0xFF);
 //!     // Clock LttL Weirdo in a loop.

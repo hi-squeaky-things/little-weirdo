@@ -1,6 +1,6 @@
 //! Patch to config the sounds
  
-use super::{effects::{filter::FilterConfig, overdrive::OverdriveConfiguration}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patches::Patches, router::RoutingConfiguration, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}, AMOUNT_OF_VOICE};
+use super::{effects::{filter::FilterConfig, overdrive::OverdriveConfiguration}, envelope::EnvelopConfiguration, mixer::MixerConfiguration,router::RoutingConfiguration, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}, AMOUNT_OF_VOICE};
 
 pub struct Patch {
     pub voices: [WaveTableOscillatorConfig;AMOUNT_OF_VOICE],
@@ -10,10 +10,4 @@ pub struct Patch {
     pub mixer_config: MixerConfiguration,
     pub overdrive_config: OverdriveConfiguration,   
     pub routering_config: RoutingConfiguration, 
-}
-
-impl Patch {
-    pub fn default() -> Patch {
-        Patches::get_patch(Patches::BassGuitar)
-    }
 }

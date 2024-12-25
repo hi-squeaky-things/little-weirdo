@@ -1,7 +1,8 @@
 
 use cpal::Sample;
-use little_weirdo::synth::{self, math::{self, percentage}, patches::Patches, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
-use little_weirdo_soundbanks::SOUND_BANK_0;
+use little_weirdo::synth::{self, math::{self, percentage}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillator, WaveTableOscillatorConfig}, Clockable};
+use little_weirdo_soundbanks::{soundbanks::SOUND_BANK_PURE_ELEKTRO};
+use little_weirdo_soundbanks::patches::Patches;
 
 const SAMPLE_RATE:u16 = 44_100;
 const CLIPPING:u16 = 32_000;
@@ -29,8 +30,8 @@ fn main() {
         freq: 220,
     };
 
-    let mut lfo: WaveTableOscillator = WaveTableOscillator::new_lfo(lfo_config,&SOUND_BANK_0 ,SAMPLE_RATE);
-    let mut osc:WaveTableOscillator = WaveTableOscillator::new(osc_conf, &SOUND_BANK_0, SAMPLE_RATE);
+    let mut lfo: WaveTableOscillator = WaveTableOscillator::new_lfo(lfo_config,&SOUND_BANK_PURE_ELEKTRO ,SAMPLE_RATE);
+    let mut osc:WaveTableOscillator = WaveTableOscillator::new(osc_conf, &SOUND_BANK_PURE_ELEKTRO, SAMPLE_RATE);
         for n in 0..SAMPLE_RATE {
             let output_lfo = lfo.clock(None);
             writer.write_sample(output_lfo).unwrap();

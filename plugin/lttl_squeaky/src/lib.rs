@@ -1,8 +1,8 @@
-use little_weirdo_soundbanks::SOUND_BANK_0;
+use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
 use nih_plug::prelude::*;
 use std::{f32::consts, u16};
 use std::sync::Arc;
-use little_weirdo::synth::{patches::{Patches}};
+use little_weirdo_soundbanks::patches::Patches;
 use little_weirdo::synth::effects::filter::FilterConfig;
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
@@ -41,7 +41,7 @@ impl Default for LttLSqueaky {
 
         let current_patch = Patches::BassGuitar;
         let patch = Patches::get_patch(current_patch);
-        let synth = synth::Synth::new(44100, patch, &SOUND_BANK_0);
+        let synth = synth::Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
 
 
         Self {

@@ -8,7 +8,6 @@ pub mod math;
 pub mod mixer;
 pub mod wavetable_oscillator;
 pub mod patch;
-pub mod patches;
 pub mod effects;
 pub mod router;
 use data::wavetables::SoundBank;
