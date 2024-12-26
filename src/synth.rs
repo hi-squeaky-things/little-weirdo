@@ -97,7 +97,7 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the LttL Weirdo Wavetable Synthesizer engine.
     ///
     ///
-    pub fn load_patch(&mut self, patch: Patch) {
+    pub fn load_patch(&mut self, patch: &Patch) {
       
         for i in 0..AMOUNT_OF_VOICE {
             self.voices[i].reload(patch.voices[i]);
