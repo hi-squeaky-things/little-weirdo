@@ -12,3 +12,14 @@ pub struct Patch {
     pub overdrive_config: OverdriveConfiguration,   
     pub routering_config: RoutingConfiguration, 
 }
+
+
+impl Patch {
+    pub fn load_patch() {
+
+    }
+
+    pub fn save_patch() {
+        
+    }
+}
