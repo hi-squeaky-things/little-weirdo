@@ -1,12 +1,15 @@
 //! Overdrive 
 use crate::synth::effects::Effect;
 
+
+#[derive(Copy, Clone)]
 pub enum KindOfOverdrive {
     Hard,
     Soft,
     Softer,
 }
 
+#[derive(Copy, Clone)]
 pub struct OverdriveConfiguration {
     pub threshold: i16,
     pub kind: KindOfOverdrive,

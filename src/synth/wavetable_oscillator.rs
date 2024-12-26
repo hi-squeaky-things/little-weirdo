@@ -4,6 +4,7 @@ use super::{Clockable};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
+#[derive(Copy, Clone)]
 pub struct WaveTableLoFreqOscillatorConfig {
     pub soundbank_index: u8,
     pub time: u16, //   100 x seconde   

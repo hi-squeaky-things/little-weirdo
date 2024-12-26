@@ -15,11 +15,10 @@
 //! use little_weirdo::synth::patch::Patch;
 //! use little_weirdo::synth::Synth;
 //! use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
-//! use little_weirdo_soundbanks::patches::Patches;
 //! 
 //! fn main() {
 //!     // Choose a predefined patch (or create your own).
-//!     let patch: Patch = Patches::get_patch(Patches::BassGuitar);
+//!     let patch: &Patch = &SOUND_BANK_PURE_ELEKTRO.patches[0];
 //!     // Create an instance of LttL Weirdo.
 //!     let mut synth: Synth = Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
 //!     // Start playing a note

@@ -55,12 +55,12 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: Patch, soundbank: &'static SoundBank) -> Self {
+    pub fn new(sample_rate: u16, patch: &Patch, soundbank: &'static SoundBank) -> Self {
         
         Self {
             _soundbank: soundbank,
-            voices: Synth::init_voices(sample_rate, soundbank, &patch),  
-            envelops:  Synth::init_envs(sample_rate, &patch),
+            voices: Synth::init_voices(sample_rate, soundbank, patch),  
+            envelops:  Synth::init_envs(sample_rate, patch),
             lfo: WaveTableOscillator::new_lfo(patch.lfo, soundbank, sample_rate),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),

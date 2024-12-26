@@ -2,6 +2,7 @@
  
 use super::{effects::{filter::FilterConfig, overdrive::OverdriveConfiguration}, envelope::EnvelopConfiguration, mixer::MixerConfiguration,router::RoutingConfiguration, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}, AMOUNT_OF_VOICE};
 
+#[derive(Copy, Clone)]
 pub struct Patch {
     pub voices: [WaveTableOscillatorConfig;AMOUNT_OF_VOICE],
     pub envelops: [EnvelopConfiguration;AMOUNT_OF_VOICE],

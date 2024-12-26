@@ -2,14 +2,17 @@
 
 use super::AMOUNT_OF_VOICE;
 
+#[derive(Copy, Clone)]
 pub struct VoiceToEnvelopRoute {
     pub env: u8,
 }
+#[derive(Copy, Clone)]
 pub struct VoiceToLFORoute {
     pub voice: u8,
     pub enable: bool, 
 }
 
+#[derive(Copy, Clone)]
 pub struct RoutingConfiguration {
     pub voices_to_envelop: [VoiceToEnvelopRoute;AMOUNT_OF_VOICE],
     pub voice_to_lfo: VoiceToLFORoute,

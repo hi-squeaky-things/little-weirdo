@@ -1,6 +1,7 @@
 //! Mixer to mix all generated signals
 
 use super::AMOUNT_OF_VOICE;
+#[derive(Copy, Clone)]
 pub struct MixerConfiguration {
     pub gain_voices: [u8;AMOUNT_OF_VOICE],
     pub gain_main: u8,

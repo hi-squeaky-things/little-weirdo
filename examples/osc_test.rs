@@ -2,7 +2,6 @@
 use cpal::Sample;
 use little_weirdo::synth::{self};
 use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
-use little_weirdo_soundbanks::patches::Patches;
 
 const SAMPLE_RATE:u16 = 44_100;
 const CLIPPING:u16 = 32_000;
@@ -18,7 +17,7 @@ fn main() {
     let mut writer = hound::WavWriter::create("osc_test.wav", spec).unwrap();
    
     let mut synth: synth::Synth =
-    synth::Synth::new(SAMPLE_RATE as u16, Patches::get_patch(Patches::BassGuitar),&SOUND_BANK_PURE_ELEKTRO);
+    synth::Synth::new(SAMPLE_RATE as u16, &SOUND_BANK_PURE_ELEKTRO.patches[0],&SOUND_BANK_PURE_ELEKTRO);
     let mut clipped: [i32;2] = [0;2];
     let note = 48;
    // for note in 60 {

@@ -1,10 +1,7 @@
 use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
 use nih_plug::prelude::*;
-use std::{f32::consts, u16};
+use std::u16;
 use std::sync::Arc;
-use little_weirdo_soundbanks::patches::Patches;
-use little_weirdo::synth::effects::filter::FilterConfig;
-use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
 
 /// A test tone generator that can either generate a sine wave based on the plugin's parameters or
@@ -12,7 +9,6 @@ use little_weirdo::synth::{self, Synth};
 pub struct LttLSqueaky {
     params: Arc<LttLSqueakyParams>,
     synth: Synth,
-    current_patch: Patches,
 }
 
 #[derive(Params)]
@@ -20,33 +16,17 @@ struct LttLSqueakyParams {
     #[id = "glide"]
     pub glide: BoolParam,
 
-    /// The type of broken pitch shifting to apply.
-    #[id = "patch"]
-    pub patch: EnumParam<PatchChooser>,
 }
    
-#[derive(Enum, Debug, PartialEq)]
-enum PatchChooser {
-       #[id = "bass_guitar"]
-       #[name = "Bass Guitar"]
-       bass_guitar
-       ,
-       #[id = "eletric_piano"]
-       #[name = "Eletric Piano"]
-       eletric_piano,
-   }
 
 impl Default for LttLSqueaky {
     fn default() -> Self {
 
-        let current_patch = Patches::BassGuitar;
-        let patch = Patches::get_patch(current_patch);
-        let synth = synth::Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
+        let synth = synth::Synth::new(44100, &SOUND_BANK_PURE_ELEKTRO.patches[0], &SOUND_BANK_PURE_ELEKTRO);
 
 
         Self {
             params: Arc::new(LttLSqueakyParams::default()),
-            current_patch: Patches::BassGuitar,
             synth: synth,
         }
     }
@@ -56,7 +36,6 @@ impl Default for LttLSqueakyParams {
     fn default() -> Self {
         Self {
             glide: BoolParam::new("Gliding", false),
-            patch: EnumParam::new("Patch", PatchChooser::bass_guitar),
         }
     }
 }
@@ -115,25 +94,7 @@ impl Plugin for LttLSqueaky {
         context: &mut impl ProcessContext<Self>,
     ) -> ProcessStatus {
         let mut next_event = context.next_event();
-        match self.params.patch.value() {
-            PatchChooser::bass_guitar => {
-                if self.current_patch != Patches::BassGuitar {
-                    let current_patch = Patches::BassGuitar;
-                    let patch = Patches::get_patch(current_patch);
-                    self.current_patch = current_patch;
-                    self.synth.load_patch(patch);
-                }
-            },
-            PatchChooser::eletric_piano => {
-                if self.current_patch != Patches::BassGuitarFourth {
-                    let current_patch = Patches::BassGuitarFourth;
-                    let patch = Patches::get_patch(current_patch);
-                    self.current_patch = current_patch;
-                    self.synth.load_patch(patch);
-                }
-            }
-        }
-        for (sample_id, channel_samples) in buffer.iter_samples().enumerate() {
+       for (sample_id, channel_samples) in buffer.iter_samples().enumerate() {
             while let Some(event) = next_event {
                     if event.timing() > sample_id as u32 {
                         break;
