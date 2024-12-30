@@ -1,5 +1,5 @@
 //! Overdrive 
-use crate::synth::effects::Effect;
+use crate::synth::{effects::Effect};
 
 
 #[derive(Copy, Clone)]
@@ -19,6 +19,8 @@ pub struct OverdriveConfiguration {
 pub struct Overdrive {
    pub config: OverdriveConfiguration
 }
+
+
 
 impl Overdrive {
     pub fn new( config: OverdriveConfiguration) -> Self {
@@ -54,9 +56,9 @@ impl Effect for Overdrive {
           KindOfOverdrive::Softer => {
             if sample > self.config.threshold || -sample > self.config.threshold {
                 if sample > 0 {
-                    return (sample-self.config.threshold) / 4 + self.config.threshold;
+                    return (sample-self.config.threshold) / 8 + self.config.threshold;
                 }
-                return (-sample-self.config.threshold) / 4 - self.config.threshold;
+                return (-sample-self.config.threshold) / 8 - self.config.threshold;
             }
           } 
         }
