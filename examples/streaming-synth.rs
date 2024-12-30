@@ -32,8 +32,8 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: &Patch = &SOUND_BANK_WILD_FRUIT.patches[0];
-    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &SOUND_BANK_WILD_FRUIT);
+    let patch: &Patch = &SOUND_BANK_PURE_ELEKTRO.patches[1];
+    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
 
