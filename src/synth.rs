@@ -1,15 +1,13 @@
 //use std::println;
 
-
-
 pub mod data;
+pub mod effects;
 pub mod envelope;
 pub mod math;
 pub mod mixer;
-pub mod wavetable_oscillator;
 pub mod patch;
-pub mod effects;
 pub mod router;
+pub mod wavetable_oscillator;
 use data::wavetables::SoundBank;
 use effects::{overdrive::Overdrive, Effect};
 use router::Router;
@@ -17,35 +15,34 @@ use wavetable_oscillator::WaveTableOscillator;
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
-
 pub trait Clockable {
     fn clock(&mut self, sample: Option<i16>) -> i16 {
         match sample {
             Some(s) => s, // Use the provided sample
-            None => 0,     // Default value if no sample is provided
+            None => 0,    // Default value if no sample is provided
         }
     }
 }
 
-pub const AMOUNT_OF_VOICE:usize = 6;
-pub const AMOUNT_OF_OUTPUT_CHANNELS:usize = 2;
-
+pub const AMOUNT_OF_VOICE: usize = 6;
+pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
 pub struct Synth {
-    voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE],
-    envelops: [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE], 
+    voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICE],
+    envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICE],
     lfo: WaveTableOscillator,
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
     mixer: Mixer,
     velocity: u8,
+    active_note: [u8; 3],
     _soundbank: &'static SoundBank,
 }
 
 ///
 /// Implementation of the LttL Weirdo Wavetable Synthesizer
-/// 
+///
 impl Synth {
     /// Creates a new instance of the LttL Weirdo Wavetable Synthesizer.
     ///
@@ -56,39 +53,47 @@ impl Synth {
     ///
     /// It returns a new `Synth` instance with the specified configuration.
     pub fn new(sample_rate: u16, patch: &Patch, soundbank: &'static SoundBank) -> Self {
-        
         Self {
             _soundbank: soundbank,
-            voices: Synth::init_voices(sample_rate, soundbank, patch),  
-            envelops:  Synth::init_envs(sample_rate, patch),
+            voices: Synth::init_voices(sample_rate, soundbank, patch),
+            envelops: Synth::init_envs(sample_rate, patch),
             lfo: WaveTableOscillator::new_lfo(patch.lfo, soundbank, sample_rate),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
             router: Router::new(patch.routering_config),
             velocity: 0,
+            active_note: [0; 3],
         }
     }
 
-    fn init_envs(sample_rate:u16, patch: &Patch) ->  [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE]{
-        let envelops: [envelope::EnvelopeGenerator;AMOUNT_OF_VOICE] = array_init::array_init(|i: usize| {
-            envelope::EnvelopeGenerator::new(patch.envelops[i], sample_rate)
-        });
+    fn init_envs(
+        sample_rate: u16,
+        patch: &Patch,
+    ) -> [envelope::EnvelopeGenerator; AMOUNT_OF_VOICE] {
+        let envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICE] =
+            array_init::array_init(|i: usize| {
+                envelope::EnvelopeGenerator::new(patch.envelops[i], sample_rate)
+            });
         envelops
     }
 
-    fn init_voices(sample_rate:u16, soundbank: &'static SoundBank, patch: &Patch) ->  [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] {
-        let voices: [wavetable_oscillator::WaveTableOscillator;AMOUNT_OF_VOICE] = array_init::array_init(|i: usize| {
-            wavetable_oscillator::WaveTableOscillator::new(
-                patch.voices[i],
-                soundbank,
-                sample_rate
-            )
-        });
+    fn init_voices(
+        sample_rate: u16,
+        soundbank: &'static SoundBank,
+        patch: &Patch,
+    ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICE] {
+        let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICE] =
+            array_init::array_init(|i: usize| {
+                wavetable_oscillator::WaveTableOscillator::new(
+                    patch.voices[i],
+                    soundbank,
+                    sample_rate,
+                )
+            });
         voices
     }
- 
- 
+
     ///
     ///  Loads a synth patch into the LttL Weirdo Wavetable Synthesizer engine, configuring all necessary components.
     ///
@@ -98,7 +103,6 @@ impl Synth {
     ///
     ///
     pub fn load_patch(&mut self, patch: &Patch) {
-      
         for i in 0..AMOUNT_OF_VOICE {
             self.voices[i].reload(patch.voices[i]);
             self.envelops[i].reload(patch.envelops[i]);
@@ -116,38 +120,44 @@ impl Synth {
     /// Returns a 16-bit sample value representing the synthesized audio signal.
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     ///
-    fn clock(&mut self) -> [i16;2] {
-        let mut generate_voices: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];
-        let mut generate_env: [i16;AMOUNT_OF_VOICE] = [0;AMOUNT_OF_VOICE];        
-        let mut sound_mixing: [i16;AMOUNT_OF_OUTPUT_CHANNELS] = [0;AMOUNT_OF_OUTPUT_CHANNELS];
+    fn clock(&mut self) -> [i16; 2] {
+        let mut generate_voices: [i16; AMOUNT_OF_VOICE] = [0; AMOUNT_OF_VOICE];
+        let mut generate_env: [i16; AMOUNT_OF_VOICE] = [0; AMOUNT_OF_VOICE];
+        let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         // clock voices and envelops once
         for i in 0..AMOUNT_OF_VOICE {
             generate_voices[i] = self.voices[i].clock(None);
-            generate_env[i] = self.envelops[i].clock(None);            
+            generate_env[i] = self.envelops[i].clock(None);
         }
 
-        let lfo:i32 = self.lfo.clock(None) as i32;
+        let lfo: i32 = self.lfo.clock(None) as i32;
         let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
 
         if self.router.config.voice_to_lfo.enable {
-            generate_voices[self.router.config.voice_to_lfo.voice as usize] = math::percentage(generate_voices[self.router.config.voice_to_lfo.voice as usize],lfo_percentage as i16);
+            generate_voices[self.router.config.voice_to_lfo.voice as usize] = math::percentage(
+                generate_voices[self.router.config.voice_to_lfo.voice as usize],
+                lfo_percentage as i16,
+            );
         }
-
 
         // run and route voices through envelops and apply gain.
         for i in 0..AMOUNT_OF_VOICE {
-            generate_voices[i] = math::percentage(generate_voices[i], generate_env[self.router.config.voices_to_envelop[i].env as usize]);
+            generate_voices[i] = math::percentage(
+                generate_voices[i],
+                generate_env[self.router.config.voices_to_envelop[i].env as usize],
+            );
             generate_voices[i] = math::percentage(generate_voices[i], self.velocity as i16);
-            generate_voices[i] = math::percentage(generate_voices[i], self.mixer.config.gain_voices[i] as i16);
+            generate_voices[i] =
+                math::percentage(generate_voices[i], self.mixer.config.gain_voices[i] as i16);
             sound_mixing[0] = sound_mixing[0] + generate_voices[i];
         }
-        
+
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
         if self.router.config.lfo_to_filter {
-            let lfo_filter =  1_000 + math::percentage(5_000,lfo_percentage as i16);
-            if  self.filter.config.cutoff_frequency != lfo_filter as u16 {
+            let lfo_filter = 1_000 + math::percentage(5_000, lfo_percentage as i16);
+            if self.filter.config.cutoff_frequency != lfo_filter as u16 {
                 let mut config = self.filter.config;
                 config.cutoff_frequency = lfo_filter as u16;
                 self.filter.reload(config);
@@ -157,8 +167,8 @@ impl Synth {
 
         // Finally, apply main gain setting and return the final sample value
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
-        sound_mixing[0] = self.overdrive.clock(sound_mixing[0]); 
-       [sound_mixing[0],sound_mixing[0]]
+        sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
+        [sound_mixing[0], sound_mixing[0]]
     }
 
     /// Let the LttL Weirdo Wavetable Synthesizer engine play a specific note on the right voice and with a velocity.
@@ -170,31 +180,70 @@ impl Synth {
     /// * `velocity`: The velocity of the note (0-127)
     pub fn note_on(&mut self, note: u8, velocity: u8) {
         // Cap note range between C0 and C8
-        if self.range_safeguard(note) { return };
+        if self.range_safeguard(note) {
+            return;
+        };
         // Update the mixer velocity for this voice
         self.velocity = velocity;
 
-        // If we have only one voice, play both voices with a detune
-        for i in 0..AMOUNT_OF_VOICE {
-            let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
-            // Update the frequency of the voices
-            self.voices[i].change_freq(freq);
-            // Open the gate for all voice envelops
-            self.envelops[i].open_gate();
-        }
-     }
-
-    pub fn note_off(&mut self, _note: u8) {
-        for i in 0..AMOUNT_OF_VOICE {
-            self.envelops[i].close_gate();
+        let id = self.add_note(note);
+        if id != 255 {
+            // If we have only one voice, play both voices with a detune
+            for i in 0..2 {
+                let freq: u16 =
+                    MIDI2FREQ[(note as i8 + self.voices[id * 2 + i].config.detune) as usize];
+                // Update the frequency of the voices
+                self.voices[id * 2 + i].change_freq(freq);
+                // Open the gate for all voice envelops
+                self.envelops[id * 2 + i].open_gate();
+            }
         }
     }
+
+    pub fn note_off(&mut self, note: u8) {
+        let id = self.remove_note(note);
+        if id != 255 {
+            for i in 0..2 {
+                self.envelops[id * 2 + i].close_gate();
+            }
+        }
+    }
+
+    fn add_note(&mut self, note: u8) -> usize {
+        match self.active_note.iter().position(|n| n == &note) {
+            Some(position) => {
+                return position;
+            }
+            _None => match self.active_note.iter().position(|n| n == &0) {
+                Some(position) => {
+                    self.active_note[position] = note;
+                    return position;
+                }
+                _Mone => {
+                    return 255;
+                }
+            },
+        }
+    }
+
+    fn remove_note(&mut self, note: u8) -> usize {
+        match self.active_note.iter().position(|n| n == &note) {
+            Some(position) => {
+                self.active_note[position] = 0;
+                return position;
+            }
+            _Mone => {
+                return 255;
+            }
+        }
+    }
+
     ///
     /// Returns a 16-bit sample value representing the synthesized audio signal.
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     /// You need to compensate the delta time yourself.
     ///
-    pub fn clock_and_output(&mut self) -> [i16;2] {
+    pub fn clock_and_output(&mut self) -> [i16; 2] {
         self.clock()
     }
 
@@ -205,18 +254,18 @@ impl Synth {
     pub fn change_cutoff(&mut self, velocity: u8) {
         let mut config = self.filter.config;
         config.cutoff_frequency = velocity as u16 * 255;
-         self.filter.reload(config);
-     }
+        self.filter.reload(config);
+    }
 
-     pub fn change_resonance(&mut self, velocity: u8) {
+    pub fn change_resonance(&mut self, velocity: u8) {
         let mut config = self.filter.config;
         config.resonance = velocity as u16 * 255;
-         self.filter.reload(config);
-     }
+        self.filter.reload(config);
+    }
 
     fn range_safeguard(&mut self, note: u8) -> bool {
         if note < 24 || note > 108 {
-            return true
+            return true;
         }
         false
     }
