@@ -236,12 +236,12 @@ impl Synth {
             Some(position) => {
                 return position;
             }
-            _None => match self.active_note.iter().position(|n| n == &0) {
+            None => match self.active_note.iter().position(|n| n == &0) {
                 Some(position) => {
                     self.active_note[position] = note;
                     return position;
                 }
-                _Mone => {
+                None => {
                     return 255;
                 }
             },
@@ -254,7 +254,7 @@ impl Synth {
                 self.active_note[position] = 0;
                 return position;
             }
-            _Mone => {
+            None => {
                 return 255;
             }
         }
