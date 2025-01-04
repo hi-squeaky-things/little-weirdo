@@ -143,7 +143,9 @@ impl WaveTableOscillator {
   
    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
      self.config = config;
-     self.waveform_lookup_table = self.soundbank.wavetables[self.config.soundbank_index as usize];
+     if self.config.soundbank_index as usize != 255 {
+        self.waveform_lookup_table = self.soundbank.wavetables[self.config.soundbank_index as usize];
+     }
    }
 
     pub fn change_freq(&mut self, frequency: u16) {

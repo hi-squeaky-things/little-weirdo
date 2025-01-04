@@ -27,7 +27,7 @@ pub trait Clockable {
     }
 }
 
-pub const AMOUNT_OF_VOICE:usize = 4;
+pub const AMOUNT_OF_VOICE:usize = 6;
 pub const AMOUNT_OF_OUTPUT_CHANNELS:usize = 2;
 
 

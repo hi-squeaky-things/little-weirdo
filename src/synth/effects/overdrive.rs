@@ -39,10 +39,15 @@ impl Effect for Overdrive {
         if !self.config.enabled {
             return sample
         }
+ 
+
         match self.config.kind {
           KindOfOverdrive::Hard => {
             if sample > self.config.threshold || -sample > self.config.threshold {
-                return self.config.threshold;
+                if sample > 0 {
+                    return self.config.threshold;
+                } 
+                return -self.config.threshold;
             }
           } 
           KindOfOverdrive::Soft => {
@@ -50,7 +55,7 @@ impl Effect for Overdrive {
                 if sample > 0 {
                     return (sample-self.config.threshold) / 2 + self.config.threshold;
                 }
-                return (-sample-self.config.threshold) / 2 - self.config.threshold;
+                return (sample + self.config.threshold) / 2 - self.config.threshold;
             }
           } 
           KindOfOverdrive::Softer => {
@@ -58,7 +63,7 @@ impl Effect for Overdrive {
                 if sample > 0 {
                     return (sample-self.config.threshold) / 8 + self.config.threshold;
                 }
-                return (-sample-self.config.threshold) / 8 - self.config.threshold;
+                return (sample + self.config.threshold) / 8 - self.config.threshold;
             }
           } 
         }

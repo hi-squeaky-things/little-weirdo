@@ -7,7 +7,7 @@ use little_weirdo::synth::effects::filter::FilterConfig;
 
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
-use little_weirdo_soundbanks::soundbanks::{SOUND_BANK_PURE_ELEKTRO, SOUND_BANK_WILD_FRUIT};
+use little_weirdo_soundbanks::soundbanks::{SOUND_BANK_PURE_ELEKTRO, SOUND_BANK_PURPLE_WAVES, SOUND_BANK_WILD_FRUIT};
 use midi_control::{self, MidiMessage};
 use midir;
 use std::sync::mpsc;
@@ -32,8 +32,8 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: &Patch = &SOUND_BANK_PURE_ELEKTRO.patches[1];
-    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
+    let patch: &Patch = &SOUND_BANK_WILD_FRUIT.patches[0];
+    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &SOUND_BANK_WILD_FRUIT);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
 
@@ -109,11 +109,17 @@ fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
 }
 
 fn play_note(synth: &mut synth::Synth, key: Key) {
+    if key.eq(&Key::Char('x')) {
+        synth.note_on( 40, 100);
+    }
+    if key.eq(&Key::Char('s')) {
+        synth.note_off( 40);
+    }
     if key.eq(&Key::Char('c')) {
-        synth.note_on( 48, 100);
+        synth.note_on( 60, 100);
     }
     if key.eq(&Key::Char('d')) {
-        synth.note_off( 48);
+        synth.note_off( 60);
     }
 }
 
