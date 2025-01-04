@@ -37,6 +37,7 @@ pub struct Synth {
     mixer: Mixer,
     velocity: u8,
     active_note: [u8; 3],
+    mono: bool,
     _soundbank: &'static SoundBank,
 }
 
@@ -64,6 +65,7 @@ impl Synth {
             router: Router::new(patch.routering_config),
             velocity: 0,
             active_note: [0; 3],
+            mono: patch.mono,
         }
     }
 
@@ -103,6 +105,8 @@ impl Synth {
     ///
     ///
     pub fn load_patch(&mut self, patch: &Patch) {
+        self.mono = patch.mono;
+
         for i in 0..AMOUNT_OF_VOICE {
             self.voices[i].reload(patch.voices[i]);
             self.envelops[i].reload(patch.envelops[i]);
@@ -114,6 +118,7 @@ impl Synth {
 
         //mix
         self.mixer.reload(patch.mixer_config);
+
     }
 
     ///
@@ -186,25 +191,42 @@ impl Synth {
         // Update the mixer velocity for this voice
         self.velocity = velocity;
 
-        let id = self.add_note(note);
-        if id != 255 {
-            // If we have only one voice, play both voices with a detune
-            for i in 0..2 {
+        if self.mono {
+            for i in 0..AMOUNT_OF_VOICE {
                 let freq: u16 =
-                    MIDI2FREQ[(note as i8 + self.voices[id * 2 + i].config.detune) as usize];
+                    MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
                 // Update the frequency of the voices
-                self.voices[id * 2 + i].change_freq(freq);
+                self.voices[i].change_freq(freq);
                 // Open the gate for all voice envelops
-                self.envelops[id * 2 + i].open_gate();
+                self.envelops[i].open_gate();
+            }
+        } else {
+            let id = self.add_note(note);
+            if id != 255 {
+                // If we have only one voice, play both voices with a detune
+                for i in 0..2 {
+                    let freq: u16 =
+                        MIDI2FREQ[(note as i8 + self.voices[id * 2 + i].config.detune) as usize];
+                    // Update the frequency of the voices
+                    self.voices[id * 2 + i].change_freq(freq);
+                    // Open the gate for all voice envelops
+                    self.envelops[id * 2 + i].open_gate();
+                }
             }
         }
     }
 
     pub fn note_off(&mut self, note: u8) {
-        let id = self.remove_note(note);
-        if id != 255 {
-            for i in 0..2 {
-                self.envelops[id * 2 + i].close_gate();
+        if self.mono {
+            for i in 0..AMOUNT_OF_VOICE {
+                self.envelops[i].close_gate();
+            }
+        } else {
+            let id = self.remove_note(note);
+            if id != 255 {
+                for i in 0..2 {
+                    self.envelops[id * 2 + i].close_gate();
+                }
             }
         }
     }

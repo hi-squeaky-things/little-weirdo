@@ -12,4 +12,5 @@ pub struct Patch {
     pub mixer_config: MixerConfiguration,
     pub overdrive_config: OverdriveConfiguration,   
     pub routering_config: RoutingConfiguration, 
+    pub mono: bool,
 }
