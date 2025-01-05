@@ -10,6 +10,7 @@ pub mod router;
 pub mod wavetable_oscillator;
 use data::wavetables::SoundBank;
 use effects::{overdrive::Overdrive, Effect};
+use patch::SynthMode;
 use router::Router;
 use wavetable_oscillator::WaveTableOscillator;
 
@@ -36,8 +37,8 @@ pub struct Synth {
     overdrive: Overdrive,
     mixer: Mixer,
     velocity: u8,
-    active_note: [u8; AMOUNT_OF_VOICES / 2],
-    mono: bool,
+    active_note: [u8; AMOUNT_OF_VOICES],
+    mode: SynthMode,
     _soundbank: &'static SoundBank,
 }
 
@@ -64,8 +65,8 @@ impl Synth {
             overdrive: Overdrive::new(patch.overdrive_config),
             router: Router::new(patch.routering_config),
             velocity: 0,
-            active_note: [0; AMOUNT_OF_VOICES / 2],
-            mono: patch.mono,
+            active_note: [0; AMOUNT_OF_VOICES],
+            mode: patch.synth_config.mode,
         }
     }
 
@@ -121,7 +122,7 @@ impl Synth {
     ///
     ///
     pub fn load_patch(&mut self, patch: &Patch) {
-        self.mono = patch.mono;
+        self.mode = patch.synth_config.mode;
 
         for i in 0..AMOUNT_OF_VOICES {
             self.voices[i].reload(patch.voices[i]);
@@ -186,16 +187,16 @@ impl Synth {
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
-        /*
+        
         if self.router.config.lfo_to_filter {
-            let lfo_filter = 1_000 + math::percentage(5_000, lfo_percentage as i16);
+            let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[0] as i16);
             if self.filter.config.cutoff_frequency != lfo_filter as u16 {
                 let mut config = self.filter.config;
                 config.cutoff_frequency = lfo_filter as u16;
                 self.filter.reload(config);
             }
         }
-        */
+        
         sound_mixing[0] = self.filter.clock(sound_mixing[0]);
 
         // Finally, apply main gain setting and return the final sample value
@@ -219,43 +220,96 @@ impl Synth {
         // Update the mixer velocity for this voice
         self.velocity = velocity;
 
-        if self.mono {
-            for i in 0..AMOUNT_OF_VOICES {
-                let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
-                // Update the frequency of the voices
-                self.voices[i].change_freq((freq as i16 + self.voices[i].config.freq_detune as i16) as u16);
-                // Open the gate for all voice envelops
-                self.envelops[i].open_gate();
-            }
-        } else {
-            let id = self.add_note(note);
-            if id != 255 {
-                // If we have only one voice, play both voices with a detune
-                for i in 0..2 {
-                    let freq: u16 =
-                        MIDI2FREQ[(note as i8 + self.voices[id * 2 + i].config.detune) as usize];
+        match self.mode {
+            SynthMode::Mono => {
+                for i in 0..AMOUNT_OF_VOICES {
+                    let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
                     // Update the frequency of the voices
-                    self.voices[id * 2 + i].change_freq((freq as i16 + self.voices[id * 2 + i].config.freq_detune as i16) as u16);
+                    self.voices[i].change_freq((freq as i16 + self.voices[i].config.freq_detune as i16) as u16);
                     // Open the gate for all voice envelops
-                    self.envelops[id * 2 + i].open_gate();
+                    self.envelops[i].open_gate();
                 }
-            }
+            },
+            SynthMode::BiPoly => { //TODO this code can be optimezed!
+                let id = self.add_note(note);
+                if id != 255 {
+                    // If we have only one voice, play both voices with a detune
+                    for i in 0..4 {
+                        let freq: u16 =
+                            MIDI2FREQ[(note as i8 + self.voices[id * 4 + i].config.detune) as usize];
+                        // Update the frequency of the voices
+                        self.voices[id * 4 + i].change_freq((freq as i16 + self.voices[id * 4 + i].config.freq_detune as i16) as u16);
+                        // Open the gate for all voice envelops
+                        self.envelops[id * 4 + i].open_gate();
+                    }
+                }
+            },
+            SynthMode::QuadPoly => {
+                let id = self.add_note(note);
+                if id != 255 {
+                    // If we have only one voice, play both voices with a detune
+                    for i in 0..2 {
+                        let freq: u16 =
+                            MIDI2FREQ[(note as i8 + self.voices[id * 2 + i].config.detune) as usize];
+                        // Update the frequency of the voices
+                        self.voices[id * 2 + i].change_freq((freq as i16 + self.voices[id * 2 + i].config.freq_detune as i16) as u16);
+                        // Open the gate for all voice envelops
+                        self.envelops[id * 2 + i].open_gate();
+                    }
+                }
+            },
+            SynthMode::OctoPoly => {
+                let id = self.add_note(note);
+                if id != 255 {
+                    // If we have only one voice, play both voices with a detune
+                    for i in 0..1 {
+                        let freq: u16 =
+                            MIDI2FREQ[(note as i8 + self.voices[id * 1 + i].config.detune) as usize];
+                        // Update the frequency of the voices
+                        self.voices[id * 1 + i].change_freq((freq as i16 + self.voices[id * 1 + i].config.freq_detune as i16) as u16);
+                        // Open the gate for all voice envelops
+                        self.envelops[id * 1 + i].open_gate();
+                    }
+                }
+            },
         }
+
     }
 
     pub fn note_off(&mut self, note: u8) {
-        if self.mono {
-            for i in 0..AMOUNT_OF_VOICES {
-                self.envelops[i].close_gate();
-            }
-        } else {
-            let id = self.remove_note(note);
-            if id != 255 {
-                for i in 0..2 {
-                    self.envelops[id * 2 + i].close_gate();
+        match self.mode {
+            SynthMode::Mono => {
+                for i in 0..AMOUNT_OF_VOICES {
+                    self.envelops[i].close_gate();
                 }
-            }
+            },
+            SynthMode::BiPoly => { // TODO need optimazation
+                let id = self.remove_note(note);
+                if id != 255 {
+                    for i in 0..4 {
+                        self.envelops[id * 4 + i].close_gate();
+                    }
+                }  
+            },
+            SynthMode::QuadPoly => {
+                let id = self.remove_note(note);
+                if id != 255 {
+                    for i in 0..2 {
+                        self.envelops[id * 2 + i].close_gate();
+                    }
+                }  
+            },
+            SynthMode::OctoPoly => {
+                let id = self.remove_note(note);
+                if id != 255 {
+                    for i in 0..1 {
+                        self.envelops[id * 1 + i].close_gate();
+                    }
+                }  
+            },
         }
+
+       
     }
 
     fn add_note(&mut self, note: u8) -> usize {
