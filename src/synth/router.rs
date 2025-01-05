@@ -8,7 +8,7 @@ pub struct VoiceToEnvelopRoute {
 }
 #[derive(Copy, Clone)]
 pub struct VoiceToLFORoute {
-    pub voice: u8,
+    pub voices: [u8;2],
     pub enable: bool, 
 }
 

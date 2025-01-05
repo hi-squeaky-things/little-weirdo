@@ -159,10 +159,14 @@ impl Synth {
 
         for i in 0..AMOUNT_OF_VOICES / 2 {
             if self.router.config.voice_to_lfo[i].enable {
-                generate_voices[self.router.config.voice_to_lfo[i].voice as usize] = math::percentage(
-                    generate_voices[self.router.config.voice_to_lfo[i].voice as usize],
-                    generate_lfos[i],
-                );
+                for j in 0..2 {
+                    if self.router.config.voice_to_lfo[i].voices[j] != 255 {
+                        generate_voices[self.router.config.voice_to_lfo[i].voices[j] as usize] = math::percentage(
+                            generate_voices[self.router.config.voice_to_lfo[i].voices[j] as usize],
+                            generate_lfos[i],
+                        );
+                     }
+                }
             }
       
         }
