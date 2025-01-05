@@ -151,20 +151,21 @@ impl Synth {
             generate_env[i] = self.envelops[i].clock(None);
         }
         for i in 0..AMOUNT_OF_VOICES / 2 {
-            generate_lfos[i] = self.lfo[i].clock(None);
+            let lfo: i32 = self.lfo[i].clock(None) as i32;
+            let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
+            generate_lfos[i] = lfo_percentage as i16;
         }
 
-        /*
-        let lfo: i32 = self.lfo.clock(None) as i32;
-        let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
 
-        if self.router.config.voice_to_lfo.enable {
-            generate_voices[self.router.config.voice_to_lfo.voice as usize] = math::percentage(
-                generate_voices[self.router.config.voice_to_lfo.voice as usize],
-                lfo_percentage as i16,
-            );
+        for i in 0..AMOUNT_OF_VOICES / 2 {
+            if self.router.config.voice_to_lfo[i].enable {
+                generate_voices[self.router.config.voice_to_lfo[i].voice as usize] = math::percentage(
+                    generate_voices[self.router.config.voice_to_lfo[i].voice as usize],
+                    generate_lfos[i],
+                );
+            }
+      
         }
-        */
 
         // run and route voices through envelops and apply gain.
         for i in 0..AMOUNT_OF_VOICES {

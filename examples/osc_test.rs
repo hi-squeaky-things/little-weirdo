@@ -1,7 +1,7 @@
 
 use cpal::Sample;
 use little_weirdo::synth::{self};
-use little_weirdo_soundbanks::soundbanks::SOUND_BANK_WILD_FRUIT;
+use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
 
 
 const SAMPLE_RATE:u16 = 48000;
@@ -15,10 +15,10 @@ fn main() {
         bits_per_sample: 16,
         sample_format: hound::SampleFormat::Int,
     };
-    let mut writer = hound::WavWriter::create("osc_test2.wav", spec).unwrap();
+    let mut writer = hound::WavWriter::create("osc_test.wav", spec).unwrap();
    
     let mut synth: synth::Synth =
-    synth::Synth::new(SAMPLE_RATE as u16, &SOUND_BANK_WILD_FRUIT.patches[1],&SOUND_BANK_WILD_FRUIT);
+    synth::Synth::new(SAMPLE_RATE as u16, &SOUND_BANK_PURE_ELEKTRO.patches[1],&SOUND_BANK_PURE_ELEKTRO);
     let mut clipped: [i32;2] = [0;2];
     let note = 46;
    // for note in 60 {
