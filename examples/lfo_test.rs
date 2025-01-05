@@ -28,6 +28,7 @@ fn main() {
         glide_rate: 0,
         detune: 0,
         freq: 220,
+        freq_detune: 0,
     };
 
     let mut lfo: WaveTableOscillator = WaveTableOscillator::new_lfo(lfo_config,&SOUND_BANK_PURE_ELEKTRO ,SAMPLE_RATE);

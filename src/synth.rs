@@ -223,7 +223,7 @@ impl Synth {
             for i in 0..AMOUNT_OF_VOICES {
                 let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
                 // Update the frequency of the voices
-                self.voices[i].change_freq(freq);
+                self.voices[i].change_freq((freq as i16 + self.voices[i].config.freq_detune as i16) as u16);
                 // Open the gate for all voice envelops
                 self.envelops[i].open_gate();
             }
@@ -235,7 +235,7 @@ impl Synth {
                     let freq: u16 =
                         MIDI2FREQ[(note as i8 + self.voices[id * 2 + i].config.detune) as usize];
                     // Update the frequency of the voices
-                    self.voices[id * 2 + i].change_freq(freq);
+                    self.voices[id * 2 + i].change_freq((freq as i16 + self.voices[id * 2 + i].config.freq_detune as i16) as u16);
                     // Open the gate for all voice envelops
                     self.envelops[id * 2 + i].open_gate();
                 }

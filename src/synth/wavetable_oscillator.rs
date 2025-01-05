@@ -16,6 +16,7 @@ pub struct WaveTableOscillatorConfig {
     pub glide: bool,
     pub glide_rate: u8,
     pub detune: i8,
+    pub freq_detune: i8,
     pub freq: u16,
 }
 
@@ -89,6 +90,7 @@ impl WaveTableOscillator {
             glide_rate: 0,
             detune: 0,
             freq: 400,
+            freq_detune: 0,
         };
         let mut osc = Self::new(new_config, soundbank, sample_rate);
         osc.speed = 4 * config.time as u16;
