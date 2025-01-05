@@ -1,6 +1,6 @@
 //! Routing the signals
 
-use super::AMOUNT_OF_VOICE;
+use super::AMOUNT_OF_VOICES;
 
 #[derive(Copy, Clone)]
 pub struct VoiceToEnvelopRoute {
@@ -14,8 +14,8 @@ pub struct VoiceToLFORoute {
 
 #[derive(Copy, Clone)]
 pub struct RoutingConfiguration {
-    pub voices_to_envelop: [VoiceToEnvelopRoute;AMOUNT_OF_VOICE],
-    pub voice_to_lfo: VoiceToLFORoute,
+    pub voices_to_envelop: [VoiceToEnvelopRoute;AMOUNT_OF_VOICES],
+    pub voice_to_lfo: [VoiceToLFORoute; AMOUNT_OF_VOICES/2],
     pub lfo_to_filter: bool,
 }
 
