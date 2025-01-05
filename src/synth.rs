@@ -30,13 +30,13 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES],
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
-    lfo:  [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES/2],
+    lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
     mixer: Mixer,
     velocity: u8,
-    active_note: [u8; 3],
+    active_note: [u8; AMOUNT_OF_VOICES / 2],
     mono: bool,
     _soundbank: &'static SoundBank,
 }
@@ -64,7 +64,7 @@ impl Synth {
             overdrive: Overdrive::new(patch.overdrive_config),
             router: Router::new(patch.routering_config),
             velocity: 0,
-            active_note: [0; 3],
+            active_note: [0; AMOUNT_OF_VOICES / 2],
             mono: patch.mono,
         }
     }
@@ -100,8 +100,8 @@ impl Synth {
         sample_rate: u16,
         soundbank: &'static SoundBank,
         patch: &Patch,
-    ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES/2] {
-        let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES/2] =
+    ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] {
+        let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new_lfo(
                     patch.lfos[i],
@@ -134,7 +134,6 @@ impl Synth {
 
         //mix
         self.mixer.reload(patch.mixer_config);
-
     }
 
     ///
@@ -143,6 +142,7 @@ impl Synth {
     ///
     fn clock(&mut self) -> [i16; 2] {
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
+        let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         // clock voices and envelops once
@@ -150,8 +150,11 @@ impl Synth {
             generate_voices[i] = self.voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);
         }
+        for i in 0..AMOUNT_OF_VOICES / 2 {
+            generate_lfos[i] = self.lfo[i].clock(None);
+        }
 
-        /* 
+        /*
         let lfo: i32 = self.lfo.clock(None) as i32;
         let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
 
@@ -178,7 +181,7 @@ impl Synth {
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
-        /* 
+        /*
         if self.router.config.lfo_to_filter {
             let lfo_filter = 1_000 + math::percentage(5_000, lfo_percentage as i16);
             if self.filter.config.cutoff_frequency != lfo_filter as u16 {
@@ -213,8 +216,7 @@ impl Synth {
 
         if self.mono {
             for i in 0..AMOUNT_OF_VOICES {
-                let freq: u16 =
-                    MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
+                let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[i].config.detune) as usize];
                 // Update the frequency of the voices
                 self.voices[i].change_freq(freq);
                 // Open the gate for all voice envelops
