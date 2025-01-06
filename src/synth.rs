@@ -313,6 +313,7 @@ impl Synth {
     }
 
     fn add_note(&mut self, note: u8) -> usize {
+
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => {
                 return position;
