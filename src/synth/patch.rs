@@ -6,10 +6,10 @@ use bitflags::bitflags;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum SynthMode {
-    Mono,
-    BiPoly,
-    QuadPoly,
-    OctoPoly
+    Mono = 8 ,
+    BiPoly = 4,
+    QuadPoly = 2,
+    OctoPoly = 1,
 }
 
 #[derive(Copy, Clone)]
