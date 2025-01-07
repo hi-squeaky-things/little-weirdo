@@ -1,15 +1,17 @@
 //! Overdrive 
+use serde::{Deserialize, Serialize};
+
 use crate::synth::{effects::Effect};
 
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum KindOfOverdrive {
     Hard,
     Soft,
     Softer,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct OverdriveConfiguration {
     pub threshold: i16,
     pub kind: KindOfOverdrive,

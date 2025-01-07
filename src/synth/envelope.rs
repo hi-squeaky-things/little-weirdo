@@ -1,5 +1,7 @@
 //! Envelope generator
 
+use serde::{Deserialize, Serialize};
+
 use crate::synth::math::percentage;
 
 use super::{math, Clockable};
@@ -12,7 +14,7 @@ pub enum EnvelopeState {
     Sustain,
     Release,
 }
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct EnvelopConfiguration {
     pub attack_time: i16,
     pub decay_time: i16,

@@ -8,7 +8,7 @@ pub mod mixer;
 pub mod patch;
 pub mod router;
 pub mod wavetable_oscillator;
-use data::wavetables::SoundBank;
+use data::wavetables::{SoundBank, Wavetable};
 use effects::{overdrive::Overdrive, Effect};
 use patch::SynthMode;
 use router::Router;
@@ -39,7 +39,6 @@ pub struct Synth {
     velocity: u8,
     active_note: [u8; AMOUNT_OF_VOICES],
     mode: SynthMode,
-    _soundbank: &'static SoundBank,
 }
 
 ///
@@ -54,12 +53,11 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: &Patch, soundbank: &'static SoundBank) -> Self {
+    pub fn new(sample_rate: u16, patch: &Patch, wavetables: &'static [Wavetable;10]) -> Self {
         Self {
-            _soundbank: soundbank,
-            voices: Synth::init_voices(sample_rate, soundbank, patch),
+            voices: Synth::init_voices(sample_rate, wavetables, patch),
             envelops: Synth::init_envs(sample_rate, patch),
-            lfo: Synth::init_lfos(sample_rate, soundbank, patch),
+            lfo: Synth::init_lfos(sample_rate, wavetables, patch),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -83,14 +81,14 @@ impl Synth {
 
     fn init_voices(
         sample_rate: u16,
-        soundbank: &'static SoundBank,
+        wavetables: &'static [Wavetable;10],
         patch: &Patch,
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new(
                     patch.voices[i],
-                    soundbank,
+                    wavetables,
                     sample_rate,
                 )
             });
@@ -99,14 +97,14 @@ impl Synth {
 
     fn init_lfos(
         sample_rate: u16,
-        soundbank: &'static SoundBank,
+        wavetables: &'static [Wavetable;10],
         patch: &Patch,
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new_lfo(
                     patch.lfos[i],
-                    soundbank,
+                    wavetables,
                     sample_rate,
                 )
             });

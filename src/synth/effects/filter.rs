@@ -1,8 +1,10 @@
 //! Lowpass filter
+use serde::{Deserialize, Serialize};
+
 use crate::synth::effects::Effect;
 use crate::synth::math::{fx_mul, ifx_mul, ucfx_mul};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum KindOfFilter {
     Low,
     High,
@@ -10,7 +12,7 @@ pub enum KindOfFilter {
     Notch,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct FilterConfig {
     pub cutoff_frequency: u16,
     pub resonance: u16,

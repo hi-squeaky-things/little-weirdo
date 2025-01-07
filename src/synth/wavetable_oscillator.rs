@@ -3,14 +3,18 @@ use super::data::wavetables::{Wavetable, SoundBank};
 use super::{Clockable};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
+ 
+use serde::Deserialize;
+ use serde::Serialize;
+ 
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct WaveTableLoFreqOscillatorConfig {
     pub soundbank_index: u8,
     pub time: u16, //   100 x seconde   
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct WaveTableOscillatorConfig {
     pub soundbank_index: u8,
     pub glide: bool,
@@ -35,7 +39,7 @@ pub struct WaveTableOscillator {
     speed: u16,
     last_output: i16,
     speed_count: u16,
-    soundbank: &'static SoundBank,
+    wavetables: &'static [Wavetable; 10],
 }
 
 impl Clockable for WaveTableOscillator {
@@ -83,7 +87,7 @@ impl Clockable for WaveTableOscillator {
 
 impl WaveTableOscillator {
 
-    pub fn new_lfo(config: WaveTableLoFreqOscillatorConfig, soundbank: &'static SoundBank, sample_rate: u16) -> Self {
+    pub fn new_lfo(config: WaveTableLoFreqOscillatorConfig, wavetables: &'static [Wavetable;10], sample_rate: u16) -> Self {
         let new_config = WaveTableOscillatorConfig {
             soundbank_index: config.soundbank_index,
             glide: false,
@@ -92,14 +96,14 @@ impl WaveTableOscillator {
             freq: 400,
             freq_detune: 0,
         };
-        let mut osc = Self::new(new_config, soundbank, sample_rate);
+        let mut osc = Self::new(new_config, wavetables, sample_rate);
         osc.speed = 4 * config.time as u16;
         osc
     }
 
     pub fn new(
        config: WaveTableOscillatorConfig,
-       soundbank: &'static SoundBank,
+       wavetables: &'static [Wavetable;10],
        sample_rate: u16
     ) -> Self {
         let mut osc = Self {
@@ -110,16 +114,16 @@ impl WaveTableOscillator {
             random: SmallRng::seed_from_u64(23702372039u64),
             sample_rate,
             lookup_table: [0u16; 3000],
-            waveform_lookup_table: soundbank.wavetables[0],
+            waveform_lookup_table: wavetables[0],
             target_freq: config.freq,
             freq_step: 0,
             last_output: 0,
             speed_count: 0,
             speed: 1,
-            soundbank: soundbank
+            wavetables: wavetables
         };
         if osc.config.soundbank_index != 255 {
-            osc.waveform_lookup_table = osc.soundbank.wavetables[osc.config.soundbank_index as usize];
+            osc.waveform_lookup_table = osc.wavetables[osc.config.soundbank_index as usize];
         }
         osc.calculate_lookup_table();
         osc
@@ -146,7 +150,7 @@ impl WaveTableOscillator {
    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
      self.config = config;
      if self.config.soundbank_index as usize != 255 {
-        self.waveform_lookup_table = self.soundbank.wavetables[self.config.soundbank_index as usize];
+        self.waveform_lookup_table = self.wavetables[self.config.soundbank_index as usize];
      }
    }
 
