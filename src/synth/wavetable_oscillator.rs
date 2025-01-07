@@ -106,7 +106,7 @@ impl WaveTableOscillator {
        wavetables: &'static [Wavetable;10],
        sample_rate: u16
     ) -> Self {
-        let mut osc = Self {
+        let mut osc: WaveTableOscillator = Self {
             config,
             t: 0,
             one_shot_loop: sample_rate / config.freq + 1u16,
@@ -120,7 +120,7 @@ impl WaveTableOscillator {
             last_output: 0,
             speed_count: 0,
             speed: 1,
-            wavetables: wavetables
+            wavetables: wavetables,
         };
         if osc.config.soundbank_index != 255 {
             osc.waveform_lookup_table = osc.wavetables[osc.config.soundbank_index as usize];

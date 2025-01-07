@@ -9,6 +9,6 @@ pub struct Wavetable {
 #[derive(Copy, Clone)]
 pub struct SoundBank {
     // 10 x 1.2Kb = 12Kb per Soundbank
-    pub patches: [Patch; 2],
-    pub wavetables: [Wavetable; 10]
+    pub patches: &'static[Patch; 2],
+    pub wavetables: &'static[Wavetable; 10]
 }

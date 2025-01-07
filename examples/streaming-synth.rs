@@ -3,7 +3,7 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}
 };
 use cpal::{Device, Sample, StreamConfig};
-use little_weirdo::synth::effects::filter::FilterConfig;
+use little_weirdo::synth::{data::wavetables::SoundBank, effects::filter::FilterConfig};
 
 use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{self, Synth};
@@ -15,6 +15,8 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::TryRecvError;
 use std::thread::{self};
+
+    
 
 fn main() {
     let midi_input = midir::MidiInput::new("MIDITest").unwrap();
@@ -32,8 +34,11 @@ fn main() {
     let stdin_channel: Receiver<Key> = spawn_stdin_channel();
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
-    let patch: &Patch = &SOUND_BANK_WILD_FRUIT.patches[0];
-    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &SOUND_BANK_WILD_FRUIT);
+    let wt:Box<SoundBank> = Box::new(SOUND_BANK_WILD_FRUIT);
+    
+    let patch: &Patch = &wt.patches[0];
+
+    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &wt.wavetables);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
 
