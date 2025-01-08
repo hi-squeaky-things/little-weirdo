@@ -955,7 +955,6 @@ dependencies = [
  "console",
  "cpal",
  "hound",
- "little-weirdo-soundbanks",
  "midi-control",
  "midir 0.10.1",
  "pitch_calc",

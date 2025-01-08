@@ -123,9 +123,9 @@ impl WaveTableOscillator {
             speed: 1,
             wavetables: wavetables,
         };
-        if osc.config.soundbank_index != 255 {
+      //  if osc.config.soundbank_index != 255 {
          //  osc.waveform_lookup_table = osc.wavetables.get_wavetable_reference(osc.config.soundbank_index);
-        }
+        //}
         osc.calculate_lookup_table();
         osc
     }

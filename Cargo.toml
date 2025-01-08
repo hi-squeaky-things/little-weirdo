@@ -35,7 +35,7 @@ console = "0.15.8"
 midir = "0.10.1"
 midi-control = "0.2.2"
 rtp-rs = "0.6.0"
-little-weirdo-soundbanks = { path = "../little-weirdo-soundbanks" }
+#little-weirdo-soundbanks = { path = "../little-weirdo-soundbanks" }
 
 
 [[example]] 

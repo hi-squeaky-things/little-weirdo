@@ -1,7 +1,6 @@
 
 use cpal::Sample;
-use little_weirdo::synth::{self};
-use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
+use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
 
 
 const SAMPLE_RATE:u16 = 48000;
