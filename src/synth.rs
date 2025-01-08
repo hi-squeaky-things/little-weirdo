@@ -8,11 +8,12 @@ pub mod mixer;
 pub mod patch;
 pub mod router;
 pub mod wavetable_oscillator;
-use data::wavetables::{SoundBank, Wavetable};
+use data::wavetables::{BoxedWavetables, Wavetables};
 use effects::{overdrive::Overdrive, Effect};
 use patch::SynthMode;
 use router::Router;
-use wavetable_oscillator::WaveTableOscillator;
+extern crate alloc;
+use alloc::{boxed::Box, rc::Rc};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -53,11 +54,11 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: &Patch, wavetables: &'static [Wavetable;10]) -> Self {
+    pub fn new(sample_rate: u16, patch: &Patch, wavetables: Rc<BoxedWavetables>) -> Self {
         Self {
-            voices: Synth::init_voices(sample_rate, wavetables, patch),
+            voices: Synth::init_voices(sample_rate, patch, Rc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
-            lfo: Synth::init_lfos(sample_rate, wavetables, patch),
+            lfo: Synth::init_lfos(sample_rate, patch, Rc::clone(&wavetables)),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -81,15 +82,15 @@ impl Synth {
 
     fn init_voices(
         sample_rate: u16,
-        wavetables: &'static [Wavetable;10],
         patch: &Patch,
+        wavetables: Rc<BoxedWavetables>
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new(
                     patch.voices[i],
-                    wavetables,
                     sample_rate,
+                    Rc::clone(&wavetables),
                 )
             });
         voices
@@ -97,15 +98,15 @@ impl Synth {
 
     fn init_lfos(
         sample_rate: u16,
-        wavetables: &'static [Wavetable;10],
         patch: &Patch,
+        wavetables: Rc<BoxedWavetables>
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new_lfo(
                     patch.lfos[i],
-                    wavetables,
                     sample_rate,
+                    Rc::clone(&wavetables),
                 )
             });
         voices

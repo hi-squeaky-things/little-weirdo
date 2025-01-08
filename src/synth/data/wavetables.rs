@@ -1,14 +1,62 @@
 use crate::synth::patch::Patch;
+extern crate alloc;
+use alloc::vec::Vec;
+use alloc::vec;
 
-#[derive(Copy, Clone)]
-pub struct Wavetable {
-    // 600 samples  = 1200 bytes = 1.2 Kb
-    pub data: &'static[u8; 1_200]
+
+pub trait Wavetables  {
+    fn get_wavetable_reference(&self, index: u8) -> &[i16];
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
+pub struct BoxedWavetables {
+    data: Vec<BoxedWavetable>
+}
+
+impl BoxedWavetables {
+    pub fn new() -> Self {
+        Self {
+            data: Vec::with_capacity(10),
+        }
+    }
+
+    pub fn add(&mut self, wt: BoxedWavetable) {
+        self.data.push(wt);
+    }
+    
+}
+
+#[derive(Clone)]
+pub struct BoxedWavetable {
+    data: Vec<i16>
+}
+
+impl BoxedWavetable {
+    pub fn new(data: &[u8; 1200]) -> Self {
+        let mut init = Self {
+            data: vec![0i16; 600],
+        };
+        for sample_index in 0..600 {
+            let b1 = (data[sample_index * 2 + 1] as i16) << 8;
+            let b2 = data[sample_index * 2] as i16;
+            let sample = b1 | b2;
+            init.data[sample_index] = sample;
+        }    
+       init
+    }
+
+   
+}
+
+impl Wavetables for BoxedWavetables {
+    fn get_wavetable_reference(&self, index: u8) -> &[i16] {
+        self.data[index as usize].data.as_slice()
+    }
+}
+
+
 pub struct SoundBank {
     // 10 x 1.2Kb = 12Kb per Soundbank
     pub patches: &'static[Patch; 2],
-    pub wavetables: &'static[Wavetable; 10]
+    pub wavetables: dyn Wavetables,
 }

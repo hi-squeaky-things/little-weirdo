@@ -10,7 +10,7 @@ use little_weirdo::synth::{self, Synth};
 use little_weirdo_soundbanks::soundbanks::{SOUND_BANK_PURE_ELEKTRO, SOUND_BANK_PURPLE_WAVES, SOUND_BANK_WILD_FRUIT};
 use midi_control::{self, MidiMessage};
 use midir;
-use std::sync::mpsc;
+use std::{mem, sync::mpsc};
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::TryRecvError;
@@ -35,10 +35,9 @@ fn main() {
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
     let wt:Box<SoundBank> = Box::new(SOUND_BANK_WILD_FRUIT);
-    
-    let patch: &Patch = &wt.patches[0];
 
-    let mut synth: synth::Synth = synth::Synth::new(44100, patch, &wt.wavetables);
+    
+    let mut synth: synth::Synth = synth::Synth::new(44100, &wt.patches[0], &wt.wavetables);
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
 
