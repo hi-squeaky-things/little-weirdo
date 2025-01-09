@@ -12,11 +12,11 @@ use alloc::{vec::Vec, boxed::Box, rc::Rc};
 
 #[derive(Clone)]
 pub struct BoxedSample {
-    data: Vec<i16>
+    pub data: Vec<i16>
 }
 
 impl BoxedSample {
-    pub fn new(data: &[u8]) -> Self {
+    pub fn new(data: Vec<u8>) -> Self {
         let mut init = Self {
             data: Vec::with_capacity(data.len() / 2),
         };
@@ -32,13 +32,16 @@ impl BoxedSample {
    
 }
 
+
+
 pub struct Sampler {
     sampler: Rc<BoxedSample>,
     sample_rate: u16,
-    counter: u16,
+    counter: u32,
     increment: u16,
     speed: u16,
-    delay: u16
+    delay: u16,
+    last_sample: i16,
 }
 
 impl Clockable for Sampler {
@@ -46,12 +49,13 @@ impl Clockable for Sampler {
         self.delay = self.delay + 1;
         if self.delay > self.increment {
             self.delay = 0;
-            self.counter = self.counter + self.speed;
-            if self.counter >= self.sampler.data.len() as u16 {
+            self.counter = self.counter + self.speed as u32;
+            if self.counter >= self.sampler.data.len() as u32 {
                 self.counter = 0;
             }
         }
-       self.sampler.data[self.counter as usize]
+        self.last_sample = self.sampler.data[self.counter as usize];
+        self.last_sample
     }
 }
 
@@ -64,6 +68,7 @@ impl Sampler {
             increment: 0,
             speed: 1,
             delay: 0,
+            last_sample: 0,
         }
     }
 //415, 440, 466, 493
