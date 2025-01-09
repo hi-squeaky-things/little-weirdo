@@ -34,13 +34,13 @@ pub struct BoxedWavetable {
 impl BoxedWavetable {
     pub fn new(data: &[u8; 1200]) -> Self {
         let mut init = Self {
-            data: vec![0i16; 600],
+            data: Vec::with_capacity(600),
         };
         for sample_index in 0..600 {
             let b1 = (data[sample_index * 2 + 1] as i16) << 8;
             let b2 = data[sample_index * 2] as i16;
             let sample = b1 | b2;
-            init.data[sample_index] = sample;
+            init.data.push(sample);
         }    
        init
     }

@@ -8,12 +8,14 @@ pub mod mixer;
 pub mod patch;
 pub mod router;
 pub mod wavetable_oscillator;
+pub mod sampler;
 use data::wavetables::{BoxedWavetables, Wavetables};
 use effects::{overdrive::Overdrive, Effect};
 use patch::SynthMode;
 use router::Router;
 extern crate alloc;
 use alloc::{boxed::Box, rc::Rc};
+use sampler::{BoxedSample, Sampler};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -33,6 +35,7 @@ pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES],
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
     lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
+    sampler: Sampler,
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
@@ -54,11 +57,12 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: &Patch, wavetables: Rc<BoxedWavetables>) -> Self {
+    pub fn new(sample_rate: u16, patch: &Patch, wavetables: Rc<BoxedWavetables>, sample: Rc<BoxedSample>) -> Self {
         Self {
             voices: Synth::init_voices(sample_rate, patch, Rc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
             lfo: Synth::init_lfos(sample_rate, patch, Rc::clone(&wavetables)),
+            sampler: Sampler::new(sample_rate, Rc::clone(&sample)),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -141,15 +145,18 @@ impl Synth {
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     ///
     fn clock(&mut self) -> [i16; 2] {
+        
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
+        
         // clock voices and envelops once
         for i in 0..AMOUNT_OF_VOICES {
-            generate_voices[i] = self.voices[i].clock(None);
+           generate_voices[i] = self.voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);
         }
+        
         for i in 0..AMOUNT_OF_VOICES / 2 {
             let lfo: i32 = self.lfo[i].clock(None) as i32;
             let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
@@ -183,6 +190,10 @@ impl Synth {
             sound_mixing[0] = sound_mixing[0] + generate_voices[i];
         }
 
+        let mut sampler_sample = self.sampler.clock(None);
+        sampler_sample = math::percentage(sampler_sample, generate_env[0]);
+        sound_mixing[0] = sound_mixing[0] +  math::percentage(sampler_sample, 10);
+
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
@@ -202,6 +213,7 @@ impl Synth {
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         [sound_mixing[0], sound_mixing[0]]
+     
     }
 
     /// Let the LttL Weirdo Wavetable Synthesizer engine play a specific note on the right voice and with a velocity.
@@ -231,6 +243,7 @@ impl Synth {
                 self.voices[id * divider + i].change_freq(
                     (freq as i16 + self.voices[id * divider + i].config.freq_detune as i16) as u16,
                 );
+                self.sampler.change_freq(freq);
                 // Open the gate for all voice envelops
                 self.envelops[id * divider + i].open_gate();
             }

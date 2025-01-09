@@ -69,7 +69,7 @@ impl Clockable for WaveTableOscillator {
                 }
             };
             let output: i16;
-            match &self.config.soundbank_index {
+            match self.config.soundbank_index {
                 255 => {
                     output = self
                         .random
@@ -77,7 +77,7 @@ impl Clockable for WaveTableOscillator {
                 }
                 _ => {
                     let index = self.lookup_table[self.t as usize] as usize;
-                    output = self.wavetables.get_wavetable_reference(0)[index];
+                    output = self.wavetables.get_wavetable_reference(self.config.soundbank_index)[index];
                 }
             }
             self.t = self.t + 1;
@@ -123,9 +123,6 @@ impl WaveTableOscillator {
             speed: 1,
             wavetables: wavetables,
         };
-      //  if osc.config.soundbank_index != 255 {
-         //  osc.waveform_lookup_table = osc.wavetables.get_wavetable_reference(osc.config.soundbank_index);
-        //}
         osc.calculate_lookup_table();
         osc
     }
@@ -150,9 +147,6 @@ impl WaveTableOscillator {
   
    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
      self.config = config;
-     if self.config.soundbank_index as usize != 255 {
-     //   self.waveform_lookup_table = self.wavetables.get_wavetable_reference(0);
-     }
    }
 
     pub fn change_freq(&mut self, frequency: u16) {
