@@ -190,10 +190,14 @@ impl Synth {
             sound_mixing[0] = sound_mixing[0] + generate_voices[i];
         }
 
+        // sampler
+        /* 
         let mut sampler_sample = self.sampler.clock(None);
         sampler_sample = math::percentage(sampler_sample, generate_env[0]);
         sound_mixing[0] = sound_mixing[0] +  math::percentage(sampler_sample, 10);
+        */
 
+        
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
