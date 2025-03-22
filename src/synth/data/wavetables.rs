@@ -32,7 +32,7 @@ pub struct BoxedWavetable {
 }
 
 impl BoxedWavetable {
-    pub fn new(data: &[u8; 1200]) -> Self {
+    pub fn new(data: &[u8]) -> Self {
         let mut init = Self {
             data: Vec::with_capacity(600),
         };
@@ -55,8 +55,4 @@ impl Wavetables for BoxedWavetables {
 }
 
 
-pub struct SoundBank {
-    // 10 x 1.2Kb = 12Kb per Soundbank
-    pub patches: &'static[Patch; 2],
-    pub wavetables: dyn Wavetables,
-}
+

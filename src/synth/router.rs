@@ -19,6 +19,7 @@ pub struct RoutingConfiguration {
     pub voices_to_envelop: [VoiceToEnvelopRoute;AMOUNT_OF_VOICES],
     pub voice_to_lfo: [VoiceToLFORoute; AMOUNT_OF_VOICES/2],
     pub lfo_to_filter: bool,
+    pub lfo_to_freq: bool,
 }
 
 pub struct Router {

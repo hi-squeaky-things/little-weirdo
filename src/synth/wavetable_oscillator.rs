@@ -2,6 +2,7 @@
 use core::iter::Empty;
 
 use super::data::wavetables::{BoxedWavetables, Wavetables};
+use super::math::percentage;
 use super::{Clockable};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -11,6 +12,7 @@ use serde::Deserialize;
 
  extern crate alloc;
 use alloc::{boxed::Box, rc::Rc};
+use alloc::sync::Arc;
  
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
@@ -39,11 +41,12 @@ pub struct WaveTableOscillator {
     sample_rate: u16,
     lookup_table: [u16; 3000],
     target_freq: u16,
+    original_freq: u16,
     freq_step: i16,
     speed: u16,
     last_output: i16,
     speed_count: u16,
-    wavetables: Rc<BoxedWavetables>,
+    wavetables: Arc<BoxedWavetables>,
 }
 
 impl Clockable for WaveTableOscillator {
@@ -89,7 +92,7 @@ impl Clockable for WaveTableOscillator {
 
 impl WaveTableOscillator {
 
-    pub fn new_lfo(config: WaveTableLoFreqOscillatorConfig, sample_rate: u16,  wavetables: Rc<BoxedWavetables>) -> Self {
+    pub fn new_lfo(config: WaveTableLoFreqOscillatorConfig, sample_rate: u16,  wavetables: Arc<BoxedWavetables>) -> Self {
         let new_config = WaveTableOscillatorConfig {
             soundbank_index: config.soundbank_index,
             glide: false,
@@ -106,7 +109,7 @@ impl WaveTableOscillator {
     pub fn new(
        config: WaveTableOscillatorConfig,
        sample_rate: u16,
-       wavetables: Rc<BoxedWavetables>,
+       wavetables: Arc<BoxedWavetables>,
     ) -> Self {
         let mut osc: WaveTableOscillator = Self {
             config,
@@ -117,6 +120,7 @@ impl WaveTableOscillator {
             sample_rate,
             lookup_table: [0u16; 3000],
             target_freq: config.freq,
+            original_freq: 440,
             freq_step: 0,
             last_output: 0,
             speed_count: 0,
@@ -149,6 +153,11 @@ impl WaveTableOscillator {
      self.config = config;
    }
 
+   pub fn manipulate_freq(&mut self, perc:u8) {
+        self.config.freq = self.original_freq + percentage(20 as i16, perc as i16) as u16;
+        self.freq_change = true;
+   }
+
     pub fn change_freq(&mut self, frequency: u16) {
         if self.config.freq != frequency {
             self.target_freq = frequency;
@@ -160,6 +169,7 @@ impl WaveTableOscillator {
             } else {
                 self.config.freq = frequency;
             }
+            self.original_freq = frequency;
             self.freq_change = true;
         }
     }

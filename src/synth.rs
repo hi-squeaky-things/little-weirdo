@@ -14,7 +14,8 @@ use effects::{overdrive::Overdrive, Effect};
 use patch::SynthMode;
 use router::Router;
 extern crate alloc;
-use alloc::{boxed::Box, rc::Rc};
+use alloc::{boxed::Box};
+use alloc::sync::Arc;
 use sampler::{BoxedSample, Sampler};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
@@ -35,7 +36,7 @@ pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES],
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
     lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
-    sampler: Sampler,
+  //  sampler: Sampler,
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
@@ -57,12 +58,12 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: &Patch, wavetables: Rc<BoxedWavetables>, sample: Rc<BoxedSample>) -> Self {
+    pub fn new(sample_rate: u16, patch: &Patch, wavetables: alloc::sync::Arc<BoxedWavetables>) -> Self {
         Self {
-            voices: Synth::init_voices(sample_rate, patch, Rc::clone(&wavetables)),
+            voices: Synth::init_voices(sample_rate, patch, Arc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
-            lfo: Synth::init_lfos(sample_rate, patch, Rc::clone(&wavetables)),
-            sampler: Sampler::new(sample_rate, Rc::clone(&sample)),
+            lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&wavetables)),
+         //   sampler: Sampler::new(sample_rate, Rc::clone(&sample)),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -87,14 +88,14 @@ impl Synth {
     fn init_voices(
         sample_rate: u16,
         patch: &Patch,
-        wavetables: Rc<BoxedWavetables>
+        wavetables: Arc<BoxedWavetables>
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new(
                     patch.voices[i],
                     sample_rate,
-                    Rc::clone(&wavetables),
+                    Arc::clone(&wavetables),
                 )
             });
         voices
@@ -103,14 +104,14 @@ impl Synth {
     fn init_lfos(
         sample_rate: u16,
         patch: &Patch,
-        wavetables: Rc<BoxedWavetables>
+        wavetables: Arc<BoxedWavetables>
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] =
             array_init::array_init(|i: usize| {
                 wavetable_oscillator::WaveTableOscillator::new_lfo(
                     patch.lfos[i],
                     sample_rate,
-                    Rc::clone(&wavetables),
+                    Arc::clone(&wavetables),
                 )
             });
         voices
@@ -202,6 +203,10 @@ impl Synth {
 
         // Pass the mixed signal through the filter
 
+        if self.router.config.lfo_to_freq {
+            self.voices[0].manipulate_freq( generate_lfos[0] as u8);
+       
+        }
         if self.router.config.lfo_to_filter {
             let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[0] as i16);
             if self.filter.config.cutoff_frequency != lfo_filter as u16 {
@@ -247,7 +252,7 @@ impl Synth {
                 self.voices[id * divider + i].change_freq(
                     (freq as i16 + self.voices[id * divider + i].config.freq_detune as i16) as u16,
                 );
-                self.sampler.change_freq(freq);
+             //   self.sampler.change_freq(freq);
                 // Open the gate for all voice envelops
                 self.envelops[id * divider + i].open_gate();
             }

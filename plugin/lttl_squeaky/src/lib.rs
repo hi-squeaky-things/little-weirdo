@@ -1,8 +1,10 @@
+use little_weirdo::synth::Synth;
 use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
 use nih_plug::prelude::*;
-use std::u16;
+use std::{fs, u16};
 use std::sync::Arc;
-use little_weirdo::synth::{self, Synth};
+use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
+
 
 /// A test tone generator that can either generate a sine wave based on the plugin's parameters or
 /// based on the current MIDI input.
@@ -22,7 +24,208 @@ struct LttLSqueakyParams {
 impl Default for LttLSqueaky {
     fn default() -> Self {
 
-        let synth = synth::Synth::new(44100, &SOUND_BANK_PURE_ELEKTRO.patches[0], &SOUND_BANK_PURE_ELEKTRO);
+        let mut wt_on_heap = BoxedWavetables::new();
+        for id in 0..10 {
+            let filename = format!("examples/wav{}.lwt", id);
+            let contents = fs::read(filename).unwrap();
+            let bytes: &[u8] = &contents;
+            wt_on_heap.add(BoxedWavetable::new(bytes));
+       
+        }
+        let wt = Arc::new(wt_on_heap);
+
+        
+
+       
+    let patch = Patch {
+        synth_config: SynthConfiguration {
+            mode: SynthMode::Mono,
+        },
+        voices: [
+            WaveTableOscillatorConfig {
+                soundbank_index: 1,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 8,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 4,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+        ],
+        envelops: [
+            EnvelopConfiguration {
+                attack_time: 200,
+                decay_time: 100,
+                release_time: 100,
+                sustain_level: 50,
+            },
+            EnvelopConfiguration {
+                attack_time: 200,
+                decay_time: 100,
+                release_time: 100,
+                sustain_level: 50,
+            },
+            EnvelopConfiguration {
+                attack_time: 10,
+                decay_time: 10,
+                release_time: 10,
+                sustain_level: 100,
+            },
+            EnvelopConfiguration {
+                attack_time: 10,
+                decay_time: 10,
+                release_time: 10,
+                sustain_level: 100,
+            },
+            EnvelopConfiguration {
+                attack_time: 10,
+                decay_time: 10,
+                release_time: 10,
+                sustain_level: 100,
+            },
+            EnvelopConfiguration {
+                attack_time: 10,
+                decay_time: 10,
+                release_time: 10,
+                sustain_level: 100,
+            },
+            EnvelopConfiguration {
+                attack_time: 10,
+                decay_time: 10,
+                release_time: 10,
+                sustain_level: 100,
+            },
+            EnvelopConfiguration {
+                attack_time: 10,
+                decay_time: 10,
+                release_time: 10,
+                sustain_level: 100,
+            },
+        ],
+        lfos: [
+            WaveTableLoFreqOscillatorConfig {
+                soundbank_index: 0,
+                time: 10,
+            },
+            WaveTableLoFreqOscillatorConfig {
+                soundbank_index: 4,
+                time: 200,
+            },
+            WaveTableLoFreqOscillatorConfig {
+                soundbank_index: 4,
+                time: 200,
+            },
+            WaveTableLoFreqOscillatorConfig {
+                soundbank_index: 4,
+                time: 200,
+            },
+        ],
+        routering_config: RoutingConfiguration {
+            voices_to_envelop: [
+                VoiceToEnvelopRoute { env: 0 },
+                VoiceToEnvelopRoute { env: 0 },
+                VoiceToEnvelopRoute { env: 2 },
+                VoiceToEnvelopRoute { env: 3 },
+                VoiceToEnvelopRoute { env: 4 },
+                VoiceToEnvelopRoute { env: 5 },
+                VoiceToEnvelopRoute { env: 6 },
+                VoiceToEnvelopRoute { env: 7 },
+            ],
+            voice_to_lfo: [
+                VoiceToLFORoute {
+                    enable: true,
+                    voices: [0, 1],
+                },
+                VoiceToLFORoute {
+                    enable: false,
+                    voices: [1, 255],
+                },
+                VoiceToLFORoute {
+                    enable: false,
+                    voices: [1, 255],
+                },
+                VoiceToLFORoute {
+                    enable: false,
+                    voices: [1, 255],
+                },
+            ],
+            lfo_to_filter: false,
+        },
+        filter_config: FilterConfig {
+            cutoff_frequency: 1_000,
+            resonance: 6_000,
+            enabled: false,
+            kind_of_filter: KindOfFilter::Low,
+        },
+        mixer_config: MixerConfiguration {
+            gain_voices: [30, 30, 0, 0, 0, 0, 0, 0],
+            gain_main: 80,
+        },
+        overdrive_config: OverdriveConfiguration {
+            threshold: 2000,
+            kind: KindOfOverdrive::Softer,
+            enabled: false,
+        },
+    };
+
+
+    let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt));
+
 
 
         Self {
