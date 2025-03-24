@@ -2,7 +2,7 @@
 use std::{fs, rc::Rc, sync::Arc};
 
 use cpal::Sample;
-use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
+use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
 
 
 const SAMPLE_RATE:u16 = 48000;
@@ -36,7 +36,7 @@ fn main() {
         },
         voices: [
             WaveTableOscillatorConfig {
-                soundbank_index: 1,
+                soundbank_index: 0,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
@@ -198,6 +198,7 @@ fn main() {
                 },
             ],
             lfo_to_filter: false,
+            lfo_to_freq: false
         },
         filter_config: FilterConfig {
             cutoff_frequency: 1_000,
@@ -206,14 +207,17 @@ fn main() {
             kind_of_filter: KindOfFilter::Low,
         },
         mixer_config: MixerConfiguration {
-            gain_voices: [30, 30, 0, 0, 0, 0, 0, 0],
-            gain_main: 80,
+            gain_voices: [50, 0, 0, 0, 0, 0, 0, 0],
+            gain_main: 50,
         },
         overdrive_config: OverdriveConfiguration {
             threshold: 1000,
             kind: KindOfOverdrive::Softer,
             enabled: false,
         },
+        bitcrunch_config: BitcrunchConfiguration {
+            enabled: true,
+        }
     };
 
     let mut synth: synth::Synth = synth::Synth::new(

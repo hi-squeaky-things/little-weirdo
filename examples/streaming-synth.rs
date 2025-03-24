@@ -3,7 +3,7 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait}
 };
 use cpal::{Device, Sample, StreamConfig};
-use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
+use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
 
 use little_weirdo::synth::{Synth};
 use midi_control::{self, MidiMessage};
@@ -49,7 +49,7 @@ fn main() {
         },
         voices: [
             WaveTableOscillatorConfig {
-                soundbank_index: 1,
+                soundbank_index: 0,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
@@ -57,12 +57,12 @@ fn main() {
                 freq_detune: 0,
             },
             WaveTableOscillatorConfig {
-                soundbank_index: 8,
+                soundbank_index: 0,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
                 freq: 440,
-                freq_detune: 2,
+                freq_detune: 0,
             },
             WaveTableOscillatorConfig {
                 soundbank_index: 4,
@@ -165,11 +165,11 @@ fn main() {
         ],
         lfos: [
             WaveTableLoFreqOscillatorConfig {
-                soundbank_index: 3,
+                soundbank_index: 0,
                 time: 30,
             },
             WaveTableLoFreqOscillatorConfig {
-                soundbank_index: 4,
+                soundbank_index: 1,
                 time: 200,
             },
             WaveTableLoFreqOscillatorConfig {
@@ -184,7 +184,7 @@ fn main() {
         routering_config: RoutingConfiguration {
             voices_to_envelop: [
                 VoiceToEnvelopRoute { env: 0 },
-                VoiceToEnvelopRoute { env: 1 },
+                VoiceToEnvelopRoute { env: 0 },
                 VoiceToEnvelopRoute { env: 2 },
                 VoiceToEnvelopRoute { env: 3 },
                 VoiceToEnvelopRoute { env: 4 },
@@ -216,18 +216,21 @@ fn main() {
         filter_config: FilterConfig {
             cutoff_frequency: 6_000,
             resonance: 0,
-            enabled: true,
+            enabled: false,
             kind_of_filter: KindOfFilter::Low,
         },
         mixer_config: MixerConfiguration {
             gain_voices: [30, 30, 0, 0, 0, 0, 0, 0],
-            gain_main: 80,
+            gain_main: 50,
         },
         overdrive_config: OverdriveConfiguration {
             threshold: 2000,
             kind: KindOfOverdrive::Softer,
             enabled: true,
         },
+        bitcrunch_config: BitcrunchConfiguration {
+            enabled: false,
+        }
     };
 
 

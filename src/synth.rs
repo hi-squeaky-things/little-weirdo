@@ -10,6 +10,7 @@ pub mod router;
 pub mod wavetable_oscillator;
 pub mod sampler;
 use data::wavetables::{BoxedWavetables, Wavetables};
+use effects::bitcrunch::Bitcrunch;
 use effects::{overdrive::Overdrive, Effect};
 use patch::SynthMode;
 use router::Router;
@@ -40,6 +41,7 @@ pub struct Synth {
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
+    bitcrunch: Bitcrunch,
     mixer: Mixer,
     velocity: u8,
     active_note: [u8; AMOUNT_OF_VOICES],
@@ -67,6 +69,7 @@ impl Synth {
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
+            bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
             router: Router::new(patch.routering_config),
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
@@ -221,6 +224,7 @@ impl Synth {
         // Finally, apply main gain setting and return the final sample value
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
+        sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
         [sound_mixing[0], sound_mixing[0]]
      
     }
