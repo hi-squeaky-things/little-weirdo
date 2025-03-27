@@ -153,8 +153,8 @@ impl WaveTableOscillator {
      self.config = config;
    }
 
-   pub fn manipulate_freq(&mut self, perc:u8) {
-        self.config.freq = self.original_freq + percentage(20 as i16, perc as i16) as u16;
+   pub fn manipulate_freq(&mut self, perc:u8, amount:u16) {
+        self.config.freq = self.original_freq + percentage(amount as i16, perc as i16) as u16;
         self.freq_change = true;
    }
 

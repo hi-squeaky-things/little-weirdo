@@ -49,7 +49,7 @@ fn main() {
         },
         voices: [
             WaveTableOscillatorConfig {
-                soundbank_index: 0,
+                soundbank_index: 2,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
@@ -57,20 +57,20 @@ fn main() {
                 freq_detune: 0,
             },
             WaveTableOscillatorConfig {
-                soundbank_index: 0,
+                soundbank_index: 2,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
                 freq: 440,
-                freq_detune: 0,
+                freq_detune: 3,
             },
             WaveTableOscillatorConfig {
-                soundbank_index: 4,
+                soundbank_index: 1,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
                 freq: 440,
-                freq_detune: 0,
+                freq_detune: 6,
             },
             WaveTableOscillatorConfig {
                 soundbank_index: 2,
@@ -115,10 +115,10 @@ fn main() {
         ],
         envelops: [
             EnvelopConfiguration {
-                attack_time: 200,
-                decay_time: 100,
-                release_time: 100,
-                sustain_level: 50,
+                attack_time: 5,
+                decay_time: 10,
+                release_time: 20,
+                sustain_level: 80,
             },
             EnvelopConfiguration {
                 attack_time: 200,
@@ -166,7 +166,7 @@ fn main() {
         lfos: [
             WaveTableLoFreqOscillatorConfig {
                 soundbank_index: 0,
-                time: 30,
+                time: 10,
             },
             WaveTableLoFreqOscillatorConfig {
                 soundbank_index: 1,
@@ -185,7 +185,7 @@ fn main() {
             voices_to_envelop: [
                 VoiceToEnvelopRoute { env: 0 },
                 VoiceToEnvelopRoute { env: 0 },
-                VoiceToEnvelopRoute { env: 2 },
+                VoiceToEnvelopRoute { env: 0 },
                 VoiceToEnvelopRoute { env: 3 },
                 VoiceToEnvelopRoute { env: 4 },
                 VoiceToEnvelopRoute { env: 5 },
@@ -212,21 +212,22 @@ fn main() {
             ],
             lfo_to_filter: false,
             lfo_to_freq: true,
+            lfo_to_freq_amount: 5, 
         },
         filter_config: FilterConfig {
-            cutoff_frequency: 6_000,
+            cutoff_frequency: 2000,
             resonance: 0,
-            enabled: false,
+            enabled: true,
             kind_of_filter: KindOfFilter::Low,
         },
         mixer_config: MixerConfiguration {
-            gain_voices: [30, 30, 0, 0, 0, 0, 0, 0],
-            gain_main: 50,
+            gain_voices: [50, 10, 0, 0, 0, 0, 0, 0],
+            gain_main: 100,
         },
         overdrive_config: OverdriveConfiguration {
             threshold: 2000,
             kind: KindOfOverdrive::Softer,
-            enabled: true,
+            enabled: false,
         },
         bitcrunch_config: BitcrunchConfiguration {
             enabled: false,
@@ -238,7 +239,7 @@ fn main() {
 
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
 
-    let _connect_in = midi_input.connect(
+    let _connect_in  = midi_input.connect(
         &device_port,
         "IAC Driver",
         move |_timestamp, data, sender| {

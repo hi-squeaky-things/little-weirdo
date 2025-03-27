@@ -207,7 +207,7 @@ impl Synth {
         // Pass the mixed signal through the filter
 
         if self.router.config.lfo_to_freq {
-            self.voices[0].manipulate_freq( generate_lfos[0] as u8);
+            self.voices[0].manipulate_freq( generate_lfos[0] as u8, self.router.config.lfo_to_freq_amount);
        
         }
         if self.router.config.lfo_to_filter {

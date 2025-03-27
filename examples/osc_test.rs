@@ -36,14 +36,6 @@ fn main() {
         },
         voices: [
             WaveTableOscillatorConfig {
-                soundbank_index: 0,
-                glide: false,
-                glide_rate: 200,
-                detune: 0,
-                freq: 440,
-                freq_detune: 0,
-            },
-            WaveTableOscillatorConfig {
                 soundbank_index: 2,
                 glide: false,
                 glide_rate: 200,
@@ -52,12 +44,20 @@ fn main() {
                 freq_detune: 0,
             },
             WaveTableOscillatorConfig {
-                soundbank_index: 4,
+                soundbank_index: 1,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
                 freq: 440,
-                freq_detune: 0,
+                freq_detune: 3,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 1,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 6,
             },
             WaveTableOscillatorConfig {
                 soundbank_index: 2,
@@ -102,14 +102,14 @@ fn main() {
         ],
         envelops: [
             EnvelopConfiguration {
-                attack_time: 30,
-                decay_time: 30,
+                attack_time: 5,
+                decay_time: 100,
                 release_time: 100,
-                sustain_level: 50,
+                sustain_level: 90,
             },
             EnvelopConfiguration {
-                attack_time: 30,
-                decay_time: 30,
+                attack_time: 200,
+                decay_time: 100,
                 release_time: 100,
                 sustain_level: 50,
             },
@@ -153,10 +153,10 @@ fn main() {
         lfos: [
             WaveTableLoFreqOscillatorConfig {
                 soundbank_index: 0,
-                time: 50,
+                time: 1000,
             },
             WaveTableLoFreqOscillatorConfig {
-                soundbank_index: 4,
+                soundbank_index: 1,
                 time: 200,
             },
             WaveTableLoFreqOscillatorConfig {
@@ -171,8 +171,8 @@ fn main() {
         routering_config: RoutingConfiguration {
             voices_to_envelop: [
                 VoiceToEnvelopRoute { env: 0 },
-                VoiceToEnvelopRoute { env: 1 },
-                VoiceToEnvelopRoute { env: 2 },
+                VoiceToEnvelopRoute { env: 0 },
+                VoiceToEnvelopRoute { env: 0 },
                 VoiceToEnvelopRoute { env: 3 },
                 VoiceToEnvelopRoute { env: 4 },
                 VoiceToEnvelopRoute { env: 5 },
@@ -198,11 +198,11 @@ fn main() {
                 },
             ],
             lfo_to_filter: false,
-            lfo_to_freq: false
+            lfo_to_freq: false,
         },
         filter_config: FilterConfig {
-            cutoff_frequency: 1_000,
-            resonance: 6_000,
+            cutoff_frequency: 6_000,
+            resonance: 0,
             enabled: false,
             kind_of_filter: KindOfFilter::Low,
         },
@@ -211,12 +211,12 @@ fn main() {
             gain_main: 50,
         },
         overdrive_config: OverdriveConfiguration {
-            threshold: 1000,
+            threshold: 2000,
             kind: KindOfOverdrive::Softer,
             enabled: false,
         },
         bitcrunch_config: BitcrunchConfiguration {
-            enabled: true,
+            enabled: false,
         }
     };
 

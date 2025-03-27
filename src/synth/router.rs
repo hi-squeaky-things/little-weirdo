@@ -20,6 +20,7 @@ pub struct RoutingConfiguration {
     pub voice_to_lfo: [VoiceToLFORoute; AMOUNT_OF_VOICES/2],
     pub lfo_to_filter: bool,
     pub lfo_to_freq: bool,
+    pub lfo_to_freq_amount: u16,
 }
 
 pub struct Router {
