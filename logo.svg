@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:export>
+      <bx:file format="svg" href="#object-0"/>
+      <bx:file format="svg" href="#object-1" path="Untitled 2.svg"/>
+      <bx:file format="svg" href="#object-2" path="Untitled 3.svg"/>
+      <bx:file format="svg" href="#object-3" path="Untitled 4.svg"/>
+      <bx:file format="svg" href="#object-4" path="Untitled 5.svg"/>
+      <bx:file format="svg" href="#object-5" path="Untitled 6.svg"/>
+      <bx:file format="svg" href="#object-6" path="Untitled 7.svg"/>
+      <bx:file format="svg" href="#object-7" path="Untitled 8.svg"/>
+      <bx:file format="svg" href="#object-8" path="Untitled 9.svg"/>
+      <bx:file format="svg" href="#object-9" path="Untitled 10.svg"/>
+    </bx:export>
+  </defs>
+  <ellipse style="fill: rgb(255, 255, 255); stroke-width: 0px;" cx="239.523" cy="95.437" rx="19.052" ry="19.816" id="object-0"/>
+  <ellipse style="fill: none; stroke: rgb(255, 255, 255); stroke-width: 6px;" cx="239.224" cy="94.272" rx="44.188" ry="42.541" id="object-1"/>
+  <rect x="235.695" y="112.198" width="7.723" height="105.33" style="fill: rgb(255, 255, 255);" id="object-2"/>
+  <ellipse style="fill: none; stroke: rgb(255, 255, 255); stroke-width: 6;" cx="171.798" cy="265.165" rx="16.184" ry="16.62" id="object-3"/>
+  <ellipse style="fill: none; stroke: rgb(255, 255, 255); stroke-width: 6;" cx="309.316" cy="264.652" rx="16.184" ry="16.62" id="object-4"/>
+  <ellipse style="fill: none; stroke: rgb(255, 255, 255); stroke-width: 6;" cx="241.124" cy="329.477" rx="16.184" ry="16.62" id="object-5"/>
+  <path style="fill: none; stroke: rgb(255, 255, 255); stroke-linecap: round; stroke-width: 20px; stroke-linejoin: round;" d="M 412.65 166.411 L 425.874 178.262 L 423.338 239.003 L 405.038 261.427 L 354.227 260.623" id="object-6"/>
+  <path style="fill: none; stroke: rgb(255, 255, 255); stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 50%; stroke-width: 20px; stroke-linejoin: round;" d="M 107.336 255.526 L 120.56 243.675 L 118.024 182.934 L 99.724 160.51 L 48.913 161.314" transform="matrix(-1, 0, 0, -1, 0.000007, -0.000021)" id="object-7"/>
+  <path style="fill: none; stroke: rgb(255, 253, 253); stroke-width: 20px; transform-box: fill-box; transform-origin: 50% 50%; stroke-linecap: round; stroke-linejoin: round;" d="M 183.171 279.137 C 270.096 279.137 324.424 374.717 280.962 451.181 C 261.78 484.927 227.042 506.474 188.724 508.39" transform="matrix(0, 1, -1, 0, -0.000008, -0.000005)" id="object-8"/>
+  <path style="fill: none; stroke: rgb(255, 255, 255); stroke-width: 20px; stroke-linecap: round; stroke-linejoin: round;" d="M 126.202 297.294 L 127.416 222.636 L 351.568 226.008 L 352.381 300.626" id="object-9"/>
+</svg>

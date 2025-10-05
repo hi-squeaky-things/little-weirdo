@@ -7,6 +7,9 @@
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.
 
+<div style="background: linear-gradient(to right, #ff7e5f, #feb47b);">
+  <img src="logo.svg" width="100px">
+</div>
 
 ## How to use it
 
