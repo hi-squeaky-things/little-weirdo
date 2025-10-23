@@ -6,7 +6,7 @@ authors = ["Daniël <daniel@hi-squeaky-things.nl>"]
 description = "A Rust #no-std optimized wave table synthesizer for embedded devices."
 license = "MIT"
 repository = "https://github.com/hi-squeaky-things/little-weirdo"
-keywords = ["no-std", "synthesizer", "open hardware", "wavetable"]
+keywords = ["no-std", "synthesizer", "wavetable"]
 categories = ["synthesizer", "embedded"]
 
 [workspace]
