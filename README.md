@@ -5,6 +5,7 @@
 \____/(__)  (__) \____/  (_/\_)(____)(__)(__\_)(____/ \__/ 
 ```
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hi-squeaky-things/little-weirdo/rust.yml?branch=main)
+![GitHub License](https://img.shields.io/github/license/hi-squeaky-things/little-weirdo)
 
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.
