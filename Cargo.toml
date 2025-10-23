@@ -2,6 +2,12 @@
 name = "little_weirdo"
 version = "0.1.0"
 edition = "2021"
+authors = ["Daniël <daniel@hi-squeaky-things.nl>"]
+description = "A Rust #no-std optimized wave table synthesizer for embedded devices."
+license = "MIT"
+repository = "https://github.com/hi-squeaky-things/little-weirdo"
+keywords = ["no-std", "synthesizer", "open hardware", "wavetable"]
+categories = ["synthesizer", "embedded"]
 
 [workspace]
 resolver = "2"
