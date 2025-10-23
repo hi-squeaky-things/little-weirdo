@@ -7,7 +7,7 @@ description = "A Rust #no-std optimized wave table synthesizer for embedded devi
 license = "MIT"
 repository = "https://github.com/hi-squeaky-things/little-weirdo"
 keywords = ["no-std", "synthesizer", "wavetable"]
-categories = ["synthesizer", "embedded"]
+categories = ["embedded"]
 
 [workspace]
 resolver = "2"
