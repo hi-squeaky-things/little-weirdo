@@ -7,6 +7,7 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hi-squeaky-things/little-weirdo/rust.yml?branch=main)
 ![GitHub License](https://img.shields.io/github/license/hi-squeaky-things/little-weirdo)
 ![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.0)
+![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.0?style=flat)
 
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.

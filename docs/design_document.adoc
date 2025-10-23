@@ -1,5 +1,8 @@
+= Design Document of the Litlle Weirdo Synth
+
+[plantuml]
+----
 @startuml
-title LttL Weirdo Synth design
 :EVERY_SAMPLE;
 start
     split
@@ -37,4 +40,4 @@ endif
 
 end
 @enduml
-
+----
