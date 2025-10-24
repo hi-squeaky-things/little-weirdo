@@ -5,10 +5,9 @@ use cpal::{
 use cpal::{Device, Sample, StreamConfig};
 use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
 
-use little_weirdo::synth::{Synth};
 use midi_control::{self, MidiMessage};
 use midir;
-use std::{fs, mem, rc::Rc, sync::{mpsc, Arc}};
+use std::{fs, sync::{mpsc, Arc}};
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::TryRecvError;
@@ -24,7 +23,7 @@ fn main() {
         println!("Input device not found!");
     }
 
-    let (sender, receiver) = channel::<midi_control::MidiMessage>();
+    let (sender, _receiver) = channel::<midi_control::MidiMessage>();
 
     let device_port = device_port.unwrap();
 
@@ -242,9 +241,9 @@ fn main() {
     let _connect_in  = midi_input.connect(
         &device_port,
         "IAC Driver",
-        move |_timestamp, data, sender| {
+        move |_timestamp, data, _sender| {
             let msg: midi_control::MidiMessage = midi_control::MidiMessage::from(data);
-            midi_tx.send(msg);
+            let _ = midi_tx.send(msg);
         },
         sender,
     );
@@ -306,8 +305,8 @@ fn setup_device() -> (Device, StreamConfig) {
 
 fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
     match command {
-        MidiMessage::NoteOn(ch, e) => synth.note_on(e.key, e.value),
-        MidiMessage::NoteOff(ch, e) => synth.note_off( e.key),
+        MidiMessage::NoteOn(_ch, e) => synth.note_on(e.key, e.value),
+        MidiMessage::NoteOff(_ch, e) => synth.note_off( e.key),
         _ => {}
     }
 }

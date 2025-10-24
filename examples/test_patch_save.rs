@@ -1,7 +1,6 @@
 use std::{fs::File, io::{Read, Write}, path::Path};
-use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
-use postcard::{from_bytes, to_vec};
-use serde::Serialize;
+use little_weirdo::synth::{effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
+
 
 fn main() {
 
@@ -201,17 +200,17 @@ fn main() {
     let mut buf = [0u8; 163];
 
     match postcard::to_slice(&patch, &mut buf) {
-        Ok(result) => {println!("Serialize Ok")},
+        Ok(_result) => {println!("Serialize Ok")},
         Err(error) => {println!("{:?}", error)},
     }
 
-    let mut file_name = Path::new("./").join("patch.p");
+    let file_name = Path::new("./").join("patch.p");
     let mut file =  File::create(file_name).expect("Failed to open file");
-   file.write(&buf);
+   let _ = file.write(&buf);
 
 
     let mut buf2 = [0u8; 163];
-    file.read(&mut buf2);
+   let _ = file.read(&mut buf2);
 
    let test:Patch = postcard::from_bytes(&buf2).unwrap();
    println!("{:?}",test.synth_config );

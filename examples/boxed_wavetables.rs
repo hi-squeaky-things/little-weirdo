@@ -1,8 +1,7 @@
 
 use cpal::Sample;
 use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
-use std::{fs, mem, rc::Rc, sync::{mpsc, Arc}};
-use little_weirdo::synth::{Synth};
+use std::{fs,sync::{Arc}};
 
 
 const SAMPLE_RATE:u16 = 48000;
@@ -229,7 +228,7 @@ fn main() {
    // for note in 60 {
         synth.note_on(note, 100);
         let mut total: f64 = 0.0;
-        for n in 0..SAMPLE_RATE {
+        for _n in 0..SAMPLE_RATE {
             let output = synth.clock_and_output(); 
             writer.write_sample(output[0]).unwrap();
             let left:f64 = Sample::from_sample(output[0]);
@@ -240,7 +239,7 @@ fn main() {
             if output[1].abs() > CLIPPING as i16 { clipped[0] = clipped[0] + 1;  }
         }
         synth.note_off(note);
-        for n in 0..SAMPLE_RATE {
+        for _n in 0..SAMPLE_RATE {
             let output = synth.clock_and_output(); 
             writer.write_sample(output[0]).unwrap();
         }
@@ -248,11 +247,11 @@ fn main() {
         let db = decibel(rms).round();
         print!("[{:?}]::", note);
         print!("{:?}::", db);
-        if (db > HEADROOM) {
+        if db > HEADROOM {
             print!("H") 
         }
 
-        if (clipped[0] > 0) {
+        if clipped[0] > 0 {
             print!("C");
        
         } else {
@@ -260,7 +259,7 @@ fn main() {
         }
         
         print!("-");
-        if (note % 8 == 0) {
+        if note % 8 == 0 {
             println!("");
     }
     println!("");
