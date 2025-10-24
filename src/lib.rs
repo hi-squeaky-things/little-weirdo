@@ -14,17 +14,8 @@
 //! 
 //! use little_weirdo::synth::patch::Patch;
 //! use little_weirdo::synth::Synth;
-//! use little_weirdo_soundbanks::soundbanks::SOUND_BANK_PURE_ELEKTRO;
 //! 
 //! fn main() {
-//!     // Choose a predefined patch (or create your own).
-//!     let patch: &Patch = &SOUND_BANK_PURE_ELEKTRO.patches[0];
-//!     // Create an instance of LttL Weirdo.
-//!     let mut synth: Synth = Synth::new(44100, patch, &SOUND_BANK_PURE_ELEKTRO);
-//!     // Start playing a note
-//!     synth.note_on(0x50, 0xFF);
-//!     // Clock LttL Weirdo in a loop.
-//!     let sample = synth.clock_and_output();
 //! }
 //! ```
 

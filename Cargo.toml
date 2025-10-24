@@ -9,6 +9,9 @@ repository = "https://github.com/hi-squeaky-things/little-weirdo"
 keywords = ["no-std", "synthesizer", "wavetable"]
 categories = ["embedded"]
 
+[workspace]
+resolver = "2"
+
 
 [lib]
 name = "little_weirdo"

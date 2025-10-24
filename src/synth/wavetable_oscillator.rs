@@ -1,5 +1,4 @@
 //! WaveTableOscillator to generate sounds using Wavetable synthesis.
-use core::iter::Empty;
 
 use super::data::wavetables::{BoxedWavetables, Wavetables};
 use super::math::percentage;
@@ -11,7 +10,6 @@ use serde::Deserialize;
  use serde::Serialize;
 
  extern crate alloc;
-use alloc::{boxed::Box, rc::Rc};
 use alloc::sync::Arc;
  
 
@@ -76,7 +74,7 @@ impl Clockable for WaveTableOscillator {
                 255 => {
                     output = self
                         .random
-                        .gen_range((i16::MIN + 1000)..(i16::MAX - 1000));
+                        .random_range((i16::MIN + 1000)..(i16::MAX - 1000));
                 }
                 _ => {
                     let index = self.lookup_table[self.t as usize] as usize;

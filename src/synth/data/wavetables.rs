@@ -1,7 +1,5 @@
-use crate::synth::patch::Patch;
 extern crate alloc;
 use alloc::vec::Vec;
-use alloc::vec;
 
 
 pub trait Wavetables  {

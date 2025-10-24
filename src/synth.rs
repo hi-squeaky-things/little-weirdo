@@ -9,15 +9,13 @@ pub mod patch;
 pub mod router;
 pub mod wavetable_oscillator;
 pub mod sampler;
-use data::wavetables::{BoxedWavetables, Wavetables};
+use data::wavetables::BoxedWavetables;
 use effects::bitcrunch::Bitcrunch;
 use effects::{overdrive::Overdrive, Effect};
 use patch::SynthMode;
 use router::Router;
 extern crate alloc;
-use alloc::{boxed::Box};
 use alloc::sync::Arc;
-use sampler::{BoxedSample, Sampler};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 

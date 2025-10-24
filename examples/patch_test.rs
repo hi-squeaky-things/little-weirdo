@@ -1,11 +1,9 @@
 
-use std::fs;
-use std::rc::Rc;
 
 use cpal::Sample;
-use little_weirdo::synth;
-use little_weirdo::synth::{data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
-
+use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}, effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
+use std::{fs, mem, rc::Rc, sync::{mpsc, Arc}};
+use little_weirdo::synth::{Synth};
 
 const SAMPLE_RATE:u16 = 44_100;
 const CLIPPING:u16 = 32_000;
@@ -19,7 +17,7 @@ fn main() {
         sample_format: hound::SampleFormat::Int,
     };
     let mut writer = hound::WavWriter::create("clipped_test.wav", spec).unwrap();
-    let mut wt_on_heap = BoxedWavetables::new();
+     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..10 {
         let filename = format!("examples/wav{}.lwt", id);
         let contents = fs::read(filename).unwrap();
@@ -27,38 +25,38 @@ fn main() {
         wt_on_heap.add(BoxedWavetable::new(bytes));
    
     }
-    let wt = Rc::new(wt_on_heap);
+    let wt = Arc::new(wt_on_heap);
 
 
 
-    let patch = Patch {
+   let patch = Patch {
         synth_config: SynthConfiguration {
             mode: SynthMode::Mono,
         },
         voices: [
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 0,
+            },
+            WaveTableOscillatorConfig {
+                soundbank_index: 2,
+                glide: false,
+                glide_rate: 200,
+                detune: 0,
+                freq: 440,
+                freq_detune: 3,
+            },
             WaveTableOscillatorConfig {
                 soundbank_index: 1,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
                 freq: 440,
-                freq_detune: 0,
-            },
-            WaveTableOscillatorConfig {
-                soundbank_index: 6,
-                glide: false,
-                glide_rate: 200,
-                detune: 0,
-                freq: 440,
-                freq_detune: 0,
-            },
-            WaveTableOscillatorConfig {
-                soundbank_index: 4,
-                glide: false,
-                glide_rate: 200,
-                detune: 0,
-                freq: 440,
-                freq_detune: 0,
+                freq_detune: 6,
             },
             WaveTableOscillatorConfig {
                 soundbank_index: 2,
@@ -103,10 +101,10 @@ fn main() {
         ],
         envelops: [
             EnvelopConfiguration {
-                attack_time: 200,
-                decay_time: 100,
-                release_time: 100,
-                sustain_level: 50,
+                attack_time: 5,
+                decay_time: 10,
+                release_time: 20,
+                sustain_level: 80,
             },
             EnvelopConfiguration {
                 attack_time: 200,
@@ -154,10 +152,10 @@ fn main() {
         lfos: [
             WaveTableLoFreqOscillatorConfig {
                 soundbank_index: 0,
-                time: 20,
+                time: 10,
             },
             WaveTableLoFreqOscillatorConfig {
-                soundbank_index: 4,
+                soundbank_index: 1,
                 time: 200,
             },
             WaveTableLoFreqOscillatorConfig {
@@ -173,7 +171,7 @@ fn main() {
             voices_to_envelop: [
                 VoiceToEnvelopRoute { env: 0 },
                 VoiceToEnvelopRoute { env: 0 },
-                VoiceToEnvelopRoute { env: 2 },
+                VoiceToEnvelopRoute { env: 0 },
                 VoiceToEnvelopRoute { env: 3 },
                 VoiceToEnvelopRoute { env: 4 },
                 VoiceToEnvelopRoute { env: 5 },
@@ -182,7 +180,7 @@ fn main() {
             ],
             voice_to_lfo: [
                 VoiceToLFORoute {
-                    enable: true,
+                    enable: false,
                     voices: [0, 1],
                 },
                 VoiceToLFORoute {
@@ -199,27 +197,33 @@ fn main() {
                 },
             ],
             lfo_to_filter: false,
+            lfo_to_freq: true,
+            lfo_to_freq_amount: 5, 
         },
         filter_config: FilterConfig {
-            cutoff_frequency: 1_000,
-            resonance: 6_000,
-            enabled: false,
+            cutoff_frequency: 2000,
+            resonance: 0,
+            enabled: true,
             kind_of_filter: KindOfFilter::Low,
         },
         mixer_config: MixerConfiguration {
-            gain_voices: [30, 30, 0, 0, 0, 0, 0, 0],
-            gain_main: 80,
+            gain_voices: [50, 10, 0, 0, 0, 0, 0, 0],
+            gain_main: 100,
         },
         overdrive_config: OverdriveConfiguration {
             threshold: 2000,
             kind: KindOfOverdrive::Softer,
             enabled: false,
         },
+        bitcrunch_config: BitcrunchConfiguration {
+            enabled: false,
+        }
     };
 
 
+
     let mut synth: synth::Synth =
-    synth::Synth::new(SAMPLE_RATE as u16, &patch, Rc::clone(&wt));
+    synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
     let mut clipped: [i32;2] = [0;2];
     for note in 24..70 {
         synth.note_on(note, 100);

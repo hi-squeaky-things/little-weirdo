@@ -1,14 +1,10 @@
 
-use super::data::wavetables::{BoxedWavetables, Wavetables};
 use super::{Clockable};
-use rand::rngs::SmallRng;
-use rand::{Rng, SeedableRng};
  
-use serde::Deserialize;
- use serde::Serialize;
+ 
 
  extern crate alloc;
-use alloc::{vec::Vec, boxed::Box, rc::Rc};
+use alloc::{vec::Vec, rc::Rc};
 
 #[derive(Clone)]
 pub struct BoxedSample {
@@ -36,7 +32,6 @@ impl BoxedSample {
 
 pub struct Sampler {
     sampler: Rc<BoxedSample>,
-    sample_rate: u16,
     counter: u32,
     increment: u16,
     speed: u16,
@@ -60,10 +55,9 @@ impl Clockable for Sampler {
 }
 
 impl Sampler {
-    pub fn new(sample_rate: u16, sampler: Rc<BoxedSample>) -> Self {
+    pub fn new(_sample_rate: u16, sampler: Rc<BoxedSample>) -> Self {
         Sampler {
             sampler,
-            sample_rate,
             counter: 0,
             increment: 0,
             speed: 1,

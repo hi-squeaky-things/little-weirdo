@@ -28,9 +28,7 @@ fn main() {
     }
     let wt = Arc::new(wt_on_heap);
 
-
-
-    let patch = Patch {
+  let patch = Patch {
         synth_config: SynthConfiguration {
             mode: SynthMode::Mono,
         },
@@ -44,7 +42,7 @@ fn main() {
                 freq_detune: 0,
             },
             WaveTableOscillatorConfig {
-                soundbank_index: 1,
+                soundbank_index: 2,
                 glide: false,
                 glide_rate: 200,
                 detune: 0,
@@ -103,9 +101,9 @@ fn main() {
         envelops: [
             EnvelopConfiguration {
                 attack_time: 5,
-                decay_time: 100,
-                release_time: 100,
-                sustain_level: 90,
+                decay_time: 10,
+                release_time: 20,
+                sustain_level: 80,
             },
             EnvelopConfiguration {
                 attack_time: 200,
@@ -153,7 +151,7 @@ fn main() {
         lfos: [
             WaveTableLoFreqOscillatorConfig {
                 soundbank_index: 0,
-                time: 1000,
+                time: 10,
             },
             WaveTableLoFreqOscillatorConfig {
                 soundbank_index: 1,
@@ -198,17 +196,18 @@ fn main() {
                 },
             ],
             lfo_to_filter: false,
-            lfo_to_freq: false,
+            lfo_to_freq: true,
+            lfo_to_freq_amount: 5, 
         },
         filter_config: FilterConfig {
-            cutoff_frequency: 6_000,
+            cutoff_frequency: 2000,
             resonance: 0,
-            enabled: false,
+            enabled: true,
             kind_of_filter: KindOfFilter::Low,
         },
         mixer_config: MixerConfiguration {
-            gain_voices: [50, 0, 0, 0, 0, 0, 0, 0],
-            gain_main: 50,
+            gain_voices: [50, 10, 0, 0, 0, 0, 0, 0],
+            gain_main: 100,
         },
         overdrive_config: OverdriveConfiguration {
             threshold: 2000,
@@ -220,6 +219,8 @@ fn main() {
         }
     };
 
+
+   
     let mut synth: synth::Synth = synth::Synth::new(
         SAMPLE_RATE as u16,
         &patch,
