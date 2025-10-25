@@ -1,0 +1,227 @@
+{
+    "voices": [
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 0,
+            "freq_detune": 0,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 0,
+            "freq_detune": -2,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 0,
+            "freq_detune": 2,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 0,
+            "freq_detune": 4,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 10,
+            "freq_detune": 0,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 14,
+            "freq_detune": 0,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 18,
+            "freq_detune": 0,
+            "freq": 440
+        },
+        {
+            "soundbank_index": 1,
+            "glide": false,
+            "glide_rate": 200,
+            "detune": 20,
+            "freq_detune": 0,
+            "freq": 440
+        }
+    ],
+    "envelops": [
+        {
+            "attack_time": 1000,
+            "decay_time": 100,
+            "release_time":500,
+            "sustain_level": 80
+        },
+        {
+            "attack_time": 200,
+            "decay_time": 100,
+            "release_time": 100,
+            "sustain_level": 50
+        },
+        {
+            "attack_time": 10,
+            "decay_time": 10,
+            "release_time": 10,
+            "sustain_level": 100
+        },
+        {
+            "attack_time": 10,
+            "decay_time": 10,
+            "release_time": 10,
+            "sustain_level": 100
+        },
+        {
+            "attack_time": 10,
+            "decay_time": 10,
+            "release_time": 10,
+            "sustain_level": 100
+        },
+        {
+            "attack_time": 10,
+            "decay_time": 10,
+            "release_time": 10,
+            "sustain_level": 100
+        },
+        {
+            "attack_time": 10,
+            "decay_time": 10,
+            "release_time": 10,
+            "sustain_level": 100
+        },
+        {
+            "attack_time": 10,
+            "decay_time": 10,
+            "release_time": 10,
+            "sustain_level": 100
+        }
+    ],
+    "lfos": [
+        {
+            "soundbank_index": 4,
+            "time": 10
+        },
+        {
+            "soundbank_index": 4,
+            "time": 200
+        },
+        {
+            "soundbank_index": 4,
+            "time": 200
+        },
+        {
+            "soundbank_index": 4,
+            "time": 200
+        }
+    ],
+    "filter_config": {
+        "cutoff_frequency": 2000,
+        "resonance": 0,
+        "kind_of_filter": "Low",
+        "enabled": false
+    },
+    "mixer_config": {
+        "gain_voices": [
+            20,
+            20,
+            20,
+            20,
+            0,
+            0,
+            0,
+            0
+        ],
+        "gain_main": 80
+    },
+    "overdrive_config": {
+        "threshold": 2000,
+        "kind": "Softer",
+        "enabled": false
+    },
+    "bitcrunch_config": {
+        "enabled": false
+    },
+    "routering_config": {
+        "voices_to_envelop": [
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            },
+            {
+                "env": 0
+            }
+        ],
+        "voice_to_lfo": [
+            {
+                "voices": [
+                    0,
+                    1
+                ],
+                "enable": false
+            },
+            {
+                "voices": [
+                    1,
+                    255
+                ],
+                "enable": false
+            },
+            {
+                "voices": [
+                    1,
+                    255
+                ],
+                "enable": false
+            },
+            {
+                "voices": [
+                    1,
+                    255
+                ],
+                "enable": false
+            }
+        ],
+        "lfo_to_filter": false,
+        "lfo_to_freq": false,
+        "lfo_to_freq_amount": 5
+    },
+    "synth_config": {
+        "mode": "Mono"
+    }
+}
