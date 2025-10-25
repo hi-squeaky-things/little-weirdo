@@ -1,0 +1,70 @@
+= Design Document of the Litlle Weirdo Synth
+
+:author: Daniël
+:email: daniel@hi-squeaky-things.nl
+:doctype: book
+:toc:
+:stem: latexmath
+:toclevels: 1
+:revnumber: 0.1.0
+:revdate: {docdate} 
+:copyright: any
+:source-highlighter: rouge
+:icons: font
+:icon-set: fas
+
+
+== Introduction to little_weirdo
+
+`little_weirdo` is a Rust-based wave table synthesizer designed for embedded systems. It is optimized for performance and minimal resource usage, making it ideal for environments with limited computational power. The library supports various audio synthesis techniques and provides a flexible framework for creating custom sound generators.
+
+=== Key Features
+
+- **No-Standard Library Support**: Built with `#![no_std]`, ensuring compatibility with embedded systems.
+- **Wave Table Synthesis**: Utilizes pre-loaded wave tables for efficient audio generation.
+- **Thread-Safe Sharing**: Employs `Arc` for safe sharing of wavetables across threads.
+- **JSON Patch Support**: Allows configuration of synthesizer patches via JSON files.
+
+=== Example Usage
+
+Below is a basic example demonstrating how to initialize a synthesizer with loaded wavetables and a patch:
+
+[source,rust]
+----
+use little_weirdo::synth::{
+    self,
+    data::wavetables::{BoxedWavetable, BoxedWavetables},
+};
+use std::{
+    fs,
+    sync::Arc,
+};
+
+const SAMPLE_RATE: u16 = 44_100;
+
+fn main() {
+    // Create a collection of wavetables and load them from files
+    let mut wt_on_heap = BoxedWavetables::new();
+    for id in 0..10 {
+        let filename = format!("examples/waveforms/wav{}.lwt", id);
+        let contents = fs::read(filename).unwrap();
+        let bytes: &[u8] = &contents;
+        wt_on_heap.add(BoxedWavetable::new(bytes));
+    }
+    // Wrap wavetables in an Arc for thread-safe sharing
+    let wt = Arc::new(wt_on_heap);
+
+    // Load a synth patch from a JSON file
+    let patch = serde_json::from_slice(include_bytes!("patches/bass.json")).unwrap();
+
+    // Create a new synthesizer instance with specified parameters
+    let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
+
+    loop {
+        let _sample: [i16; 2] = synth.clock_and_output();
+        // do something with the sample, stream it to an audio device for example
+    }
+}
+----
+
+This example showcases how to set up a basic synthesizer using `little_weirdo`, including loading wavetables and applying a patch configuration.

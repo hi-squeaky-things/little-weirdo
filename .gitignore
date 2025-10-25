@@ -2,3 +2,5 @@
 *.wav
 .DS_Store
 *.p
+/docs/.asciidoctor
+/docs/*.pdf
