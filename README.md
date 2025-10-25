@@ -46,6 +46,9 @@ use little_weirdo::synth::{
     // Create a new synthesizer instance with specified parameters
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
 
+    // Trigger a note
+    synth.note_on(60, 100);
+
     loop {
         let _sample:[i16;2] = synth.clock_and_output();
         // do something with the sample, stream it to a audio device for example
