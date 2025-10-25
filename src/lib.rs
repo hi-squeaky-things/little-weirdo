@@ -28,7 +28,7 @@
 //!     // Create a collection of wavetables and load them from files
 //!     let mut wt_on_heap = BoxedWavetables::new();
 //!     for id in 0..10 {
-//!         let filename = format!("examples/waveforms/wav{}.lwt", id);
+//!         let filename = format!("examples/soundbank/soundbank_pure_elektro/src/wav{}.raw", id);
 //!         let contents = fs::read(filename).unwrap();
 //!         let bytes: &[u8] = &contents;
 //!         wt_on_heap.add(BoxedWavetable::new(bytes));

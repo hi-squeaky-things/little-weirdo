@@ -27,7 +27,7 @@ fn main() {
     
     // Load 10 wavetables from files
     for id in 0..10 {
-        let filename = format!("examples/waveforms/wav{}.lwt", id);
+        let filename = format!("examples/soundbank/soundbank_pure_elektro/src/wav{}.raw", id);
         let contents = fs::read(filename).unwrap(); // Read file contents
         let bytes: &[u8] = &contents; // Convert to byte slice
         wt_on_heap.add(BoxedWavetable::new(bytes)); // Add to wavetables collection
