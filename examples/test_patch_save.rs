@@ -1,8 +1,9 @@
 use std::{fs::File, io::{Read, Write}, path::Path};
 use little_weirdo::synth::{effects::{bitcrunch::BitcrunchConfiguration, filter::{FilterConfig, KindOfFilter}, overdrive::{KindOfOverdrive, OverdriveConfiguration}}, envelope::EnvelopConfiguration, mixer::MixerConfiguration, patch::{Patch, SynthConfiguration, SynthMode}, router::{RoutingConfiguration, VoiceToEnvelopRoute, VoiceToLFORoute}, wavetable_oscillator::{WaveTableLoFreqOscillatorConfig, WaveTableOscillatorConfig}};
+use serde_json;
 
 
-fn main() {
+fn main()  {
 
     let patch = Patch {
         synth_config: SynthConfiguration {
@@ -197,8 +198,12 @@ fn main() {
 
 
     println!("{:?}",patch.synth_config );
-    let mut buf = [0u8; 163];
+   //  let json = serde_json::to_string(&patch)?;
+     let file = File::create("patch.json").expect("Failed to open file");;
+    serde_json::to_writer(file, &patch);
 
+    let mut buf = [0u8; 163];
+    
     match postcard::to_slice(&patch, &mut buf) {
         Ok(_result) => {println!("Serialize Ok")},
         Err(error) => {println!("{:?}", error)},
