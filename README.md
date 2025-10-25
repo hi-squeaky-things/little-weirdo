@@ -61,6 +61,12 @@ If you just want to play with a patch for Little Weirdo, check out [Little Weird
 
 To generate you own Soundbank, download some Wavetable samples from AKWF and run [Little Weirdo Generate Soundbank](examples/little_weirdo_generate_soundbanks.rs)
 
+## Patches
+
+Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices).  Checkout the [patches](examples/patches/)
+
+Listen to the [ebass patch](examples/patches/ebass.json) : [ebass.wav](examples/patches/ebass.wav)
+
 ## Credits
 
 - [Small Braille ASCII Font](https://patorjk.com/software/taag/#p=display&f=Small+Braille&t=LITTLE+WEIRDO&x=rainbow1&v=1&h=1&w=80&we=false)
