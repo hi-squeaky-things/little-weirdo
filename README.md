@@ -65,9 +65,9 @@ To generate you own Soundbank, download some Wavetable samples from AKWF and run
 
 Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices).  Checkout the [patches](examples/patches/)
 
-Listen to the Ebass patch:
+Listen to the Ebass patch (unmute the audio) :
 
-https://github.com/user-attachments/assets/fa27ffb9-a517-4c27-bd3e-12271f13b0fb
+https://github.com/user-attachments/assets/d733f169-097f-4311-9770-d8d8949715a5
 
 ## Credits
 
