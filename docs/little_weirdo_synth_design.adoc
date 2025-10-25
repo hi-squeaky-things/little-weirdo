@@ -9,7 +9,6 @@
 :revnumber: 0.1.0
 :revdate: {docdate} 
 :copyright: any
-:source-highlighter: rouge
 :icons: font
 :icon-set: fas
 
