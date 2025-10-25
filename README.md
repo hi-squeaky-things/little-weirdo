@@ -1,8 +1,6 @@
 ```
- __   ____  ____  __      _  _  ____  __  ____  ____   __  
-(  ) (_  _)(_  _)(  )    / )( \(  __)(  )(  _ \(    \ /  \ 
-/ (_/\ )(    )(  / (_/\  \ /\ / ) _)  )(  )   / ) D ((  O )
-\____/(__)  (__) \____/  (_/\_)(____)(__)(__\_)(____/ \__/ 
+ ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
+ ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
 ```
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hi-squeaky-things/little-weirdo/rust.yml?branch=main)
 ![GitHub License](https://img.shields.io/github/license/hi-squeaky-things/little-weirdo)
@@ -22,3 +20,6 @@ Run Little Weirdo as a MIDI device while outputting to a local Audio Output, che
 
 If you just want to play with a patch for Little Weirdo, check out [Little Weirdo Patch Tester](examples/little_weirdo_patch_tester.rs)
 
+## Credits
+
+- [Small Braille ASCII Font](https://patorjk.com/software/taag/#p=display&f=Small+Braille&t=LITTLE+WEIRDO&x=rainbow1&v=1&h=1&w=80&we=false)
