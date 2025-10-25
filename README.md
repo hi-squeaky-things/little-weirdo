@@ -18,5 +18,7 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 
 ## How to use it
 
-See [Streaming Synth](/examples/streaming-synth.rs)
+Run Little Weirdo as a MIDI device while outputting to a local Audio Output, check out [Little Weirdo Streaming Audio With MIDI](examples/little_weirdo_streaming_audio_with_midi.rs)
+
+If you just want to play with a patch for Little Weirdo, check out [Little Weirdo Patch Tester](examples/little_weirdo_patch_tester.rs)
 

@@ -1,1 +1,0 @@
-cargo run --example streaming-synth --release

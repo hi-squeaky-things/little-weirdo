@@ -35,6 +35,3 @@ midir = "0.10.2"
 midi-control = "0.2.3"
 serde_json = "1.0.0"
 
-
-[[example]] 
-name = "streaming-synth"
