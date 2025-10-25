@@ -59,6 +59,8 @@ Run Little Weirdo as a MIDI device while outputting to a local Audio Output, che
 
 If you just want to play with a patch for Little Weirdo, check out [Little Weirdo Patch Tester](examples/little_weirdo_patch_tester.rs)
 
+To generate you own Soundbank, download some Wavetable samples from AKWF and run [Little Weirdo Generate Soundbank](examples/little_weirdo_generate_soundbanks.rs)
+
 ## Credits
 
 - [Small Braille ASCII Font](https://patorjk.com/software/taag/#p=display&f=Small+Braille&t=LITTLE+WEIRDO&x=rainbow1&v=1&h=1&w=80&we=false)
