@@ -67,11 +67,7 @@ Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postca
 
 Listen to the Ebass patch:
 
-
-
-https://github.com/user-attachments/assets/8608dd36-9f5a-4096-b29a-273e4a42fba8
-
-
+https://github.com/user-attachments/assets/fa27ffb9-a517-4c27-bd3e-12271f13b0fb
 
 ## Credits
 
