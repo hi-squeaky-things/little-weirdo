@@ -30,4 +30,8 @@ console = "0.16.1"
 midir = "0.10.2"
 midi-control = "0.2.3"
 serde_json = "1.0.0"
+criterion = "0.7.0"
 
+[[bench]]
+name = "synth_benchmark"
+harness = false
