@@ -22,7 +22,6 @@ serde = { version = "1.0.228", default-features = false }
 postcard = "1.1.3"
 
 [dev-dependencies]
-pitch_calc = "0.12.0"
 hound = "3.5.1"
 cpal = "0.16.0"
 anyhow = "1.0.100"
