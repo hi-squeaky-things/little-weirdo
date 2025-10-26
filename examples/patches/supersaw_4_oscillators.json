@@ -135,10 +135,10 @@
         }
     ],
     "filter_config": {
-        "cutoff_frequency": 2000,
+        "cutoff_frequency": 10000,
         "resonance": 0,
         "kind_of_filter": "Low",
-        "enabled": false
+        "enabled": true
     },
     "mixer_config": {
         "gain_voices": [

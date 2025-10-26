@@ -37,7 +37,7 @@ fn main() {
     let wt = Arc::new(wt_on_heap);
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("patches/bass.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("patches/supersaw_4_oscillators.json")).unwrap();
 
     // Create a new synthesizer instance with specified parameters
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
