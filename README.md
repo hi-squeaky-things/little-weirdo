@@ -74,6 +74,10 @@ If you just want to play with a patch for Little Weirdo, check out [Little Weird
 
 To generate you own Soundbank, download some Wavetable samples from AKWF and run [Little Weirdo Generate Soundbank](examples/little_weirdo_generate_soundbanks.rs)
 
+## Performance
+
+The performance tests on real embedded hardware can be found here [Little Weirdo ESP32](https://github.com/hi-squeaky-things/little-weirdo-esp32)
+
 ## Patches
 
 Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices).  Checkout the [patches](examples/patches/)
