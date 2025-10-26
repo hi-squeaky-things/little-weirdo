@@ -18,6 +18,13 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 
 ## How to use it
 
+Get the library!
+```
+$ cargo add little_weirdo
+```
+
+Start using it in your own code:
+
 ``` rust
 use little_weirdo::synth::{
     self,
