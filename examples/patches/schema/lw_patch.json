@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "voices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "soundbank_index": { "type": "integer" },
+          "glide": { "type": "boolean" },
+          "glide_rate": { "type": "integer" },
+          "detune": { "type": "integer" },
+          "freq_detune": { "type": "integer" },
+          "freq": { "type": "integer" }
+        },
+        "required": ["soundbank_index", "glide", "glide_rate", "detune", "freq_detune", "freq"]
+      },
+      "minItems": 8,
+      "maxItems": 8
+    },
+    "envelops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "attack_time": { "type": "integer" },
+          "decay_time": { "type": "integer" },
+          "release_time": { "type": "integer" },
+          "sustain_level": { "type": "integer" }
+        },
+        "required": ["attack_time", "decay_time", "release_time", "sustain_level"]
+      }
+    },
+    "lfos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "soundbank_index": { "type": "integer" },
+          "time": { "type": "integer" }
+        },
+        "required": ["soundbank_index", "time"]
+      }
+    },
+    "filter_config": {
+      "type": "object",
+      "properties": {
+        "cutoff_frequency": { "type": "integer" },
+        "resonance": { "type": "integer" },
+        "kind_of_filter": { "type": "string" },
+        "enabled": { "type": "boolean" }
+      },
+      "required": ["cutoff_frequency", "resonance", "kind_of_filter", "enabled"]
+    },
+    "mixer_config": {
+      "type": "object",
+      "properties": {
+        "gain_voices": {
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "gain_main": { "type": "integer" }
+      },
+      "required": ["gain_voices", "gain_main"]
+    },
+    "overdrive_config": {
+      "type": "object",
+      "properties": {
+        "threshold": { "type": "integer" },
+        "kind": { "type": "string" },
+        "enabled": { "type": "boolean" }
+      },
+      "required": ["threshold", "kind", "enabled"]
+    },
+    "bitcrunch_config": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      },
+      "required": ["enabled"]
+    },
+    "routering_config": {
+      "type": "object",
+      "properties": {
+        "voices_to_envelop": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "env": { "type": "integer" }
+            },
+            "required": ["env"]
+          }
+        },
+        "voice_to_lfo": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "voices": {
+                "type": "array",
+                "items": { "type": "integer" }
+              },
+              "enable": { "type": "boolean" }
+            },
+            "required": ["voices", "enable"]
+          }
+        },
+        "lfo_to_filter": { "type": "boolean" },
+        "lfo_to_freq": { "type": "boolean" },
+        "lfo_to_freq_amount": { "type": "integer" }
+      },
+      "required": ["voices_to_envelop", "voice_to_lfo", "lfo_to_filter", "lfo_to_freq", "lfo_to_freq_amount"]
+    },
+    "synth_config": {
+      "type": "object",
+      "properties": {
+        "mode": { "type": "string" }
+      },
+      "required": ["mode"]
+    }
+  },
+  "required": ["voices", "envelops", "lfos", "filter_config", "mixer_config", "overdrive_config", "bitcrunch_config", "routering_config", "synth_config"]
+}

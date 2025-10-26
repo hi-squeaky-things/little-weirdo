@@ -1,4 +1,5 @@
 {
+    "$schema": "schema/lw_patch.json", 
     "voices": [
         {
             "soundbank_index": 4,
