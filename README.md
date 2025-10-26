@@ -16,7 +16,6 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 > [!IMPORTANT]
 > **Hi Squeaky Things** can happen at any time. _Little Weirdo_ is ready to squeak, squuuueak, squeeeeeaak, squeaaaaaaaaak!
 
-
 ## How to use it
 
 ``` rust
