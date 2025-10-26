@@ -7,7 +7,12 @@
       "items": {
         "type": "object",
         "properties": {
-          "soundbank_index": { "type": "integer" },
+          "soundbank_index": { 
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9,
+            "description": "Index of the wavetable"
+          },
           "glide": { "type": "boolean" },
           "glide_rate": { "type": "integer" },
           "detune": { "type": "integer" },
@@ -30,7 +35,9 @@
           "sustain_level": { "type": "integer" }
         },
         "required": ["attack_time", "decay_time", "release_time", "sustain_level"]
-      }
+      },
+      "minItems": 8,
+      "maxItems": 8
     },
     "lfos": {
       "type": "array",
@@ -41,7 +48,9 @@
           "time": { "type": "integer" }
         },
         "required": ["soundbank_index", "time"]
-      }
+      },
+      "minItems": 4,
+      "maxItems": 4
     },
     "filter_config": {
       "type": "object",
@@ -116,7 +125,11 @@
     "synth_config": {
       "type": "object",
       "properties": {
-        "mode": { "type": "string" }
+        "mode": { 
+          "type": "string", 
+          "enum": ["Mono", "BiPoly", "QuadPoly", "OctoPoly"],
+           "description": "The polyphony mode of the synthesizer"
+        }
       },
       "required": ["mode"]
     }
