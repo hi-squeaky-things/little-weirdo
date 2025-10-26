@@ -29,7 +29,7 @@ pub fn criterion_benchmark(c: &mut Criterion)
 
     // Create a new synthesizer instance with specified parameters
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
-
+    synth.note_on(60, 100);
      c.bench_function("Little Weirdo Synth Clock and Output", |b| b.iter(|| synth.clock_and_output()));
  
   
