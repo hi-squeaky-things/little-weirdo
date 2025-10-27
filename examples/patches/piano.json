@@ -155,32 +155,16 @@
     },
     "routering_config": {
         "voices_to_envelop": [
-            {
-                "env": 0
-            },
-            {
-                "env": 1
-            },
-            {
-                "env": 2
-            },
-            {
-                "env": 3
-            },
-            {
-                "env": 4
-            },
-            {
-                "env": 5
-            },
-            {
-                "env": 6
-            },
-            {
-                "env": 7
-            }
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
         ],
-        "voice_to_lfo": [
+        "lfo_to_voice": [
             {
                 "voices": [
                     0,

@@ -1,10 +1,7 @@
-#![feature(test)]
-
 use std::{fs, sync::Arc};
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use little_weirdo::synth::{self, data::wavetables::{BoxedWavetable, BoxedWavetables}};
-extern crate test;
 
 const SAMPLE_RATE: u16 = 44_100; // Audio sample rate in Hz
 
@@ -30,7 +27,10 @@ pub fn criterion_benchmark(c: &mut Criterion)
     // Create a new synthesizer instance with specified parameters
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
     synth.note_on(60, 100);
-     c.bench_function("Little Weirdo Synth Clock and Output", |b| b.iter(|| synth.clock_and_output()));
+     c.bench_function("Little Weirdo Synth Clock and Output", |b| b.iter(|| 
+        {
+            synth.clock_and_output()        
+        }));
  
   
 }
