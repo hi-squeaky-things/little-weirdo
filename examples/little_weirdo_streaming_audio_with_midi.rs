@@ -1,4 +1,3 @@
-use console::Key;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
@@ -9,9 +8,7 @@ use little_weirdo::synth::{
 use midi_control::{self, MidiMessage};
 use midir;
 use std::sync::mpsc::channel;
-use std::sync::mpsc::Receiver;
 use std::sync::mpsc::TryRecvError;
-use std::thread::{self};
 use std::{
     fs,
     sync::{mpsc, Arc},
@@ -36,8 +33,6 @@ fn main() {
     // Set up audio output device and configuration
     let (device, config) = setup_device();
 
-    // Spawn a thread to capture keyboard input
-    let stdin_channel: Receiver<Key> = spawn_stdin_channel();
 
     // Define error callback for audio stream
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
@@ -87,12 +82,6 @@ fn main() {
                     Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
                 }
 
-                // Process any pending keyboard input
-                match stdin_channel.try_recv() {
-                    Ok(key) => play_note(&mut synth, key),
-                    Err(TryRecvError::Empty) => {} // No keyboard input available
-                    Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
-                }
 
                 // Generate audio output by processing the synth in chunks
                 for frame in data.chunks_mut(2) {
@@ -159,43 +148,9 @@ fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
     }
 }
 
-/// Handles keyboard input to trigger notes on the synthesizer
-fn play_note(synth: &mut synth::Synth, key: Key) {
-    // 'x' key triggers note 40 (E2) with velocity 100
-    if key.eq(&Key::Char('x')) {
-        synth.note_on(40, 100);
-    }
-    // 's' key releases note 40
-    if key.eq(&Key::Char('s')) {
-        synth.note_off(40);
-    }
-    // 'c' key triggers note 60 (C4) with velocity 100
-    if key.eq(&Key::Char('c')) {
-        synth.note_on(60, 100);
-    }
-    // 'd' key releases note 60
-    if key.eq(&Key::Char('d')) {
-        synth.note_off(60);
-    }
-}
 
-/// Spawns a thread to capture keyboard input and returns a receiver channel
-fn spawn_stdin_channel() -> Receiver<Key> {
-    // Create a channel for sending keyboard events
-    let (tx, rx) = mpsc::channel::<Key>();
 
-    // Get terminal handle
-    let term = console::Term::stdout();
 
-    // Spawn a thread to continuously read keyboard input
-    thread::spawn(move || loop {
-        let key = term.read_key().unwrap();
-        tx.send(key).unwrap();
-    });
-
-    // Return the receiver end of the channel
-    rx
-}
 
 /// Finds a MIDI port by name (looking for "IAC Driver")
 fn find_port<T>(midi_io: &T) -> Option<T::Port>
