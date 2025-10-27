@@ -6,64 +6,56 @@
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": -2,
-            "freq": 440
+            "freq_detune": -2
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 2,
-            "freq": 440
+            "freq_detune": 2
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 4,
-            "freq": 440
+            "freq_detune": 4
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 10,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 14,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 18,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 20,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         }
     ],
     "envelops": [

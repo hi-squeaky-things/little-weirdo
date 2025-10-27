@@ -16,10 +16,9 @@
           "glide": { "type": "boolean" },
           "glide_rate": { "type": "integer" },
           "detune": { "type": "integer" },
-          "freq_detune": { "type": "integer" },
-          "freq": { "type": "integer" }
+          "freq_detune": { "type": "integer" }
         },
-        "required": ["soundbank_index", "glide", "glide_rate", "detune", "freq_detune", "freq"]
+        "required": ["soundbank_index", "glide", "glide_rate", "detune", "freq_detune"]
       },
       "minItems": 8,
       "maxItems": 8

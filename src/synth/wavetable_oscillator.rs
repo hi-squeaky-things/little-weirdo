@@ -26,7 +26,6 @@ pub struct WaveTableOscillatorConfig {
     pub glide_rate: u8,
     pub detune: i8,
     pub freq_detune: i8,
-    pub freq: u16,
 }
 
 
@@ -41,6 +40,7 @@ pub struct WaveTableOscillator {
     target_freq: u16,
     original_freq: u16,
     freq_step: i16,
+    freq: u16,
     speed: u16,
     last_output: i16,
     speed_count: u16,
@@ -55,17 +55,17 @@ impl Clockable for WaveTableOscillator {
             if self.t == self.one_shot_loop {
                 self.t = 0;
                 if self.freq_change {
-                    if self.config.freq != self.target_freq {
-                        if self.config.freq.abs_diff(self.target_freq) < self.freq_step.abs() as u16 {
-                            self.config.freq = self.target_freq;
+                    if self.freq != self.target_freq {
+                        if self.freq.abs_diff(self.target_freq) < self.freq_step.abs() as u16 {
+                            self.freq = self.target_freq;
                             self.freq_change = false;
                         } else {
-                            self.config.freq = (self.config.freq as i16 + self.freq_step) as u16;
+                            self.freq = (self.freq as i16 + self.freq_step) as u16;
                         }
                     } else {
                         self.freq_change = false;
                     }
-                    self.one_shot_loop = (self.sample_rate / self.config.freq as u16) as u16;
+                    self.one_shot_loop = (self.sample_rate / self.freq as u16) as u16;
                     self.calculate_lookup_table();
                 }
             };
@@ -96,7 +96,6 @@ impl WaveTableOscillator {
             glide: false,
             glide_rate: 0,
             detune: 0,
-            freq: 400,
             freq_detune: 0,
         };
         let mut osc = Self::new(new_config, sample_rate, wavetables);
@@ -112,13 +111,14 @@ impl WaveTableOscillator {
         let mut osc: WaveTableOscillator = Self {
             config,
             t: 0,
-            one_shot_loop: sample_rate / config.freq + 1u16,
+            one_shot_loop: sample_rate / 440 + 1u16,
             freq_change: false,
             random: SmallRng::seed_from_u64(23702372039u64),
             sample_rate,
             lookup_table: [0u16; 3000],
-            target_freq: config.freq,
+            target_freq: 440,
             original_freq: 440,
+            freq: 440,
             freq_step: 0,
             last_output: 0,
             speed_count: 0,
@@ -131,10 +131,10 @@ impl WaveTableOscillator {
 
     fn calculate_lookup_table(&mut self) {
         let sample_rate_expanded: u32 = self.sample_rate as u32 * 10_000;
-        let one_loop: u32 = sample_rate_expanded / self.config.freq as u32;
+        let one_loop: u32 = sample_rate_expanded / self.freq as u32;
         let one_step_loop: u32 = one_loop / 600;
         let mut increase: u32 = 0;
-        let steps: u16 = self.sample_rate / self.config.freq;
+        let steps: u16 = self.sample_rate / self.freq;
         for i in 0..steps {
             self.lookup_table[i as usize] = (increase / one_step_loop) as u16;
             increase += 10_000;
@@ -152,20 +152,20 @@ impl WaveTableOscillator {
    }
 
    pub fn manipulate_freq(&mut self, perc:u8, amount:u16) {
-        self.config.freq = self.original_freq + percentage(amount as i16, perc as i16) as u16;
+        self.freq = self.original_freq + percentage(amount as i16, perc as i16) as u16;
         self.freq_change = true;
    }
 
     pub fn change_freq(&mut self, frequency: u16) {
-        if self.config.freq != frequency {
+        if self.freq != frequency {
             self.target_freq = frequency;
             if self.config.glide {
-                self.freq_step = (frequency as i16 - self.config.freq as i16) / self.config.glide_rate as i16;
+                self.freq_step = (frequency as i16 - self.freq as i16) / self.config.glide_rate as i16;
                 if self.freq_step == 0 {
-                    self.freq_step = (frequency as i16 - self.config.freq as i16) / 2;
+                    self.freq_step = (frequency as i16 - self.freq as i16) / 2;
                 };
             } else {
-                self.config.freq = frequency;
+                self.freq = frequency;
             }
             self.original_freq = frequency;
             self.freq_change = true;

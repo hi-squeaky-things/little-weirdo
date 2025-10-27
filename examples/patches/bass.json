@@ -6,64 +6,56 @@
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
-        },
+            "freq_detune": 0
+       },
         {
             "soundbank_index": 3,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 6,
-            "freq": 440
+            "freq_detune": 6
         },
         {
             "soundbank_index": 2,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 2,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 2,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 2,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         },
         {
             "soundbank_index": 2,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0,
-            "freq": 440
+            "freq_detune": 0
         }
     ],
     "envelops": [
@@ -224,4 +216,5 @@
     },
     "synth_config": {
         "mode": "Mono"
+    }
 }
