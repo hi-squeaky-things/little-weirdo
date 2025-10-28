@@ -124,10 +124,10 @@
           "type": "string",
           "description": "Type of filter ('low', 'high', 'band', 'notch')",
           "enum": [
-            "low",
-            "high",
-            "band",
-            "notch"
+            "Low",
+            "High",
+            "Band",
+            "Notch"
           ]
         },
         "enabled": {
