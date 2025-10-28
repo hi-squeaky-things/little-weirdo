@@ -50,17 +50,17 @@ impl Clockable for WaveTableOscillator {
         self.speed_count += 1;
         if self.speed == self.speed_count {
             self.speed_count = 0;
-            
+
             // Reset phase when reaching end
             if self.phase == self.loop_end {
                 self.phase = 0;
-                
+
                 // Handle frequency changes
                 if self.freq_changed {
                     if self.current_freq != self.target_freq {
                         let diff = self.target_freq as i16 - self.current_freq as i16;
                         let step_size = self.freq_step;
-                        
+
                         if diff.abs() < step_size.abs() {
                             self.current_freq = self.target_freq;
                             self.freq_changed = false;
@@ -70,29 +70,31 @@ impl Clockable for WaveTableOscillator {
                     } else {
                         self.freq_changed = false;
                     }
-                    
+
                     self.loop_end = self.sample_rate / self.current_freq;
                     self.calculate_lookup_table();
                 }
             }
-            
+
             // Generate output
             let output = match self.config.soundbank_index {
                 255 => {
                     // Random noise
-                    self.random.random_range((i16::MIN + 1000)..(i16::MAX - 1000))
+                    self.random
+                        .random_range((i16::MIN + 1000)..(i16::MAX - 1000))
                 }
                 _ => {
                     // Wavetable lookup
                     let index = self.lookup_table[self.phase as usize] as usize;
-                    self.wavetables.get_wavetable_reference(self.config.soundbank_index)[index]
+                    self.wavetables
+                        .get_wavetable_reference(self.config.soundbank_index)[index]
                 }
             };
-            
+
             self.phase += 1;
             self.last_output = output;
         }
-        
+
         self.last_output
     }
 }
@@ -147,7 +149,7 @@ impl WaveTableOscillator {
         let one_step_loop: u32 = one_loop / 600;
         let mut increase: u32 = 0;
         let steps: u16 = self.sample_rate / self.current_freq;
-        
+
         for i in 0..steps {
             self.lookup_table[i as usize] = (increase / one_step_loop) as u16;
             increase += 10_000;
@@ -169,7 +171,7 @@ impl WaveTableOscillator {
     pub fn change_freq(&mut self, frequency: u16) {
         if self.current_freq != frequency {
             self.target_freq = frequency;
-            
+
             if self.config.glide {
                 let diff = frequency as i16 - self.current_freq as i16;
                 self.freq_step = diff / self.config.glide_rate as i16;
@@ -180,7 +182,7 @@ impl WaveTableOscillator {
             } else {
                 self.current_freq = frequency;
             }
-            
+
             self.original_freq = frequency;
             self.freq_changed = true;
         }

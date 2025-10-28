@@ -1,5 +1,3 @@
-//use std::println;
-
 pub mod data;
 pub mod effects;
 pub mod envelope;
@@ -19,7 +17,9 @@ use alloc::sync::Arc;
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
+/// Trait for clockable components that can process samples
 pub trait Clockable {
+    /// Process a sample, returning either the provided sample or a default value
     fn clock(&mut self, sample: Option<i16>) -> i16 {
         match sample {
             Some(s) => s, // Use the provided sample
@@ -28,21 +28,35 @@ pub trait Clockable {
     }
 }
 
+/// Number of voices available in the synthesizer
 pub const AMOUNT_OF_VOICES: usize = 8;
+/// Number of output channels (stereo)
 pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
+/// Main synthesizer struct that handles audio generation
 pub struct Synth {
+    /// Array of waveform oscillators for generating sounds
     voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES],
+    /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
+    /// Array of Low-Frequency Oscillators for modulation
     lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
     //  sampler: Sampler,
+    /// Audio routing system
     router: Router,
+    /// Filter effect for sound shaping
     filter: Filter,
+    /// Overdrive effect for distortion
     overdrive: Overdrive,
+    /// Bitcrunch effect for digital degradation
     bitcrunch: Bitcrunch,
+    /// Mixer for combining audio signals
     mixer: Mixer,
+    /// Velocity of the currently playing note
     velocity: u8,
+    /// Array tracking active notes
     active_note: [u8; AMOUNT_OF_VOICES],
+    /// Current operating mode of the synthesizer
     mode: SynthMode,
 }
 
@@ -52,12 +66,13 @@ pub struct Synth {
 impl Synth {
     /// Creates a new instance of the LttL Weirdo Wavetable Synthesizer.
     ///
-    /// This method takes two parameters:
+    /// # Arguments
+    /// * `sample_rate` - The sample rate of the synthesizer, in Hz.
+    /// * `patch` - A `Patch` struct containing configuration data for the Synthesizer.
+    /// * `wavetables` - Shared reference to wavetables for oscillator waveforms
     ///
-    /// - `sample_rate`: The sample rate of the synthesizer, in Hz.
-    /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
-    ///
-    /// It returns a new `Synth` instance with the specified configuration.
+    /// # Returns
+    /// A new `Synth` instance with the specified configuration.
     pub fn new(
         sample_rate: u16,
         patch: &Patch,
@@ -79,6 +94,7 @@ impl Synth {
         }
     }
 
+    /// Initialize envelope generators with given parameters
     fn init_envs(
         sample_rate: u16,
         patch: &Patch,
@@ -90,6 +106,7 @@ impl Synth {
         envelops
     }
 
+    /// Initialize waveform oscillators with given parameters
     fn init_voices(
         sample_rate: u16,
         patch: &Patch,
@@ -106,6 +123,7 @@ impl Synth {
         voices
     }
 
+    /// Initialize Low-Frequency Oscillators with given parameters
     fn init_lfos(
         sample_rate: u16,
         patch: &Patch,
@@ -123,12 +141,10 @@ impl Synth {
     }
 
     ///
-    ///  Loads a synth patch into the LttL Weirdo Wavetable Synthesizer engine, configuring all necessary components.
+    /// Loads a synth patch into the LttL Weirdo Wavetable Synthesizer engine, configuring all necessary components.
     ///
-    /// This method takes one parameters:
-    ///
-    /// - `patch`: A `Patch` struct containing configuration data for the LttL Weirdo Wavetable Synthesizer engine.
-    ///
+    /// # Arguments
+    /// * `patch` - A `Patch` struct containing configuration data for the LttL Weirdo Wavetable Synthesizer engine.
     ///
     pub fn load_patch(&mut self, patch: &Patch) {
         self.mode = patch.synth_config.mode;
@@ -147,27 +163,32 @@ impl Synth {
     }
 
     ///
-    /// Returns a 16-bit sample value representing the synthesized audio signal.
-    /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
+    /// Generates a stereo audio sample by processing all voices and applying effects.
+    /// This function should be called every time an audio device requests a new sample.
     ///
+    /// # Returns
+    /// An array containing left and right channel samples
     fn clock(&mut self) -> [i16; 2] {
+        // Pre-allocate arrays for generated signals
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
 
-        // clock voices and envelops once
+        // Clock voices and envelopes once
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = self.voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);
         }
 
+        // Process LFOs
         for i in 0..AMOUNT_OF_VOICES / 2 {
             let lfo: i32 = self.lfo[i].clock(None) as i32;
             let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
             generate_lfos[i] = lfo_percentage as i16;
         }
 
+        // Route LFO modulation to voices
         for i in 0..AMOUNT_OF_VOICES / 2 {
             if self.router.config.lfo_to_voice[i].enable {
                 for j in 0..2 {
@@ -183,7 +204,7 @@ impl Synth {
             }
         }
 
-        // run and route voices through envelops and apply gain.
+        // Run and route voices through envelopes and apply gain
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = math::percentage(
                 generate_voices[i],
@@ -202,10 +223,10 @@ impl Synth {
         sound_mixing[0] = sound_mixing[0] +  math::percentage(sampler_sample, 10);
         */
 
+        // Stereo output (mono to stereo)
         sound_mixing[1] = sound_mixing[0];
 
-        // Pass the mixed signal through the filter
-
+        // Apply filter effect
         if self.router.config.lfo_to_freq {
             self.voices[0].manipulate_freq(
                 generate_lfos[0] as u8,
@@ -221,22 +242,21 @@ impl Synth {
             }
         }
 
+        // Apply filter to mixed signal
         sound_mixing[0] = self.filter.clock(sound_mixing[0]);
 
-        // Finally, apply main gain setting and return the final sample value
+        // Apply final effects
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
         [sound_mixing[0], sound_mixing[0]]
     }
 
-    /// Let the LttL Weirdo Wavetable Synthesizer engine play a specific note on the right voice and with a velocity.
+    /// Play a specific note on the synthesizer
     ///
-    /// # Parameters
-    ///
-    /// * `voice`: The voice number (0x00)
-    /// * `note`: The MIDI note number (0-108)
-    /// * `velocity`: The velocity of the note (0-127)
+    /// # Arguments
+    /// * `note` - The MIDI note number (0-108)
+    /// * `velocity` - The velocity of the note (0-127)
     pub fn note_on(&mut self, note: u8, velocity: u8) {
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {
@@ -274,6 +294,8 @@ impl Synth {
         }
     }
 
+    /// Add a note to the active notes list
+    /// Returns the index of the note in the active notes array, or 255 if no space
     fn add_note(&mut self, note: u8) -> usize {
         let amount_of_notes: usize = 8 / self.mode as usize;
         match self.active_note.iter().position(|n| n == &note) {
@@ -292,6 +314,8 @@ impl Synth {
         }
     }
 
+    /// Remove a note from the active notes list
+    /// Returns the index of the note that was removed, or 255 if not found
     fn remove_note(&mut self, note: u8) -> usize {
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => {
@@ -311,22 +335,27 @@ impl Synth {
         self.clock()
     }
 
+    /// Change the main volume of the synthesizer
     pub fn change_main_volume(&mut self, velocity: u8) {
         self.mixer.config.gain_main = velocity;
     }
 
+    /// Change the filter cutoff frequency
     pub fn change_cutoff(&mut self, velocity: u8) {
         let mut config = self.filter.config;
         config.cutoff_frequency = velocity as u16 * 255;
         self.filter.reload(config);
     }
 
+    /// Change the filter resonance
     pub fn change_resonance(&mut self, velocity: u8) {
         let mut config = self.filter.config;
         config.resonance = velocity as u16 * 255;
         self.filter.reload(config);
     }
 
+    /// Check if the note is within the valid range (C0 to C8)
+    /// Returns true if the note is outside the valid range
     fn range_safeguard(&mut self, note: u8) -> bool {
         if !(24..=108).contains(&note) {
             return true;
