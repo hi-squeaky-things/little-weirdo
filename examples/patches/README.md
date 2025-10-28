@@ -89,3 +89,41 @@ Sets polyphony mode:
 - **OctoPoly** (`mode: 4`): Eight voices can be active at any time. You can use only 1 oscillator per voice.
 
 The mode affects how many voices are allocated and how the voices are configured. The voices are distributed across the available voice slots in a round-robin fashion.
+
+## Flow diagram
+
+###
+
+```mermaid
+  graph TD;
+      A --> ENV_..
+
+      LFO_.. --> A
+      OSC_.. --> A
+      
+      A@{ shape: dbl-circ, label: "+" }
+
+      GAIN_X@{ shape: dbl-circ, label: "x" }
+
+      ENV_.. --> GAIN_X
+
+      GAIN_.. --> GAIN_X
+
+      GAIN_X --> MIXER  
+
+      OTHER_OSC_.. --> MIXER
+      MIXER@{ shape: dbl-circ, label: "+" }
+
+        MIXER --> TOTAL_MIX
+      MAIN_GAIN --> TOTAL_MIX
+
+      TOTAL_MIX@{ shape: dbl-circ, label: "x" }
+     
+     TOTAL_MIX --> FILTER
+
+      FILTER --> OVERDRIVE
+      OVERDRIVE --> BIT_CRUNCH
+      BIT_CRUNCH --> OUT
+    OUT@{ shape: lean-r, label: "SAMPLE OUTPUT" }
+
+```
