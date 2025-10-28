@@ -4,8 +4,8 @@
 ```
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hi-squeaky-things/little-weirdo/rust.yml?branch=main)
 ![GitHub License](https://img.shields.io/github/license/hi-squeaky-things/little-weirdo)
-![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.0)
-![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.0?style=flat)
+![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.1)
+![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.1?style=flat)
 
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.
@@ -85,6 +85,10 @@ Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postca
 🎹 Listen to the Ebass patch (unmute the audio 🔇 ➡️ 🔊) :
 
 https://github.com/user-attachments/assets/56b9666d-ab76-4716-8fe9-58ffc7642058
+
+🎹 SuperSaw with 4 oscillators enabled :
+
+https://github.com/user-attachments/assets/149d2a91-86f8-4a7f-bbc5-ff8ae06aa395
 
 ## Credits
 
