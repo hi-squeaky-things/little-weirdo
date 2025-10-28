@@ -196,7 +196,7 @@
         ],
         "lfo_to_filter": false,
         "lfo_to_freq": false,
-        "lfo_to_freq_amount": 5
+        "lfo_to_freq_amount": 0
     },
     "synth_config": {
         "mode": "OctoPoly"

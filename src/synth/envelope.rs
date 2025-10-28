@@ -1,4 +1,8 @@
 //! Envelope generator
+//!
+//! This module implements an ADSR (Attack, Decay, Sustain, Release) envelope generator
+//! that produces control signals for audio synthesis. The envelope responds to gate
+//! signals and follows the standard ADSR envelope shape.
 
 use serde::{Deserialize, Serialize};
 
@@ -6,41 +10,65 @@ use crate::synth::math::percentage;
 
 use super::{math, Clockable};
 
+/// Represents the different states an envelope can be in
 #[derive(PartialEq)]
 pub enum EnvelopeState {
+    /// No active signal, idle state
     Idle,
+    /// Attack phase - rising from 0% to 100%
     Attack,
+    /// Decay phase - falling from 100% to sustain level
     Decay,
+    /// Sustain phase - maintaining the sustain level
     Sustain,
+    /// Release phase - falling from current level to 0%
     Release,
 }
+
+/// Configuration parameters for the envelope generator
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct EnvelopConfiguration {
+    /// Time for the attack phase in milliseconds
     pub attack_time: i16,
+    /// Time for the decay phase in milliseconds  
     pub decay_time: i16,
+    /// Time for the release phase in milliseconds
     pub release_time: i16,
+    /// Sustain level percentage (0-100)
     pub sustain_level: i16,
 }
 
+/// Envelope generator implementation
 pub struct EnvelopeGenerator {
     // Configuration
+    /// The envelope configuration settings
     pub configuration: EnvelopConfiguration,
     // Control
+    /// Gate signal state (true = gate open, false = gate closed)
     gate: bool,
     // Runtime State
+    /// Current state of the envelope
     state: EnvelopeState,
+    /// Cumulative time ticks since last state transition
     cumulative_time_tick: u32,
+    /// Number of time ticks per millisecond based on sample rate
     amount_of_time_ticks_for_1ms: u16,
+    /// Time ticks needed for one percent increase during phases
     amout_of_time_ticks_needed_for_one_percent_increase: u32,
+    /// Current output level as percentage (0-100)
     current_output_level_percentage: i16,
+    /// Level at which release phase starts
     release_level: i16,
+    /// Total time ticks for current phase
     cumalative_time_ticks_for_one_phase: u32,
+    /// Level to restart from when retriggering
     retrigger_level: i16,
+    /// Counter for how many times the gate has been opened
     gate_open_counter: u8,
 }
 
 impl Clockable for EnvelopeGenerator {
-    // Clock the evenlope, return the percentage (0..100%) of the envelope.
+    // Clock the envelope, return the percentage (0..100%) of the envelope.
     fn clock(&mut self, _sample: Option<i16>) -> i16 {
         let mut output:u32 = 0;
     
@@ -82,7 +110,7 @@ impl Clockable for EnvelopeGenerator {
                     self.transistion_state(EnvelopeState::Idle);
                     self.cumalative_time_ticks_for_one_phase = 0;
                 } else {
-                    //TODO: weird fix. need beter investigation, probably some rounding issue.
+                    //TODO: weird fix. need better investigation, probably some rounding issue.
                     if self.cumulative_time_tick / self.amout_of_time_ticks_needed_for_one_percent_increase < 101 {
                         output = math::percentage(
                             self.release_level as i16,
@@ -108,6 +136,7 @@ impl Clockable for EnvelopeGenerator {
 }
 
 impl EnvelopeGenerator {
+    /// Creates a new envelope generator with the given configuration and sample rate
     pub fn new(envelop: EnvelopConfiguration, sample_rate: u16) -> Self {
         Self {
             configuration: envelop,
@@ -124,15 +153,18 @@ impl EnvelopeGenerator {
         }
     }
 
+    /// Reloads the envelope configuration
     pub fn reload(&mut self, envelop: EnvelopConfiguration) {
         self.configuration = envelop;
     }
 
+    /// Transitions the envelope to a new state and resets tick counter
     fn transistion_state(&mut self, state: EnvelopeState) {
         self.state = state;
         self.cumulative_time_tick = 0;
     }
 
+    /// Closes the gate signal, initiating release phase if configured
     pub fn close_gate(&mut self) {
         if !self.gate {
             return;
@@ -161,6 +193,7 @@ impl EnvelopeGenerator {
         }
     }
 
+    /// Transition to decay phase from attack phase
     fn decay(&mut self) {
         self.transistion_state(EnvelopeState::Decay);
         self.amout_of_time_ticks_needed_for_one_percent_increase =
@@ -168,6 +201,7 @@ impl EnvelopeGenerator {
         self.cumalative_time_ticks_for_one_phase = self.configuration.decay_time as u32 * self.amount_of_time_ticks_for_1ms as u32;
     }
 
+    /// Opens the gate signal, initiating attack phase
     pub fn open_gate(&mut self) {
         self.gate = true;
         self.cumulative_time_tick = 0;
