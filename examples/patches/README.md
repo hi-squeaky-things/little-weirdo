@@ -170,7 +170,7 @@ The mode affects how many voices are allocated and how the voices are configured
      
      TOTAL_MIX --> FILTER
 
-      FILTER:::passthrough --> OVERDRIVE
+      FILTER --> OVERDRIVE
       OVERDRIVE:::passthrough --> BIT_CRUNCH
       BIT_CRUNCH:::passthrough --> OUT
     OUT@{ shape: lean-r, label: "SAMPLE OUTPUT" }
