@@ -92,7 +92,7 @@ The mode affects how many voices are allocated and how the voices are configured
 
 ## Flow diagram
 
-###
+### General
 
 ```mermaid
   graph TD;
@@ -125,5 +125,59 @@ The mode affects how many voices are allocated and how the voices are configured
       OVERDRIVE --> BIT_CRUNCH
       BIT_CRUNCH --> OUT
     OUT@{ shape: lean-r, label: "SAMPLE OUTPUT" }
+
+```
+
+### Patch Ebass
+
+```mermaid
+  graph TD;
+      
+
+      A --> ENV_0_0
+      B --> ENV_0_1
+
+      LFO_0 -- frequency modulation --> A
+      OSC_0 --> A
+      
+
+      LFO_0 -- frequency modulation --> B
+      OSC_1 --> B
+
+
+      A@{ shape: dbl-circ, label: "+" }
+      B@{ shape: dbl-circ, label: "+" }
+
+
+      GAIN_X@{ shape: dbl-circ, label: "x" }
+      GAIN_Y@{ shape: dbl-circ, label: "x" }
+
+      ENV_0_0[ENV_0]:::same  --> GAIN_X
+      ENV_0_1[ENV_0]:::same --> GAIN_Y
+
+      GAIN_0 --> GAIN_X
+      GAIN_1 --> GAIN_Y
+
+      GAIN_X --> MIXER  
+
+      GAIN_Y --> MIXER
+      MIXER@{ shape: dbl-circ, label: "+" }
+
+        MIXER --> TOTAL_MIX
+      MAIN_GAIN --> TOTAL_MIX
+
+      TOTAL_MIX@{ shape: dbl-circ, label: "x" }
+     
+     TOTAL_MIX --> FILTER
+
+      FILTER:::passthrough --> OVERDRIVE
+      OVERDRIVE:::passthrough --> BIT_CRUNCH
+      BIT_CRUNCH:::passthrough --> OUT
+    OUT@{ shape: lean-r, label: "SAMPLE OUTPUT" }
+
+    classDef passthrough stroke:#f00,fill:#FF1122
+    classDef same stroke:#00f
+   
+
 
 ```
