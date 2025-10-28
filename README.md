@@ -86,6 +86,10 @@ Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postca
 
 https://github.com/user-attachments/assets/56b9666d-ab76-4716-8fe9-58ffc7642058
 
+🎹 SuperSaw with 4 oscillators enabled :
+
+https://github.com/user-attachments/assets/149d2a91-86f8-4a7f-bbc5-ff8ae06aa395
+
 ## Credits
 
 - [Small Braille ASCII Font](https://patorjk.com/software/taag/#p=display&f=Small+Braille&t=LITTLE+WEIRDO&x=rainbow1&v=1&h=1&w=80&we=false)
