@@ -34,11 +34,11 @@
           },
           "detune": {
             "type": "integer",
-            "description": "Detune amount in cents for this voice"
+            "description": "Detune amount in semitones for this voice"
           },
           "freq_detune": {
             "type": "integer",
-            "description": "Frequency detune amount for this voice"
+            "description": "Frequency detune in Hz for this voice"
           }
         },
         "required": [
