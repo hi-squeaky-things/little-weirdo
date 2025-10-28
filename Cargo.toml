@@ -1,6 +1,6 @@
 [package]
 name = "little_weirdo"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Daniël <daniel@hi-squeaky-things.nl>"]
 description = "A Rust #no-std optimized wave table synthesizer for embedded devices."
@@ -27,7 +27,7 @@ cpal = "0.16.0"
 anyhow = "1.0.100"
 clap = { version = "4.5.50", features = ["derive"] }
 console = "0.16.1"
-midir = "0.10.2"
+midir = "0.10.3"
 midi-control = "0.2.3"
 serde_json = "1.0.0"
 criterion = "0.7.0"
