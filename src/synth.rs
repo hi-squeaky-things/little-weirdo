@@ -7,8 +7,8 @@ pub mod math;
 pub mod mixer;
 pub mod patch;
 pub mod router;
-pub mod wavetable_oscillator;
 pub mod sampler;
+pub mod wavetable_oscillator;
 use data::wavetables::BoxedWavetables;
 use effects::bitcrunch::Bitcrunch;
 use effects::{overdrive::Overdrive, Effect};
@@ -35,7 +35,7 @@ pub struct Synth {
     voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES],
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
     lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
-  //  sampler: Sampler,
+    //  sampler: Sampler,
     router: Router,
     filter: Filter,
     overdrive: Overdrive,
@@ -58,12 +58,16 @@ impl Synth {
     /// - `patch`: A `Patch` struct containing configuration data for the Synthesizer.
     ///
     /// It returns a new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, patch: &Patch, wavetables: alloc::sync::Arc<BoxedWavetables>) -> Self {
+    pub fn new(
+        sample_rate: u16,
+        patch: &Patch,
+        wavetables: alloc::sync::Arc<BoxedWavetables>,
+    ) -> Self {
         Self {
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
             lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&wavetables)),
-         //   sampler: Sampler::new(sample_rate, Rc::clone(&sample)),
+            //   sampler: Sampler::new(sample_rate, Rc::clone(&sample)),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -89,7 +93,7 @@ impl Synth {
     fn init_voices(
         sample_rate: u16,
         patch: &Patch,
-        wavetables: Arc<BoxedWavetables>
+        wavetables: Arc<BoxedWavetables>,
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
@@ -105,7 +109,7 @@ impl Synth {
     fn init_lfos(
         sample_rate: u16,
         patch: &Patch,
-        wavetables: Arc<BoxedWavetables>
+        wavetables: Arc<BoxedWavetables>,
     ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] {
         let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] =
             array_init::array_init(|i: usize| {
@@ -147,18 +151,17 @@ impl Synth {
     /// This function should be called every time an audio device requests a new sample, and it will compute the correct sample at the current time based on the internal state of the synthesizer and the desired sample rate.
     ///
     fn clock(&mut self) -> [i16; 2] {
-        
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
-        
+
         // clock voices and envelops once
         for i in 0..AMOUNT_OF_VOICES {
-           generate_voices[i] = self.voices[i].clock(None);
+            generate_voices[i] = self.voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);
         }
-        
+
         for i in 0..AMOUNT_OF_VOICES / 2 {
             let lfo: i32 = self.lfo[i].clock(None) as i32;
             let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
@@ -189,27 +192,28 @@ impl Synth {
             generate_voices[i] = math::percentage(generate_voices[i], self.velocity as i16);
             generate_voices[i] =
                 math::percentage(generate_voices[i], self.mixer.config.gain_voices[i] as i16);
-            sound_mixing[0] = sound_mixing[0] + generate_voices[i];
+            sound_mixing[0] += generate_voices[i];
         }
 
         // sampler
-        /* 
+        /*
         let mut sampler_sample = self.sampler.clock(None);
         sampler_sample = math::percentage(sampler_sample, generate_env[0]);
         sound_mixing[0] = sound_mixing[0] +  math::percentage(sampler_sample, 10);
         */
 
-        
         sound_mixing[1] = sound_mixing[0];
 
         // Pass the mixed signal through the filter
 
         if self.router.config.lfo_to_freq {
-            self.voices[0].manipulate_freq( generate_lfos[0] as u8, self.router.config.lfo_to_freq_amount);
-       
+            self.voices[0].manipulate_freq(
+                generate_lfos[0] as u8,
+                self.router.config.lfo_to_freq_amount,
+            );
         }
         if self.router.config.lfo_to_filter {
-            let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[0] as i16);
+            let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[0]);
             if self.filter.config.cutoff_frequency != lfo_filter as u16 {
                 let mut config = self.filter.config;
                 config.cutoff_frequency = lfo_filter as u16;
@@ -224,7 +228,6 @@ impl Synth {
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
         [sound_mixing[0], sound_mixing[0]]
-     
     }
 
     /// Let the LttL Weirdo Wavetable Synthesizer engine play a specific note on the right voice and with a velocity.
@@ -254,7 +257,7 @@ impl Synth {
                 self.voices[id * divider + i].change_freq(
                     (freq as i16 + self.voices[id * divider + i].config.freq_detune as i16) as u16,
                 );
-             //   self.sampler.change_freq(freq);
+                //   self.sampler.change_freq(freq);
                 // Open the gate for all voice envelops
                 self.envelops[id * divider + i].open_gate();
             }
@@ -272,23 +275,19 @@ impl Synth {
     }
 
     fn add_note(&mut self, note: u8) -> usize {
-        let amount_of_notes:usize = 8 / self.mode as usize;
+        let amount_of_notes: usize = 8 / self.mode as usize;
         match self.active_note.iter().position(|n| n == &note) {
-            Some(position) => {
-                return position;
-            }
+            Some(position) => position,
             None => match self.active_note.iter().position(|n| n == &0) {
                 Some(position) => {
                     if position < amount_of_notes {
                         self.active_note[position] = note;
-                        return position;
+                        position
                     } else {
-                        return 255;
+                        255
                     }
                 }
-                None => {
-                    return 255;
-                }
+                None => 255,
             },
         }
     }
@@ -297,11 +296,9 @@ impl Synth {
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => {
                 self.active_note[position] = 0;
-                return position;
+                position
             }
-            None => {
-                return 255;
-            }
+            None => 255,
         }
     }
 
@@ -331,7 +328,7 @@ impl Synth {
     }
 
     fn range_safeguard(&mut self, note: u8) -> bool {
-        if note < 24 || note > 108 {
+        if !(24..=108).contains(&note) {
             return true;
         }
         false

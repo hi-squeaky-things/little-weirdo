@@ -13,6 +13,12 @@ pub struct BoxedWavetables {
     data: Vec<BoxedWavetable>,
 }
 
+impl Default for BoxedWavetables {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BoxedWavetables {
     // Creates a new empty BoxedWavetables instance with capacity for 10 wavetables
     pub fn new() -> Self {

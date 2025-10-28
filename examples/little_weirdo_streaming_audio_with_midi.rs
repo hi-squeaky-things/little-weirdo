@@ -33,14 +33,16 @@ fn main() {
     // Set up audio output device and configuration
     let (device, config) = setup_device();
 
-
     // Define error callback for audio stream
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
     // Create a collection of wavetables and load them from files
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..10 {
-        let filename = format!("examples/soundbank/soundbank_pure_elektro/src/wav{}.raw", id);
+        let filename = format!(
+            "examples/soundbank/soundbank_pure_elektro/src/wav{}.raw",
+            id
+        );
         let contents = fs::read(filename).unwrap();
         let bytes: &[u8] = &contents;
         wt_on_heap.add(BoxedWavetable::new(bytes));
@@ -81,7 +83,6 @@ fn main() {
                     Err(TryRecvError::Empty) => {} // No messages available
                     Err(TryRecvError::Disconnected) => panic!("Channel disconnected"),
                 }
-
 
                 // Generate audio output by processing the synth in chunks
                 for frame in data.chunks_mut(2) {
@@ -147,10 +148,6 @@ fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
         _ => {}
     }
 }
-
-
-
-
 
 /// Finds a MIDI port by name (looking for "IAC Driver")
 fn find_port<T>(midi_io: &T) -> Option<T::Port>

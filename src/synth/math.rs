@@ -9,8 +9,7 @@ pub fn percentage(sample: i16, percentage: i16) -> i16 {
     (sample_up_scale / 100 * percentage as i32 / 1000) as i16
 }
 
-const FX_SHIFT:u16 = 16;
-  
+const FX_SHIFT: u16 = 16;
 
 /// Multiply two values and shift the result by FX_SHIFT bits.
 ///

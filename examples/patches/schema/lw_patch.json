@@ -7,17 +7,47 @@
       "items": {
         "type": "object",
         "properties": {
-          "soundbank_index": { 
+          "soundbank_index": {
             "type": "integer",
-            "enum": [0,1,2,3,4,5,6,7,8,9,255],
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              255
+            ],
             "description": "Index of the wavetable to use for this voice (0-9) / 255 = noise"
           },
-          "glide": { "type": "boolean", "description": "Whether to enable pitch glide for this voice" },
-          "glide_rate": { "type": "integer", "description": "Rate of pitch glide (higher values = faster glide)" },
-          "detune": { "type": "integer", "description": "Detune amount in cents for this voice" },
-          "freq_detune": { "type": "integer", "description": "Frequency detune amount for this voice" }
+          "glide": {
+            "type": "boolean",
+            "description": "Whether to enable pitch glide for this voice"
+          },
+          "glide_rate": {
+            "type": "integer",
+            "description": "Rate of pitch glide (higher values = faster glide)"
+          },
+          "detune": {
+            "type": "integer",
+            "description": "Detune amount in cents for this voice"
+          },
+          "freq_detune": {
+            "type": "integer",
+            "description": "Frequency detune amount for this voice"
+          }
         },
-        "required": ["soundbank_index", "glide", "glide_rate", "detune", "freq_detune"]
+        "required": [
+          "soundbank_index",
+          "glide",
+          "glide_rate",
+          "detune",
+          "freq_detune"
+        ]
       },
       "minItems": 8,
       "maxItems": 8,
@@ -28,12 +58,29 @@
       "items": {
         "type": "object",
         "properties": {
-          "attack_time": { "type": "integer", "description": "Attack time of the envelope in samples" },
-          "decay_time": { "type": "integer", "description": "Decay time of the envelope in samples" },
-          "release_time": { "type": "integer", "description": "Release time of the envelope in samples" },
-          "sustain_level": { "type": "integer", "description": "Sustain level of the envelope (0-100)" }
+          "attack_time": {
+            "type": "integer",
+            "description": "Attack time of the envelope in samples"
+          },
+          "decay_time": {
+            "type": "integer",
+            "description": "Decay time of the envelope in samples"
+          },
+          "release_time": {
+            "type": "integer",
+            "description": "Release time of the envelope in samples"
+          },
+          "sustain_level": {
+            "type": "integer",
+            "description": "Sustain level of the envelope (0-100)"
+          }
         },
-        "required": ["attack_time", "decay_time", "release_time", "sustain_level"]
+        "required": [
+          "attack_time",
+          "decay_time",
+          "release_time",
+          "sustain_level"
+        ]
       },
       "minItems": 8,
       "maxItems": 8,
@@ -44,10 +91,19 @@
       "items": {
         "type": "object",
         "properties": {
-          "soundbank_index": { "type": "integer", "description": "Index of the wavetable to use for LFO waveform (0-9)" },
-          "time": { "type": "integer", "description": "LFO timing parameter (frequency or rate)" }
+          "soundbank_index": {
+            "type": "integer",
+            "description": "Index of the wavetable to use for LFO waveform (0-9)"
+          },
+          "time": {
+            "type": "integer",
+            "description": "LFO timing parameter (frequency or rate)"
+          }
         },
-        "required": ["soundbank_index", "time"]
+        "required": [
+          "soundbank_index",
+          "time"
+        ]
       },
       "minItems": 4,
       "maxItems": 4,
@@ -56,12 +112,35 @@
     "filter_config": {
       "type": "object",
       "properties": {
-        "cutoff_frequency": { "type": "integer", "description": "Filter cutoff frequency in Hz" },
-        "resonance": { "type": "integer", "description": "Filter resonance (Q factor)" },
-        "kind_of_filter": { "type": "string", "description": "Type of filter ('lowpass', 'highpass', 'bandpass')" },
-        "enabled": { "type": "boolean", "description": "Whether the filter is enabled" }
+        "cutoff_frequency": {
+          "type": "integer",
+          "description": "Filter cutoff frequency (0-65535)"
+        },
+        "resonance": {
+          "type": "integer",
+          "description": "Filter resonance (0-65535)"
+        },
+        "kind_of_filter": {
+          "type": "string",
+          "description": "Type of filter ('low', 'high', 'band', 'notch')",
+          "enum": [
+            "low",
+            "high",
+            "band",
+            "notch"
+          ]
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the filter is enabled"
+        }
       },
-      "required": ["cutoff_frequency", "resonance", "kind_of_filter", "enabled"],
+      "required": [
+        "cutoff_frequency",
+        "resonance",
+        "kind_of_filter",
+        "enabled"
+      ],
       "description": "Global filter configuration for the synthesizer"
     },
     "mixer_config": {
@@ -69,37 +148,72 @@
       "properties": {
         "gain_voices": {
           "type": "array",
-          "items": { "type": "integer", "description": "Gain level for each voice (0-100)" }
+          "items": {
+            "type": "integer",
+            "description": "Gain level for each voice (0-100)"
+          }
         },
-        "gain_main": { "type": "integer", "description": "Main output gain level (0-100)" }
+        "gain_main": {
+          "type": "integer",
+          "description": "Main output gain level (0-100)"
+        }
       },
-      "required": ["gain_voices", "gain_main"],
+      "required": [
+        "gain_voices",
+        "gain_main"
+      ],
       "description": "Mixer configuration for voice and main outputs"
     },
     "overdrive_config": {
       "type": "object",
       "properties": {
-        "threshold": { "type": "integer", "description": "Overdrive threshold level" },
-        "kind": { "type": "string", "description": "Type of overdrive effect ('soft', 'hard', etc.)" },
-        "enabled": { "type": "boolean", "description": "Whether overdrive effect is enabled" }
+        "threshold": {
+          "type": "integer",
+          "description": "Overdrive threshold level"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Type of overdrive effect ('Soft', 'Hard', 'Softer')",
+          "enum": [
+            "Soft",
+            "Hard",
+            "Softer"
+          ]
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether overdrive effect is enabled"
+        }
       },
-      "required": ["threshold", "kind", "enabled"],
+      "required": [
+        "threshold",
+        "kind",
+        "enabled"
+      ],
       "description": "Overdrive distortion effect configuration"
     },
     "bitcrunch_config": {
       "type": "object",
       "properties": {
-        "enabled": { "type": "boolean", "description": "Whether bitcrushing effect is enabled" }
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether bitcrushing effect (8 bit style) is enabled"
+        }
       },
-      "required": ["enabled"],
-      "description": "Bitcrush effect configuration"
+      "required": [
+        "enabled"
+      ],
+      "description": "Bitcrush effect configuration for reducing audio bit depth (8 bit chip tunes!)"
     },
     "routering_config": {
       "type": "object",
       "properties": {
         "voices_to_envelop": {
           "type": "array",
-          "items": { "type": "integer", "description": "Voice routing to envelope mapping" }
+          "items": {
+            "type": "integer",
+            "description": "Voice routing to envelope mapping"
+          }
         },
         "lfo_to_voice": {
           "type": "array",
@@ -110,37 +224,87 @@
                 "type": "array",
                 "minItems": 2,
                 "maxItems": 2,
-                "items": { 
+                "items": {
                   "type": "integer",
-                  "enum": [0,1,2,3,4,5,6,7,8,9,255],
+                  "enum": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    255
+                  ],
                   "description": "Voice indices to route LFO to (255 = all voices)"
                 }
               },
-              "enable": { "type": "boolean", "description": "Enable this LFO-to-voice routing" }
+              "enable": {
+                "type": "boolean",
+                "description": "Enable this LFO-to-voice routing"
+              }
             },
-            "required": ["voices", "enable"]
+            "required": [
+              "voices",
+              "enable"
+            ]
           },
           "description": "LFO to voice routing configuration"
         },
-        "lfo_to_filter": { "type": "boolean", "description": "Whether LFO affects filter cutoff" },
-        "lfo_to_freq": { "type": "boolean", "description": "Whether LFO affects oscillator frequency" },
-        "lfo_to_freq_amount": { "type": "integer", "description": "Amount of frequency modulation from LFO" }
+        "lfo_to_filter": {
+          "type": "boolean",
+          "description": "Whether LFO affects filter cutoff"
+        },
+        "lfo_to_freq": {
+          "type": "boolean",
+          "description": "Whether LFO affects oscillator frequency"
+        },
+        "lfo_to_freq_amount": {
+          "type": "integer",
+          "description": "Amount of frequency modulation from LFO"
+        }
       },
-      "required": ["voices_to_envelop", "lfo_to_voice", "lfo_to_filter", "lfo_to_freq", "lfo_to_freq_amount"],
+      "required": [
+        "voices_to_envelop",
+        "lfo_to_voice",
+        "lfo_to_filter",
+        "lfo_to_freq",
+        "lfo_to_freq_amount"
+      ],
       "description": "Routing configuration for signal flow between components"
     },
     "synth_config": {
       "type": "object",
       "properties": {
-        "mode": { 
-          "type": "string", 
-          "enum": ["Mono", "BiPoly", "QuadPoly", "OctoPoly"],
+        "mode": {
+          "type": "string",
+          "enum": [
+            "Mono",
+            "BiPoly",
+            "QuadPoly",
+            "OctoPoly"
+          ],
           "description": "Polyphony mode of the synthesizer (Mono, BiPoly, QuadPoly, OctoPoly)"
         }
       },
-      "required": ["mode"],
+      "required": [
+        "mode"
+      ],
       "description": "General synthesizer configuration settings"
     }
   },
-  "required": ["voices", "envelops", "lfos", "filter_config", "mixer_config", "overdrive_config", "bitcrunch_config", "routering_config", "synth_config"]
+  "required": [
+    "voices",
+    "envelops",
+    "lfos",
+    "filter_config",
+    "mixer_config",
+    "overdrive_config",
+    "bitcrunch_config",
+    "routering_config",
+    "synth_config"
+  ]
 }

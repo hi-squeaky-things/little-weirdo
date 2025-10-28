@@ -1,30 +1,30 @@
 #![no_std]
-//! 
-//! ```no_run 
+//!
+//! ```no_run
 //! //       __   ____  ____  __      _  _  ____  __  ____  ____   __  
-//! //      (  ) (_  _)(_  _)(  )    / )( \(  __)(  )(  _ \(    \ /  \ 
+//! //      (  ) (_  _)(_  _)(  )    / )( \(  __)(  )(  _ \(    \ /  \
 //! //      / (_/\ )(    )(  / (_/\  \ /\ / ) _)  )(  )   / ) D ((  O )
-//! //      \____/(__)  (__) \____/  (_/\_)(____)(__)(__\_)(____/ \__/ 
+//! //      \____/(__)  (__) \____/  (_/\_)(____)(__)(__\_)(____/ \__/
 //! //
 //! //       #no-std optimized wave table synthesizer for embedded devices.
 //! ```
-//! 
+//!
 //! Example usage:
 //! ```rust
 //! use little_weirdo::synth::{
 //!     self,
 //!     data::wavetables::{BoxedWavetable, BoxedWavetables},
 //! };
-//! 
+//!
 //! use std::{
 //!     fs,
 //!     sync::Arc,
 //! };
 //!
 //! const SAMPLE_RATE: u16 = 44_100; // Audio sample rate in Hz
-//! 
+//!
 //! fn main() {
-//! 
+//!
 //!     // Create a collection of wavetables and load them from files
 //!     let mut wt_on_heap = BoxedWavetables::new();
 //!     for id in 0..10 {
@@ -53,8 +53,7 @@
 //! }
 //! ```
 
-
 ///
 /// The wave table synthesizer engine.
-/// 
+///
 pub mod synth;

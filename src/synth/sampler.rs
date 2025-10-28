@@ -1,14 +1,11 @@
+use super::Clockable;
 
-use super::{Clockable};
- 
- 
-
- extern crate alloc;
-use alloc::{vec::Vec, rc::Rc};
+extern crate alloc;
+use alloc::{rc::Rc, vec::Vec};
 
 #[derive(Clone)]
 pub struct BoxedSample {
-    pub data: Vec<i16>
+    pub data: Vec<i16>,
 }
 
 impl BoxedSample {
@@ -16,19 +13,15 @@ impl BoxedSample {
         let mut init = Self {
             data: Vec::with_capacity(data.len() / 2),
         };
-        for sample_index in 0..(data.len()/2) {
+        for sample_index in 0..(data.len() / 2) {
             let b1 = (data[sample_index * 2 + 1] as i16) << 8;
             let b2 = data[sample_index * 2] as i16;
             let sample = b1 | b2;
             init.data.push(sample);
-        }    
-       init
+        }
+        init
     }
-
-   
 }
-
-
 
 pub struct Sampler {
     sampler: Rc<BoxedSample>,
@@ -41,10 +34,10 @@ pub struct Sampler {
 
 impl Clockable for Sampler {
     fn clock(&mut self, _sample: Option<i16>) -> i16 {
-        self.delay = self.delay + 1;
+        self.delay += 1;
         if self.delay > self.increment {
             self.delay = 0;
-            self.counter = self.counter + self.speed as u32;
+            self.counter += self.speed as u32;
             if self.counter >= self.sampler.data.len() as u32 {
                 self.counter = 0;
             }
@@ -65,30 +58,26 @@ impl Sampler {
             last_sample: 0,
         }
     }
-//415, 440, 466, 493
+    //415, 440, 466, 493
     pub fn change_freq(&mut self, freq: u16) {
         match freq {
-            415  => {
+            415 => {
                 self.speed = 2;
                 self.increment = 0;
-            },
-            440  => {
+            }
+            440 => {
                 self.speed = 2;
                 self.increment = 2;
- 
-            },
-            466  => {
+            }
+            466 => {
                 self.speed = 1;
                 self.increment = 0;
- 
-            },
-             493  => {
-                self.speed = 1;
-                self.increment = 2; 
-            },
-            _ => {
-
             }
+            493 => {
+                self.speed = 1;
+                self.increment = 2;
+            }
+            _ => {}
         }
         self.counter = 0;
     }
