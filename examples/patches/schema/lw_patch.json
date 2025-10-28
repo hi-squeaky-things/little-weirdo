@@ -256,15 +256,15 @@
         },
         "lfo_to_filter": {
           "type": "boolean",
-          "description": "Whether LFO affects filter cutoff"
+          "description": "When enabled, LFO #0 modulates the cutoff frequency of the filter"
         },
         "lfo_to_freq": {
           "type": "boolean",
-          "description": "Whether LFO affects oscillator frequency"
+          "description": "When enabled, LFO #0 modulates the frequency of all oscillators"
         },
         "lfo_to_freq_amount": {
           "type": "integer",
-          "description": "Amount of frequency modulation from LFO"
+          "description": "The amount of frequency modulation applied to oscillators by LFO #0, measured in Hz"
         }
       },
       "required": [

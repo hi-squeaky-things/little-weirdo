@@ -147,7 +147,7 @@
     },
     "overdrive_config": {
         "threshold": 2000,
-        "kind": "Softer",
+        "kind": "Hard",
         "enabled": false
     },
     "bitcrunch_config": {
