@@ -11,7 +11,7 @@
 :copyright: any
 :icons: font
 :icon-set: fas
-
+:source-highlighter: coderay
 
 == Introduction to little_weirdo
 
@@ -67,3 +67,5 @@ fn main() {
 ----
 
 This example showcases how to set up a basic synthesizer using `little_weirdo`, including loading wavetables and applying a patch configuration.
+
+include::patch.adoc[]
