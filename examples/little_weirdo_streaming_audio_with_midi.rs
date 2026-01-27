@@ -1,6 +1,7 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
+use little_weirdo::synth::sampler::{BoxedSample, BoxedSamples};
 use little_weirdo::synth::{
     self,
     data::wavetables::{BoxedWavetable, BoxedWavetables},
@@ -50,11 +51,28 @@ fn main() {
     // Wrap wavetables in an Arc for thread-safe sharing
     let wt = Arc::new(wt_on_heap);
 
+     // Create a collection of samples and load them from files
+    let mut samples_on_heap = BoxedSamples::new();
+    for id in 0..2 {
+        let filename = format!(
+            "examples/soundbank/soundbank_samples/src/wav{}.raw",
+            id
+        );
+        let contents = fs::read(filename).unwrap();
+        let bytes: &[u8] = &contents;
+        samples_on_heap.add(BoxedSample::new(bytes));
+    }
+    // Wrap wavetables in an Arc for thread-safe sharing
+    let samples = Arc::new(samples_on_heap);
+
+
+
+
     // Load a synth patch from a JSON file
     let patch = serde_json::from_slice(include_bytes!("patches/piano.json")).unwrap();
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt));
+    let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt), Arc::clone(&samples));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();

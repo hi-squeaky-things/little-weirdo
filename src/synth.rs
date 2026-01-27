@@ -15,6 +15,8 @@ use router::Router;
 extern crate alloc;
 use alloc::sync::Arc;
 
+use crate::synth::sampler::{BoxedSample, BoxedSamples};
+
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
 /// Trait for clockable components that can process samples
@@ -41,6 +43,8 @@ pub struct Synth {
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
     /// Array of Low-Frequency Oscillators for modulation
     lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
+
+    sampler_voices: [sampler::Sampler; AMOUNT_OF_VOICES],
     //  sampler: Sampler,
     /// Audio routing system
     router: Router,
@@ -77,11 +81,13 @@ impl Synth {
         sample_rate: u16,
         patch: &Patch,
         wavetables: alloc::sync::Arc<BoxedWavetables>,
+        samples: alloc::sync::Arc<BoxedSamples>,
     ) -> Self {
         Self {
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
             lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&wavetables)),
+            sampler_voices: Synth::init_sampler_voices(sample_rate,  Arc::clone(&samples)),
             //   sampler: Sampler::new(sample_rate, Rc::clone(&sample)),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
@@ -122,6 +128,23 @@ impl Synth {
             });
         voices
     }
+
+     /// Initialize waveform oscillators with given parameters
+    fn init_sampler_voices(
+        sample_rate: u16,
+        samples: Arc<BoxedSamples>,
+    ) -> [sampler::Sampler; AMOUNT_OF_VOICES] {
+        let voice_samplers: [sampler::Sampler; AMOUNT_OF_VOICES] =
+            array_init::array_init(|i: usize| {
+                sampler::Sampler::new(
+                    sample_rate,
+                    i as u8,
+                    Arc::clone(&samples),
+                )
+            });
+        voice_samplers
+    }
+
 
     /// Initialize Low-Frequency Oscillators with given parameters
     fn init_lfos(
@@ -170,6 +193,7 @@ impl Synth {
     /// An array containing left and right channel samples
     fn clock(&mut self) -> [i16; 2] {
         // Pre-allocate arrays for generated signals
+        
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
@@ -217,11 +241,16 @@ impl Synth {
         }
 
         // sampler
-        /*
-        let mut sampler_sample = self.sampler.clock(None);
-        sampler_sample = math::percentage(sampler_sample, generate_env[0]);
+    
+        let mut sampler_sample = self.sampler_voices[0].clock(None);
+        sampler_sample = math::percentage(sampler_sample, 100);
         sound_mixing[0] = sound_mixing[0] +  math::percentage(sampler_sample, 10);
-        */
+        
+        sampler_sample = self.sampler_voices[1].clock(None);
+        sampler_sample = math::percentage(sampler_sample, 100);
+        sound_mixing[0] = sound_mixing[0] +  math::percentage(sampler_sample, 10);
+       
+
 
         // Stereo output (mono to stereo)
         sound_mixing[1] = sound_mixing[0];
@@ -258,6 +287,17 @@ impl Synth {
     /// * `note` - The MIDI note number (0-108)
     /// * `velocity` - The velocity of the note (0-127)
     pub fn note_on(&mut self, note: u8, velocity: u8) {
+
+       if note == 12 {
+         self.sampler_voices[0].open_gate();
+         return;
+       }
+
+       if note == 13 {
+         self.sampler_voices[1].open_gate();
+         return;
+       }
+
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {
             return;
