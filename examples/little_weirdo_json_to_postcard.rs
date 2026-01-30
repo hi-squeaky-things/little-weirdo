@@ -21,7 +21,6 @@ fn main() {
 
                 // Parse JSON
                 let patch: Patch = serde_json::from_str(&json_content).unwrap();
-
                 // Serialize to postcard format
                 let mut buf = [0u8; 256];
                 let serialized =
