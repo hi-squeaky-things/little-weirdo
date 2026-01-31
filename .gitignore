@@ -5,3 +5,4 @@
 /docs/.asciidoctor
 /docs/*.pdf
 .vscode
+*.bin

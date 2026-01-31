@@ -55,3 +55,4 @@
 /// The wave table synthesizer engine.
 ///
 pub mod synth;
+pub mod fs;

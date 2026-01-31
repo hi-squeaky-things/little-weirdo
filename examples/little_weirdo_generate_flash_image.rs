@@ -1,47 +1,20 @@
+use std::{fs::File, io::Write};
 
-use std::{fs::File, io::Write, ops::Range};
+use little_weirdo::fs::{MemoryStorage, WeirdoFileSystem};
 
-use embedded_storage_inmemory::MemFlash;
-use embedded_storage::nor_flash::{NorFlash, ReadNorFlash};
-use sequential_storage::{cache::{KeyPointerCache, NoCache}, mock_flash};
-use tokio::sync::Mutex;
+fn main() {
+    let storage = MemoryStorage::new(0x100000);
+    let mut filesystem: WeirdoFileSystem<MemoryStorage> = WeirdoFileSystem::new(storage, 0, 0x100000);
 
-const MAP_FLASH_RANGE: Range<u32> = 0..(0x20000);
+    filesystem.write_key_value(&[0,1], include_bytes!("../examples/image_layout/patches/ebass.lwp")).unwrap();
+    filesystem.write_key_value(&[0,2], include_bytes!("../examples/image_layout/patches/piano.lwp")).unwrap();
+    filesystem.write_key_value(&[1,3], include_bytes!("../examples/image_layout/waveforms/wav0.raw")).unwrap();
+    //filesystem.write_key_value(&[2,1], include_bytes!("../examples/image_layout/samples/wav0.raw")).unwrap();
 
-type MockFlash = mock_flash::MockFlashBase<1024, 4, 64>;
-  
-
-#[tokio::main]
-async fn main() {
-     let storage = MockFlash::default();
-     println!("length = {:?}", storage.as_bytes().len());
-     
-
-    
-    let mut data_buffer: [u8; 0x10] = [0u8; 0x10];
-
-    let mut map_storage = sequential_storage::map::MapStorage::<u16, _, _>::new(
-        storage,
-        const { sequential_storage::map::MapConfig::new(MAP_FLASH_RANGE) },
-        NoCache
-    );
-
-    
-
-   let result = map_storage
-        .store_item(
-            &mut data_buffer,
-            &1,
-            &69)
-        .await;
-    match result {
-        Ok(())=>{println!("Successfully stored item with key 1");}
-        Err(e) => {println!("Error storing item: {:?}", e);},
-    };
-    
-    let data = map_storage.flash().as_bytes();
-    let mut file = File::create("output.bin").expect("Unable to create file");
-    file.write_all(data).expect("Unable to write data");
-
- 
+    let mut buffer:[u8;2042] = [0;2042];
+    filesystem.read_key_value(&[0,1],&mut buffer).unwrap();
+    // export to disk
+    let mut data = filesystem.storage;
+    let mut file = File::create("little_squeaky_machine_data_image.bin").expect("Unable to create file");
+    file.write_all(data.dump()).expect("Unable to write data");
 }
