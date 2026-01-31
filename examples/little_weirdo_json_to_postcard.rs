@@ -2,6 +2,7 @@ use little_weirdo::synth::patch::Patch;
 use std::fs::{self, File};
 use std::io::Write;
 
+
 fn main() {
     // Load a synth patch from a JSON file
     let patch_dir = "examples/patches";

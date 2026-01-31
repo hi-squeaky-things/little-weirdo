@@ -1,5 +1,6 @@
 {
     "$schema": "schema/lw_patch.json", 
+     "name": "supersaw",
     "voices": [
         {
             "soundbank_index": 1,

@@ -1,5 +1,6 @@
 //! Patch to config the sounds
-
+extern crate alloc;
+use alloc::string::String;
 
 use super::effects::bitcrunch::BitcrunchConfiguration;
 use super::{
@@ -27,8 +28,9 @@ pub struct SynthConfiguration {
     pub mode: SynthMode,
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Patch {
+    pub name: String,
     pub voices: [WaveTableOscillatorConfig; AMOUNT_OF_VOICES],
     pub envelops: [EnvelopConfiguration; AMOUNT_OF_VOICES],
     pub lfos: [WaveTableLoFreqOscillatorConfig; AMOUNT_OF_VOICES / 2],

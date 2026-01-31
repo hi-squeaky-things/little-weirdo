@@ -1,5 +1,6 @@
 {
    "$schema": "schema/lw_patch.json", 
+    "name": "piano",
     "voices": [
         {
             "soundbank_index": 8,

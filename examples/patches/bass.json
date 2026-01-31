@@ -1,5 +1,6 @@
 {
-   "$schema": "schema/lw_patch.json", 
+    "$schema": "schema/lw_patch.json",
+    "name": "bass",
     "voices": [
         {
             "soundbank_index": 0,
@@ -7,7 +8,7 @@
             "glide_rate": 200,
             "detune": 0,
             "freq_detune": 0
-       },
+        },
         {
             "soundbank_index": 3,
             "glide": false,
@@ -154,7 +155,16 @@
         "enabled": false
     },
     "routering_config": {
-        "voices_to_envelop": [0,0,0,3,4,5,6,7],
+        "voices_to_envelop": [
+            0,
+            0,
+            0,
+            3,
+            4,
+            5,
+            6,
+            7
+        ],
         "lfo_to_voice": [
             {
                 "voices": [
