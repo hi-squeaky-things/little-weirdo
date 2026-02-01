@@ -340,10 +340,11 @@ mod tests {
         filesystem.format();
 
         let payload = include_bytes!("../examples/image_layout/samples/wav0.raw");
-        let result = filesystem.write_key_value(900, payload).unwrap();
+        let result = filesystem.write_key_value(800, payload).unwrap();
+         let result = filesystem.write_key_value(801, payload).unwrap();
 
         let mut buffer: [u8; 30_000] = [0; 30_000];
-        let size_of_value = filesystem.read_key_value(900, &mut buffer).unwrap();
+        let size_of_value = filesystem.read_key_value(800, &mut buffer).unwrap();
         assert_eq!(size_of_value, payload.len() as u16);
         assert_eq!(payload, &buffer[..size_of_value as usize]);
     }
