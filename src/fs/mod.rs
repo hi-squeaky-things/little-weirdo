@@ -303,7 +303,7 @@ mod tests {
             WeirdoFileSystem::new(storage, 0, 0x100000);
         filesystem.format();
 
-        let payload = include_bytes!("../examples/image_layout/patches/ebass.lwp");
+        let payload = include_bytes!("../../examples/image_layout/patches/ebass.lwp");
         let size = payload.len();
 
         filesystem.write_key_value(1, payload).unwrap();
@@ -321,7 +321,7 @@ mod tests {
             WeirdoFileSystem::new(storage, 0, 0x100000);
         filesystem.format();
 
-        let payload = include_bytes!("../examples/image_layout/patches/ebass.lwp");
+        let payload = include_bytes!("../../examples/image_layout/patches/ebass.lwp");
         filesystem.write_key_value(1, payload).unwrap();
         filesystem.write_key_value(2, payload).unwrap();
         filesystem.write_key_value(3, payload).unwrap();
@@ -339,7 +339,7 @@ mod tests {
             WeirdoFileSystem::new(storage, 0, 0x100000);
         filesystem.format();
 
-        let payload = include_bytes!("../examples/image_layout/samples/wav0.raw");
+        let payload = include_bytes!("../../examples/image_layout/samples/wav0.raw");
         let result = filesystem.write_key_value(800, payload).unwrap();
          let result = filesystem.write_key_value(801, payload).unwrap();
 
@@ -356,7 +356,7 @@ mod tests {
             WeirdoFileSystem::new(storage, 0, 0x100000);
         filesystem.format();
 
-        let payload = include_bytes!("../examples/image_layout/patches/ebass.lwp");
+        let payload = include_bytes!("../../examples/image_layout/patches/ebass.lwp");
         filesystem.write_key_value(1, payload).unwrap();
         filesystem.write_key_value(2, payload).unwrap();
         filesystem.write_key_value(3, payload).unwrap();

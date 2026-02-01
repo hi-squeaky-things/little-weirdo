@@ -1,19 +1,20 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
-use little_weirdo::synth::sampler::{BoxedSample, BoxedSamples};
-use little_weirdo::synth::{
-    self,
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
-};
+use little_weirdo::sampler;
+
+use little_weirdo::sampler::audio_sampler::{BoxedSample, BoxedSamples};
 use midi_control::{self, MidiMessage};
 use midir;
+use std::fs::read_dir;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::TryRecvError;
 use std::{
     fs,
     sync::{mpsc, Arc},
 };
+
+
 
 fn main() {
     // Initialize MIDI input with a client name
@@ -36,43 +37,38 @@ fn main() {
 
     // Define error callback for audio stream
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
-
-    // Create a collection of wavetables and load them from files
-    let mut wt_on_heap = BoxedWavetables::new();
-    for id in 0..10 {
-        let filename = format!(
-            "examples/soundbank/soundbank_pure_elektro/src/wav{}.raw",
-            id
-        );
-        let contents = fs::read(filename).unwrap();
-        let bytes: &[u8] = &contents;
-        wt_on_heap.add(BoxedWavetable::new(bytes));
-    }
-    // Wrap wavetables in an Arc for thread-safe sharing
-    let wt = Arc::new(wt_on_heap);
-
      // Create a collection of samples and load them from files
-    let mut samples_on_heap = BoxedSamples::new();
-    for id in 0..2 {
-        let filename = format!(
-            "examples/soundbank/soundbank_samples/src/wav{}.raw",
-            id
-        );
-        let contents = fs::read(filename).unwrap();
+
+      // Read directory entries and collect them into a vector
+      let path = "./examples/image_layout/samples".to_string();
+    let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
+
+    // Sort directory entries by filename for consistent processing
+    paths.sort_by_key(|dir| dir.file_name());
+
+       let mut samples_on_heap = BoxedSamples::new();
+
+ for entry in paths {
+        let path = entry.path();
+        if path.is_file() {
+            println!("{:?}", path.file_name());
+             let contents = fs::read(path).unwrap();
         let bytes: &[u8] = &contents;
         samples_on_heap.add(BoxedSample::new(bytes));
+
+        }
     }
+
+    
     // Wrap wavetables in an Arc for thread-safe sharing
     let samples = Arc::new(samples_on_heap);
 
 
 
 
-    // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("patches/piano.json")).unwrap();
-
+  
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt), Arc::clone(&samples));
+    let mut synth: sampler::Sampler = sampler::Sampler::new(44100, Arc::clone(&samples));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -156,7 +152,7 @@ fn setup_device() -> (Device, StreamConfig) {
 }
 
 /// Processes MIDI messages and updates the synthesizer state
-fn process_midimessage(synth: &mut synth::Synth, command: MidiMessage) {
+fn process_midimessage(synth: &mut sampler::Sampler, command: MidiMessage) {
     match command {
         // Handle note-on messages
         MidiMessage::NoteOn(_ch, e) => synth.note_on(e.key, e.value),

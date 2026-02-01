@@ -1,12 +1,10 @@
-use super::Clockable;
 
 extern crate alloc;
 use alloc::{vec::Vec, sync::Arc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
-pub struct SamplerConfig {
-}
+use crate::synth::Clockable;
+
 
 
 // Struct that holds multiple boxed wavetables
@@ -69,7 +67,7 @@ impl BoxedSample {
 }
 
 /// A sampler that plays back audio samples at different speeds.
-pub struct Sampler {
+pub struct AudioSampler {
     voice_id: u8,
     /// Reference to the underlying audio sample data.
     sampler: Arc<BoxedSamples>,
@@ -86,7 +84,7 @@ pub struct Sampler {
     open: bool,
 }
 
-impl Clockable for Sampler {
+impl Clockable for AudioSampler {
     /// Processes one clock cycle of the sampler.
     /// 
     /// Advances the playback position based on the configured speed and increment,
@@ -109,10 +107,10 @@ impl Clockable for Sampler {
     }
 }
 
-impl Sampler {
+impl AudioSampler {
     /// Creates a new sampler instance with the given sample rate and audio data.
     pub fn new(_sample_rate: u16, voice_id:u8, sampler: Arc<BoxedSamples>) -> Self {
-        Sampler {
+        AudioSampler {
             sampler,
             voice_id,
             counter: 0,
@@ -129,6 +127,11 @@ impl Sampler {
             self.open = true;
     }
 
+    pub fn close_gate(&mut self) {
+         /*   self.counter = 0;
+            self.open = false;*/
+    }
+  
     /// Changes the playback frequency by adjusting speed and increment values.
     /// 
     /// This method maps specific frequencies to corresponding speed and increment settings
