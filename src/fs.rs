@@ -95,6 +95,7 @@ const OFFSET_ADDRESS_SIZE: u8 = 0x03;
 const OFFSET_ADDRESS_NEXT: u8 = 0x05;
 const OFFSET_ADDRESS_PAYLOAD: u8 = 0x07;
 const MAX_KEY_ID: u16 = 999;
+const BLOCK_SIZE: u16 = 2048;
 
 impl<T> WeirdoFileSystem<T>
 where
@@ -107,8 +108,8 @@ where
             size,
             empty_block: 0,
             total_blocks: 0,
-            block_size: 2048,
-            payload_size: 2048 - OFFSET_ADDRESS_PAYLOAD as u16,
+            block_size: BLOCK_SIZE,
+            payload_size: BLOCK_SIZE - OFFSET_ADDRESS_PAYLOAD as u16,
         };
         new_fs.build_cache();
         new_fs
