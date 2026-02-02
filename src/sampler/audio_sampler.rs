@@ -38,7 +38,6 @@ impl BoxedSamples {
 
 
 /// A boxed sample containing audio data as a vector of 16-bit signed integers.
-/// TODO: Work in Progress, not enabled yet.
 #[derive(Clone)]
 pub struct BoxedSample {
     /// The actual audio sample data.
