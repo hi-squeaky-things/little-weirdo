@@ -339,7 +339,7 @@ mod tests {
             WeirdoFileSystem::new(storage, 0, 0x100000);
         filesystem.format();
 
-        let payload = include_bytes!("../../examples/image_layout/samples/wav0.raw");
+        let payload = include_bytes!("../../examples/image_layout/samples/0_Kick 808 Thud.raw");
         let result = filesystem.write_key_value(800, payload).unwrap();
          let result = filesystem.write_key_value(801, payload).unwrap();
 

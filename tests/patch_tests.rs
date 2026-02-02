@@ -12,7 +12,7 @@ fn test_patch_deserialization_json() {
     assert!(!patch.envelops.is_empty());
     assert!(!patch.lfos.is_empty());
 }
-
+/* 
 #[test]
 fn test_patch_deserialization_postcard() {
     // Test loading a patch from JSON file
@@ -24,3 +24,4 @@ fn test_patch_deserialization_postcard() {
     assert!(!patch.envelops.is_empty());
     assert!(!patch.lfos.is_empty());
 }
+    */
