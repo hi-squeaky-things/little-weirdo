@@ -40,7 +40,7 @@ fn main() {
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..10 {
         let filename = format!(
-            "examples/soundbank/soundbank_pure_elektro/src/wav{}.raw",
+            "examples/soundbank/waveforms/src/wav{}.raw",
             id
         );
         let contents = fs::read(filename).unwrap();
@@ -55,7 +55,7 @@ fn main() {
 
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("patches/piano.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/ebass.json")).unwrap();
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt));

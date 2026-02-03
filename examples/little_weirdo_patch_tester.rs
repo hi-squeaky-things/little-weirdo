@@ -29,7 +29,7 @@ fn main() {
     // Load 10 wavetables from files
     for id in 0..10 {
         let filename = format!(
-            "examples/soundbank/soundbank_pure_elektro/src/wav{}.raw",
+            "examples/soundbank/waveforms/src/wav{}.raw",
             id
         );
         let contents = fs::read(filename).unwrap(); // Read file contents
@@ -42,7 +42,7 @@ fn main() {
 
     // Load a synth patch from a JSON file
     let patch =
-        serde_json::from_slice(include_bytes!("patches/supersaw_4_oscillators.json")).unwrap();
+        serde_json::from_slice(include_bytes!("soundbank/patches/supersaw_4_oscillators.json")).unwrap();
 
     // Create a new synthesizer instance with specified parameters
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
