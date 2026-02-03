@@ -5,7 +5,7 @@ use little_weirdo::synth::patch::Patch;
 fn test_patch_deserialization_json() {
     // Test loading a patch from JSON file
     let patch: Patch =
-        serde_json::from_slice(include_bytes!("../examples/patches/bass.json")).unwrap();
+        serde_json::from_slice(include_bytes!("../examples/soundbank/patches/bass.json")).unwrap();
 
     // Verify the patch was loaded successfully
     assert!(!patch.voices.is_empty());

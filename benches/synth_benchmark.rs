@@ -15,7 +15,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     // Load 10 wavetables from files
     for id in 0..10 {
         let filename = format!(
-            "examples/soundbank/soundbank_pure_elektro/src/wav{}.raw",
+            "examples/soundbank/waveforms/src/wav{}.raw",
             id
         );
         let contents = fs::read(filename).unwrap(); // Read file contents
@@ -27,7 +27,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let wt = Arc::new(wt_on_heap);
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("../examples/patches/bass.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("../examples/soundbank/patches/bass.json")).unwrap();
 
     // Create a new synthesizer instance with specified parameters
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
