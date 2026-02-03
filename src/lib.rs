@@ -56,6 +56,3 @@
 ///
 pub mod synth;
 pub mod sampler;
-
-// TODO: move to a new project, to make is generic crate
-pub mod fs;

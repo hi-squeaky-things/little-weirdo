@@ -1,7 +1,6 @@
 
 extern crate alloc;
 use alloc::{vec::Vec, sync::Arc};
-use serde::{Deserialize, Serialize};
 
 use crate::synth::Clockable;
 

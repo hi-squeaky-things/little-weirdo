@@ -1,5 +1,5 @@
 use little_weirdo::synth::patch::Patch;
-use postcard;
+//use postcard;
 
 #[test]
 fn test_patch_deserialization_json() {
