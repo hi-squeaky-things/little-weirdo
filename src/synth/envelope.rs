@@ -110,7 +110,7 @@ impl Clockable for EnvelopeGenerator {
                     self.transistion_state(EnvelopeState::Idle);
                     self.cumalative_time_ticks_for_one_phase = 0;
                 } else {
-                    //TODO: weird fix. need better investigation, probably some rounding issue.
+                    //TODO: Weird fix. need better investigation, probably some rounding issue.
                     if self.cumulative_time_tick / self.amout_of_time_ticks_needed_for_one_percent_increase < 101 {
                         output = math::percentage(
                             self.release_level as i16,
