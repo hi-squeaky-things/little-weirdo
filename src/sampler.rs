@@ -16,6 +16,8 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 /// Main synthesizer struct that handles audio generation
 pub struct Sampler {
     sampler_voices: [AudioSampler; AMOUNT_OF_VOICES],
+     /// Array tracking active notes
+    active_note: [u8; AMOUNT_OF_VOICES],
 }
 
 ///
@@ -34,6 +36,7 @@ impl Sampler {
     pub fn new(sample_rate: u16, samples: alloc::sync::Arc<audio_sampler::BoxedSamples>) -> Self {
         Self {
             sampler_voices: Sampler::init_sampler_voices(sample_rate, Arc::clone(&samples)),
+            active_note: [0; AMOUNT_OF_VOICES],
         }
     }
 
@@ -81,6 +84,7 @@ impl Sampler {
 
         let id = self.add_note(note);
         if id != 255 {
+            self.sampler_voices[id].set_note(note);
             self.sampler_voices[id].open_gate();
         }
     }
@@ -95,16 +99,35 @@ impl Sampler {
         }
     }
 
-    /// Add a note to the active notes list
+ /// Add a note to the active notes list
     /// Returns the index of the note in the active notes array, or 255 if no space
     fn add_note(&mut self, note: u8) -> usize {
-        note as usize - 35
+        match self.active_note.iter().position(|n| n == &note) {
+            Some(position) => position,
+            None => match self.active_note.iter().position(|n| n == &0) {
+                Some(position) => {
+                    if position < AMOUNT_OF_VOICES {
+                        self.active_note[position] = note;
+                       position
+                    } else {
+                        255
+                    }
+                }
+                None => 255,
+            },
+        }
     }
 
     /// Remove a note from the active notes list
     /// Returns the index of the note that was removed, or 255 if not found
     fn remove_note(&mut self, note: u8) -> usize {
-        note as usize - 35
+        match self.active_note.iter().position(|n| n == &note) {
+            Some(position) => {
+                self.active_note[position] = 0;
+                 position
+            }
+            None => 255,
+        }
     }
 
     ///

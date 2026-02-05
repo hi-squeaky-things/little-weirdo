@@ -66,9 +66,10 @@ impl BoxedSample {
 
 /// A sampler that plays back audio samples at different speeds.
 pub struct AudioSampler {
-    voice_id: u8,
     /// Reference to the underlying audio sample data.
     sampler: Arc<BoxedSamples>,
+
+    sample_id: u8,
     /// Current position in the audio sample data.
     counter: u32,
     /// Speed increment for advancing through the sample data.
@@ -80,6 +81,7 @@ pub struct AudioSampler {
     /// Last played sample value.
     last_sample: i16,
     open: bool,
+    length: u32,
 }
 
 impl Clockable for AudioSampler {
@@ -95,30 +97,37 @@ impl Clockable for AudioSampler {
         if self.delay > self.increment {
             self.delay = 0;
             self.counter += self.speed as u32;
-            if self.counter >= self.sampler.data[self.voice_id as usize].data.len() as u32 {
+            if self.counter >= self.length {
                 self.open = false;
                 self.counter = 0;
             }
         }
-        self.last_sample = self.sampler.data[self.voice_id as usize].data[self.counter as usize];
+        self.last_sample = self.sampler.data[self.sample_id as usize].data[self.counter as usize];
         self.last_sample
     }
 }
 
 impl AudioSampler {
     /// Creates a new sampler instance with the given sample rate and audio data.
-    pub fn new(_sample_rate: u16, voice_id:u8, sampler: Arc<BoxedSamples>) -> Self {
+    pub fn new(_sample_rate: u16, sample_id:u8, sampler: Arc<BoxedSamples>) -> Self {
         AudioSampler {
             sampler,
-            voice_id,
+            sample_id,
             counter: 0,
             increment: 0,
             speed: 1,
             delay: 0,
             last_sample: 0,
+            length: 0,
             open: false,
         }
     }
+
+    pub fn set_note(&mut self, note: u8) {
+        self.sample_id = note - 35;
+        self.length = self.sampler.data[ self.sample_id as usize].data.len() as u32;
+    }
+
     
     pub fn open_gate(&mut self) {
             self.counter = 0;
@@ -135,25 +144,6 @@ impl AudioSampler {
     /// This method maps specific frequencies to corresponding speed and increment settings
     /// to achieve desired pitch variations.
     pub fn change_freq(&mut self, freq: u16) {
-        match freq {
-            415 => {
-                self.speed = 2;
-                self.increment = 0;
-            }
-            440 => {
-                self.speed = 2;
-                self.increment = 2;
-            }
-            466 => {
-                self.speed = 1;
-                self.increment = 0;
-            }
-            493 => {
-                self.speed = 1;
-                self.increment = 2;
-            }
-            _ => {}
-        }
         self.counter = 0;
     }
 }
