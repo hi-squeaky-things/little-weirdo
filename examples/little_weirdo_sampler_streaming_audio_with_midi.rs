@@ -4,6 +4,7 @@ use cpal::{Device, Sample, StreamConfig};
 use little_weirdo::sampler;
 
 use little_weirdo::sampler::audio_sampler::{BoxedSample, BoxedSamples};
+use midi_control::consts::control_change::LEGATO_FOOTSWITCH;
 use midi_control::{self, MidiMessage};
 use midir;
 use std::fs::read_dir;
@@ -69,6 +70,25 @@ fn main() {
   
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: sampler::Sampler = sampler::Sampler::new(44100, Arc::clone(&samples));
+    let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new(44100, 120);
+    sequencer_1.set_lane_note(0, 35);
+    sequencer_1.set_lane_note(1, 37);
+
+    sequencer_1.set_step(0, 0);
+    sequencer_1.set_step(0, 4);
+    sequencer_1.set_step(0, 8);
+    sequencer_1.set_step(0, 12);
+
+    sequencer_1.set_step(1, 2);
+    sequencer_1.set_step(1, 6);
+    sequencer_1.set_step(1, 10);
+    sequencer_1.set_step(1, 14);
+
+    sequencer_1.start();
+        
+
+    
+    
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -102,6 +122,14 @@ fn main() {
                 for frame in data.chunks_mut(2) {
                     // Get the next sample from the synth
                     let output = synth.clock_and_output();
+
+                    let trigger_1 = sequencer_1.clock(); // Update the sequencer state (not currently used to trigger anything)
+                  
+                    for (i, &hit) in trigger_1.iter().enumerate() {
+                        if hit.0 {
+                            synth.note_on(hit.1, 100);
+                        }
+                    }
 
                     // Convert samples to f32 format
                     let left: f32 = Sample::from_sample(output[0]);
