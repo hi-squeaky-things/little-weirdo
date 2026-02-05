@@ -143,7 +143,7 @@ impl AudioSampler {
     /// 
     /// This method maps specific frequencies to corresponding speed and increment settings
     /// to achieve desired pitch variations.
-    pub fn change_freq(&mut self, freq: u16) {
+    pub fn change_freq(&mut self, _freq: u16) {
         self.counter = 0;
     }
 }
