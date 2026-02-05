@@ -8,7 +8,8 @@ pub struct Sequencer {
     lanes: [SequencerLane; AMOUNT_OF_LANES], // Array of lanes
     playing: bool,                     // Is the sequencer running?
     counter: u8,                       // Current step index
-    sample_acc: u32,                   // Sample accumulator for timing
+    sample_acc: u32,
+    samples_per_step: u32,                   // Sample accumulator for timing
 }
 
 /// Represents a single lane (e.g. drum voice)
@@ -28,6 +29,7 @@ impl Sequencer {
             playing: false,
             counter: 0,
             sample_acc: 0,
+            samples_per_step: 0,
         }
     }
 
@@ -64,6 +66,12 @@ impl Sequencer {
 
     /// Start the sequencer
     pub fn start(&mut self) {
+         // Calculate how many samples per step (16th note)
+        // samples per quarter note = sample_rate * 60 / bpm
+        // 16 steps per bar (4 beats), so each step is a 16th note = quarter note / 4
+        self.samples_per_step = ((self.sample_rate as u64 * 60) / (self.bpm as u64 * 4)).max(1) as u32;
+
+
        self.playing = true;
     }
 
@@ -80,16 +88,11 @@ impl Sequencer {
         if !self.playing { return [(false, 0); AMOUNT_OF_LANES]; }
         if self.bpm == 0 { return [(false, 0); AMOUNT_OF_LANES]; }
 
-        // Calculate how many samples per step (16th note)
-        // samples per quarter note = sample_rate * 60 / bpm
-        // 16 steps per bar (4 beats), so each step is a 16th note = quarter note / 4
-        let samples_per_step = ((self.sample_rate as u64 * 60) / (self.bpm as u64 * 4)).max(1) as u32;
-
         // Increment sample accumulator
         self.sample_acc = self.sample_acc.wrapping_add(1);
 
         // If enough samples have passed, advance to next step
-        if self.sample_acc >= samples_per_step {
+        if self.sample_acc >= self.samples_per_step {
             self.sample_acc = 0;
             let idx = (self.counter as usize) % AMOUNT_OF_STEPS;
             let mut hits = [(false, 0); AMOUNT_OF_LANES];

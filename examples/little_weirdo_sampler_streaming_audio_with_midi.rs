@@ -71,18 +71,32 @@ fn main() {
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: sampler::Sampler = sampler::Sampler::new(44100, Arc::clone(&samples));
     let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new(44100, 120);
-    sequencer_1.set_lane_note(0, 35);
-    sequencer_1.set_lane_note(1, 37);
+sequencer_1.set_lane_note(0, 35); // Kick drum
+sequencer_1.set_lane_note(1, 37); // Hi-hat
+sequencer_1.set_lane_note(2, 39); // Snare
 
+// Kick pattern (syncopated D&B style) - on 16th notes
     sequencer_1.set_step(0, 0);
-    sequencer_1.set_step(0, 4);
-    sequencer_1.set_step(0, 8);
-    sequencer_1.set_step(0, 12);
+    sequencer_1.set_step(0, 3);
+    sequencer_1.set_step(0, 6);
+    sequencer_1.set_step(0, 9);
+    sequencer_1.set_step(0, 11);
+    sequencer_1.set_step(0, 13);
 
-    sequencer_1.set_step(1, 2);
-    sequencer_1.set_step(1, 6);
-    sequencer_1.set_step(1, 10);
-    sequencer_1.set_step(1, 14);
+    // Hi-hat pattern (fast rolls) - on 16th notes
+    sequencer_1.set_step(1, 1);
+    sequencer_1.set_step(1, 3);
+    sequencer_1.set_step(1, 5);
+    sequencer_1.set_step(1, 7);
+    sequencer_1.set_step(1, 9);
+    sequencer_1.set_step(1, 11);
+    sequencer_1.set_step(1, 13);
+    sequencer_1.set_step(1, 15);
+
+    // Snare pattern (offbeat)
+   // sequencer_1.set_step(2, 4);
+   /// sequencer_1.set_step(2, 12);
+
 
     sequencer_1.start();
         
