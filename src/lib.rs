@@ -55,7 +55,13 @@
 /// The wave table synthesizer engine.
 ///
 pub mod synth;
+///
+/// The wave sampler engine.
+///
 pub mod sampler;
+///
+/// The sequencer engine.
+///
 pub mod sequencer;
 
 // TODO: Update the waveform data to use 1024 samples per waveform for better audio quality and more accurate representation of the waveforms. This will allow for smoother sound generation and improved performance in the synthesizer.

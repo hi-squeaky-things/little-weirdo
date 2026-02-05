@@ -1,5 +1,5 @@
-const AMOUNT_OF_STEPS: usize = 16; // Number of steps per lane (e.g. 16th notes in a bar)
-const AMOUNT_OF_LANES: usize = 4;  // Number of lanes (e.g. drum voices)
+pub const AMOUNT_OF_STEPS: usize = 16; // Number of steps per lane (e.g. 16th notes in a bar)
+pub const AMOUNT_OF_LANES: usize = 5;  // Number of lanes (e.g. drum voices)
 
 /// Main sequencer struct
 pub struct Sequencer {
@@ -24,7 +24,7 @@ impl Sequencer {
         Sequencer {
             sample_rate,
             bpm,
-            lanes: [SequencerLane { note: 35, steps: [false; AMOUNT_OF_STEPS] }; AMOUNT_OF_LANES],
+            lanes: [SequencerLane { note: 0, steps: [false; AMOUNT_OF_STEPS] }; AMOUNT_OF_LANES],
             playing: false,
             counter: 0,
             sample_acc: 0,
