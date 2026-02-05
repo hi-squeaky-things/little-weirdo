@@ -4,7 +4,7 @@
 //! // ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
 //! // ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
 //! //
-//! // #no-std optimized wave table synthesizer for embedded devices.
+//! // #no-std optimized wave table synthesizer, sampler and sequencer for embedded devices.
 //! ```
 //!
 //! Example usage:
