@@ -24,7 +24,7 @@ impl Delay {
     pub fn new(config: DelayConfiguration) -> Self {
         Delay {
             config,
-            buffer: VecDeque::with_capacity(44100),
+            buffer: VecDeque::with_capacity((config.delay_time * 2) as usize),
             delay_time: config.delay_time,
         }
     }
