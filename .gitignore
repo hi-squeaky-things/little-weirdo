@@ -6,4 +6,5 @@
 /docs/*.pdf
 .vscode
 *.bin
+*.json
 Cargo.lock

@@ -65,20 +65,8 @@ fn main() {
     // Wrap wavetables in an Arc for thread-safe sharing
     let samples = Arc::new(samples_on_heap);
 
-    let patch = Patch {
-        name: "test".to_string(),
-        overdrive_config: OverdriveConfiguration {
-            threshold: 500,
-            kind: KindOfOverdrive::Soft,
-            enabled: false,
-        },
-        bitcrunch_config: BitcrunchConfiguration { enabled: false },
-        delay_config: DelayConfiguration {
-            enabled: true,
-            delay_time: 2000,
-            mix: 50,
-        },
-    };
+    let patch = serde_json::from_slice(include_bytes!("soundbank/samples/patch.json")).unwrap();
+
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: sampler::Sampler = sampler::Sampler::new(44100, &patch, Arc::clone(&samples));
