@@ -14,7 +14,6 @@ pub struct DelayConfiguration {
     pub enabled: bool,
     pub delay_time: u16,
     pub mix_percentage: u8,
-    /// feedback = false --> chorus; feedback = true --> delay
     pub feedback: bool,
     pub feedback_percentage: u8
 }
