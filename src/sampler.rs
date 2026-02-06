@@ -75,17 +75,9 @@ impl Sampler {
             sound_mixing[0] = sound_mixing[0] + math::percentage(sampler_sample, 10);
         }
 
-        if self.bitcrunch.config.enabled {
-            sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
-        }
-
-        if self.overdrive.config.enabled {
-            sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
-        }
-
-         if self.delay.config.enabled {
-            sound_mixing[0] = self.delay.clock(sound_mixing[0]);
-        }
+        sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
+        sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
+        sound_mixing[0] = self.delay.clock(sound_mixing[0]);
 
         [sound_mixing[0], sound_mixing[0]]
     }

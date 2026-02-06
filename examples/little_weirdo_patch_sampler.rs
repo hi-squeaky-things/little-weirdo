@@ -15,8 +15,10 @@ fn main() {
         },
         delay_config: DelayConfiguration {
             enabled: true,
-            delay_time: 1750,
-            mix: 50,
+            delay_time: 4000,
+            feedback: true,
+            mix_percentage: 70,
+            feedback_percentage: 70,
         },
     };
     let output = serde_json::to_string(&patch);

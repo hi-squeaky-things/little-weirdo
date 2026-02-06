@@ -11,7 +11,9 @@ use alloc::collections::VecDeque;
 pub struct DelayConfiguration {
     pub enabled: bool,
     pub delay_time: u16,
-    pub mix: u8,
+    pub mix_percentage: u8,
+    pub feedback: bool,
+    pub feedback_percentage: u8
 }
 
 pub struct Delay {
@@ -32,15 +34,20 @@ impl Delay {
 
 impl Effect for Delay {
     fn clock(&mut self, sample: i16) -> i16 {
-        // 8-bit style: reduce to 8-bit range (0-255) then scale back to i16 range
         if self.config.enabled {
-            self.buffer.push_back(sample);
             if self.buffer.len() > self.delay_time as usize {
-                let sample_with_delay = sample +  math::percentage(self.buffer.pop_front().unwrap(), self.config.mix as i16);
+                let sample_with_delay = sample
+                    + math::percentage(self.buffer.pop_front().unwrap(), self.config.mix_percentage as i16);
+                if self.config.feedback {
+                    self.buffer.push_back( math::percentage(sample_with_delay,  self.config.feedback_percentage as i16));
+                } else {
+                    self.buffer.push_back(sample);
+                }
                 return sample_with_delay;
+            } else {
+                self.buffer.push_back(sample);
             }
         }
-
         sample
     }
 }

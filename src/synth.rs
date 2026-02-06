@@ -12,7 +12,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 
-use crate::{effects::{self, bitcrunch::Bitcrunch, overdrive::Overdrive}, math};
+use crate::{effects::{self, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive}, math};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -50,6 +50,9 @@ pub struct Synth {
     overdrive: Overdrive,
     /// Bitcrunch effect for digital degradation
     bitcrunch: Bitcrunch,
+
+    /// Delay effect
+    delay: Delay,
     /// Mixer for combining audio signals
     mixer: Mixer,
     /// Velocity of the currently playing note
@@ -86,6 +89,7 @@ impl Synth {
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
+            delay: Delay::new(patch.delay_config),
             router: Router::new(patch.routering_config),
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
@@ -245,6 +249,8 @@ impl Synth {
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
+        sound_mixing[0] = self.delay.clock(sound_mixing[0]);
+        
         [sound_mixing[0], sound_mixing[0]]
     }
 

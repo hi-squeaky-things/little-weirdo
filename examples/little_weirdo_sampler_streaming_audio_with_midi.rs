@@ -77,13 +77,15 @@ fn main() {
 
     // Kick pattern (syncopated D&B style) - on 16th notes
     sequencer_1.set_step(0, 0);
-    sequencer_1.set_step(0, 1);
+   sequencer_1.set_step(0, 5);
+  
+    //sequencer_1.set_step(0, 1);
 
-    sequencer_1.set_step(0, 3);
-    sequencer_1.set_step(0, 6);
-    sequencer_1.set_step(0, 9);
-    sequencer_1.set_step(0, 11);
-    sequencer_1.set_step(0, 13);
+    //sequencer_1.set_step(0, 3);
+    //sequencer_1.set_step(0, 6);
+   // sequencer_1.set_step(0, 9);
+ //   sequencer_1.set_step(0, 11);
+//    sequencer_1.set_step(0, 13);
 
     // Hi-hat pattern (fast rolls) - on 16th notes
     /*

@@ -2,6 +2,8 @@
 extern crate alloc;
 use alloc::string::String;
 
+use crate::effects::delay::DelayConfiguration;
+
 use super::effects::bitcrunch::BitcrunchConfiguration;
 use super::{
     effects::{filter::FilterConfig, overdrive::OverdriveConfiguration},
@@ -37,6 +39,7 @@ pub struct Patch {
     pub mixer_config: MixerConfiguration,
     pub overdrive_config: OverdriveConfiguration,
     pub bitcrunch_config: BitcrunchConfiguration,
+    pub delay_config: DelayConfiguration,
     pub routering_config: RoutingConfiguration,
     pub synth_config: SynthConfiguration,
 }
