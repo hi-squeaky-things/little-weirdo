@@ -52,12 +52,12 @@
 //! ```
 
 ///
-/// The Little Weirdo waveform (table) based additive synthesizer.
+/// The Little Weirdo waveform (table) based subtractive synthesizer.
 ///
 pub mod synth;
 
 ///
-/// The Little Weirdo sampler based additive synthesizer.
+/// The Little Weirdo sampler based subtractive synthesizer.
 ///
 pub mod wave_synth;
 
@@ -65,7 +65,6 @@ pub mod wave_synth;
 /// The Little Weirdo sampler.
 ///
 pub mod sampler;
-
 
 ///
 /// The Little Weirdo step-sequencer
@@ -78,6 +77,9 @@ pub mod sequencer;
 ///
 pub mod effects;
 
+///
+/// Math helper functions optimized for embedded devices with no FPU
+/// 
 pub mod math;
 
 // TODO: Update the waveform data to use 1024 samples per waveform for better audio quality and more accurate representation of the waveforms. This will allow for smoother sound generation and improved performance in the synthesizer.

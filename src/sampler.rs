@@ -2,10 +2,11 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    math, sampler::audio_sampler::AudioSampler, synth::Clockable
+    effects::{Effect, bitcrunch::Bitcrunch, overdrive::{Overdrive, OverdriveConfiguration}}, math, sampler::{audio_sampler::AudioSampler, patch::Patch}, synth::Clockable
 };
 
 pub mod audio_sampler;
+pub mod patch;
 
 /// Number of voices available in the samplers
 pub const AMOUNT_OF_VOICES: usize = 5;
@@ -17,6 +18,8 @@ pub struct Sampler {
     sampler_voices: [AudioSampler; AMOUNT_OF_VOICES],
      /// Array tracking active notes
     active_note: [u8; AMOUNT_OF_VOICES],
+    overdrive: Overdrive,
+    bitcrunch: Bitcrunch,
 }
 
 ///
@@ -32,10 +35,13 @@ impl Sampler {
     ///
     /// # Returns
     /// A new `Synth` instance with the specified configuration.
-    pub fn new(sample_rate: u16, samples: alloc::sync::Arc<audio_sampler::BoxedSamples>) -> Self {
+    pub fn new(sample_rate: u16, patch: &Patch, samples: alloc::sync::Arc<audio_sampler::BoxedSamples>) -> Self {
+      
         Self {
             sampler_voices: Sampler::init_sampler_voices(sample_rate, Arc::clone(&samples)),
             active_note: [0; AMOUNT_OF_VOICES],
+            overdrive: Overdrive::new(patch.overdrive_config),
+            bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
         }
     }
 
@@ -65,6 +71,14 @@ impl Sampler {
             let mut sampler_sample = self.sampler_voices[i].clock(None);
             sampler_sample = math::percentage(sampler_sample, 100);
             sound_mixing[0] = sound_mixing[0] + math::percentage(sampler_sample, 10);
+        }
+
+        if self.bitcrunch.config.enabled {
+            sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
+        }
+
+        if self.overdrive.config.enabled {
+            sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         }
 
         [sound_mixing[0], sound_mixing[0]]

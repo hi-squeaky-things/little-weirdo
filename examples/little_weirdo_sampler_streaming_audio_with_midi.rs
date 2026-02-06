@@ -1,9 +1,13 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
+use little_weirdo::effects::bitcrunch::BitcrunchConfiguration;
+use little_weirdo::effects::filter::FilterConfig;
+use little_weirdo::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use little_weirdo::sampler;
 
 use little_weirdo::sampler::audio_sampler::{BoxedSample, BoxedSamples};
+use little_weirdo::sampler::patch::Patch;
 use midi_control::consts::control_change::LEGATO_FOOTSWITCH;
 use midi_control::{self, MidiMessage};
 use midir;
@@ -65,11 +69,21 @@ fn main() {
     let samples = Arc::new(samples_on_heap);
 
 
-
+    let patch = Patch {
+        name: "test".to_string(),
+        overdrive_config: OverdriveConfiguration { 
+            threshold: 500, 
+            kind: KindOfOverdrive::Soft, 
+            enabled: false
+        },
+        bitcrunch_config: BitcrunchConfiguration {
+            enabled: true
+        }
+    };
 
   
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: sampler::Sampler = sampler::Sampler::new(44100, Arc::clone(&samples));
+    let mut synth: sampler::Sampler = sampler::Sampler::new(44100, &patch, Arc::clone(&samples));
     let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new(44100, 120);
 sequencer_1.set_lane_note(0, 35); // Kick drum
 sequencer_1.set_lane_note(1, 37); // Hi-hat
@@ -77,6 +91,8 @@ sequencer_1.set_lane_note(2, 39); // Snare
 
 // Kick pattern (syncopated D&B style) - on 16th notes
     sequencer_1.set_step(0, 0);
+    sequencer_1.set_step(0, 1);
+
     sequencer_1.set_step(0, 3);
     sequencer_1.set_step(0, 6);
     sequencer_1.set_step(0, 9);
@@ -91,6 +107,8 @@ sequencer_1.set_lane_note(2, 39); // Snare
     sequencer_1.set_step(1, 9);
     sequencer_1.set_step(1, 11);
     sequencer_1.set_step(1, 13);
+    sequencer_1.set_step(1, 14);
+    
     sequencer_1.set_step(1, 15);
 
     // Snare pattern (offbeat)

@@ -23,6 +23,7 @@ impl Effect for Bitcrunch {
     fn clock(&mut self, sample: i16) -> i16 {
         // 8-bit style: reduce to 8-bit range (0-255) then scale back to i16 range
         if self.config.enabled {
+            //TODO: use math function to speed up divion
             return (sample / 256) * 256;
         }
         sample
