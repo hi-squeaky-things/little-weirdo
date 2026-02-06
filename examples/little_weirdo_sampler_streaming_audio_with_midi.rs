@@ -20,8 +20,6 @@ use std::{
     sync::{mpsc, Arc},
 };
 
-
-
 fn main() {
     // Initialize MIDI input with a client name
     let midi_input = midir::MidiInput::new("MIDITest").unwrap();
@@ -43,59 +41,53 @@ fn main() {
 
     // Define error callback for audio stream
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
-     // Create a collection of samples and load them from files
+    // Create a collection of samples and load them from files
 
-      // Read directory entries and collect them into a vector
-      let path = "./examples/soundbank/samples/src".to_string();
+    // Read directory entries and collect them into a vector
+    let path = "./examples/soundbank/samples/src".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
 
     // Sort directory entries by filename for consistent processing
     paths.sort_by_key(|dir| dir.file_name());
 
-       let mut samples_on_heap = BoxedSamples::new();
+    let mut samples_on_heap = BoxedSamples::new();
 
- for entry in paths {
+    for entry in paths {
         let path = entry.path();
         if path.is_file() {
             println!("{:?}", path.file_name());
-             let contents = fs::read(path).unwrap();
-        let bytes: &[u8] = &contents;
-        samples_on_heap.add(BoxedSample::new(bytes));
-
+            let contents = fs::read(path).unwrap();
+            let bytes: &[u8] = &contents;
+            samples_on_heap.add(BoxedSample::new(bytes));
         }
     }
 
-    
     // Wrap wavetables in an Arc for thread-safe sharing
     let samples = Arc::new(samples_on_heap);
 
-
     let patch = Patch {
         name: "test".to_string(),
-        overdrive_config: OverdriveConfiguration { 
-            threshold: 500, 
-            kind: KindOfOverdrive::Soft, 
-            enabled: false
+        overdrive_config: OverdriveConfiguration {
+            threshold: 500,
+            kind: KindOfOverdrive::Soft,
+            enabled: false,
         },
-        bitcrunch_config: BitcrunchConfiguration {
-            enabled: false
-        },
+        bitcrunch_config: BitcrunchConfiguration { enabled: false },
         delay_config: DelayConfiguration {
             enabled: true,
-            delay_time: 200,
+            delay_time: 2000,
             mix: 50,
         },
     };
 
-  
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: sampler::Sampler = sampler::Sampler::new(44100, &patch, Arc::clone(&samples));
     let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new(44100, 120);
-sequencer_1.set_lane_note(0, 35); // Kick drum
-sequencer_1.set_lane_note(1, 37); // Hi-hat
-sequencer_1.set_lane_note(2, 39); // Snare
+    sequencer_1.set_lane_note(0, 35); // Kick drum
+    sequencer_1.set_lane_note(1, 37); // Hi-hat
+    sequencer_1.set_lane_note(2, 39); // Snare
 
-// Kick pattern (syncopated D&B style) - on 16th notes
+    // Kick pattern (syncopated D&B style) - on 16th notes
     sequencer_1.set_step(0, 0);
     sequencer_1.set_step(0, 1);
 
@@ -106,6 +98,7 @@ sequencer_1.set_lane_note(2, 39); // Snare
     sequencer_1.set_step(0, 13);
 
     // Hi-hat pattern (fast rolls) - on 16th notes
+    /*
     sequencer_1.set_step(1, 1);
     sequencer_1.set_step(1, 3);
     sequencer_1.set_step(1, 5);
@@ -114,19 +107,14 @@ sequencer_1.set_lane_note(2, 39); // Snare
     sequencer_1.set_step(1, 11);
     sequencer_1.set_step(1, 13);
     sequencer_1.set_step(1, 14);
-    
+
     sequencer_1.set_step(1, 15);
+    */
 
     // Snare pattern (offbeat)
-   // sequencer_1.set_step(2, 4);
-   /// sequencer_1.set_step(2, 12);
-
-
+    // sequencer_1.set_step(2, 4);
+    /// sequencer_1.set_step(2, 12);
     sequencer_1.start();
-        
-
-    
-    
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -162,7 +150,7 @@ sequencer_1.set_lane_note(2, 39); // Snare
                     let output = synth.clock_and_output();
 
                     let trigger_1 = sequencer_1.clock(); // Update the sequencer state (not currently used to trigger anything)
-                  
+
                     for (i, &hit) in trigger_1.iter().enumerate() {
                         if hit.0 {
                             synth.note_on(hit.1, 100);
