@@ -13,7 +13,7 @@ use std::{
     fs,
     sync::{mpsc, Arc},
 };
-
+ 
 fn main() {
     // Initialize MIDI input with a client name
     let midi_input = midir::MidiInput::new("MIDITest").unwrap();

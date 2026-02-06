@@ -156,9 +156,9 @@
     },
     "delay_config": {
         "enabled": true,
-        "delay_time": 5000,
-        "mix_percentage": 70,
-        "feedback": true,
+        "delay_time": 1500,
+        "mix_percentage": 100,
+        "feedback": false,
         "feedback_percentage": 70
     },
     "routering_config": {
