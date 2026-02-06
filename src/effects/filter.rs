@@ -1,8 +1,8 @@
 //! Lowpass filter implementation
 use serde::{Deserialize, Serialize};
 
-use crate::synth::effects::Effect;
-use crate::synth::math::{fx_mul, ifx_mul, ucfx_mul};
+use crate::effects::Effect;
+use crate::math::{fx_mul, ifx_mul, ucfx_mul};
 
 /// Types of filters available
 #[derive(Copy, Clone, Serialize, Deserialize)]

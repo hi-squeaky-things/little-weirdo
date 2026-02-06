@@ -2,7 +2,7 @@ use core::i16;
 
 use serde::{Deserialize, Serialize};
 
-use crate::synth::effects::Effect;
+use crate::effects::Effect;
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct BitcrunchConfiguration {

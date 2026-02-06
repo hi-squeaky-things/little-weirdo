@@ -52,16 +52,33 @@
 //! ```
 
 ///
-/// The wave table synthesizer engine.
+/// The Little Weirdo waveform (table) based additive synthesizer.
 ///
 pub mod synth;
+
 ///
-/// The wave sampler engine.
+/// The Little Weirdo sampler based additive synthesizer.
+///
+pub mod wave_synth;
+
+///
+/// The Little Weirdo sampler.
 ///
 pub mod sampler;
+
+
 ///
-/// The sequencer engine.
+/// The Little Weirdo step-sequencer
 ///
 pub mod sequencer;
 
+
+///
+/// The Little Weirdo effects
+///
+pub mod effects;
+
+pub mod math;
+
 // TODO: Update the waveform data to use 1024 samples per waveform for better audio quality and more accurate representation of the waveforms. This will allow for smoother sound generation and improved performance in the synthesizer.
+// TODO: Implement the sampler based additive synthesizer

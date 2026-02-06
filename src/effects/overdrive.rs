@@ -1,7 +1,7 @@
 //! Overdrive
 use serde::{Deserialize, Serialize};
 
-use crate::synth::effects::Effect;
+use crate::effects::Effect;
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum KindOfOverdrive {

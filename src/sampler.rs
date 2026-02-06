@@ -2,8 +2,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    sampler::audio_sampler::AudioSampler,
-    synth::{math, Clockable},
+    math, sampler::audio_sampler::AudioSampler, synth::Clockable
 };
 
 pub mod audio_sampler;

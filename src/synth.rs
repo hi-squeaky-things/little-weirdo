@@ -1,19 +1,18 @@
 pub mod data;
-pub mod effects;
 pub mod envelope;
-pub mod math;
 pub mod mixer;
 pub mod patch;
 pub mod router;
 pub mod wavetable_oscillator;
 use data::wavetables::BoxedWavetables;
-use effects::bitcrunch::Bitcrunch;
-use effects::{overdrive::Overdrive, Effect};
+use effects::Effect;
 use patch::SynthMode;
 use router::Router;
 extern crate alloc;
 use alloc::sync::Arc;
 
+
+use crate::{effects::{self, bitcrunch::Bitcrunch, overdrive::Overdrive}, math};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
