@@ -2,6 +2,7 @@
 pub mod overdrive;
 pub mod filter;
 pub mod bitcrunch;
+pub mod delay;
 
 
 pub trait Effect {

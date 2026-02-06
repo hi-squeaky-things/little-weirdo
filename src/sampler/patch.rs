@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
-use crate::effects::{bitcrunch::BitcrunchConfiguration, filter::FilterConfig, overdrive::OverdriveConfiguration};
+use crate::effects::{bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration, filter::FilterConfig, overdrive::OverdriveConfiguration};
 
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -12,4 +12,5 @@ pub struct Patch {
   //  pub filter_config: FilterConfig,
     pub overdrive_config: OverdriveConfiguration,
     pub bitcrunch_config: BitcrunchConfiguration,
+    pub delay_config: DelayConfiguration,
 }

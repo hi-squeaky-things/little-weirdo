@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{Effect, bitcrunch::Bitcrunch, overdrive::{Overdrive, OverdriveConfiguration}}, math, sampler::{audio_sampler::AudioSampler, patch::Patch}, synth::Clockable
+    effects::{Effect, bitcrunch::Bitcrunch, delay::{Delay, DelayConfiguration}, overdrive::{Overdrive, OverdriveConfiguration}}, math, sampler::{audio_sampler::AudioSampler, patch::Patch}, synth::Clockable
 };
 
 pub mod audio_sampler;
@@ -20,6 +20,7 @@ pub struct Sampler {
     active_note: [u8; AMOUNT_OF_VOICES],
     overdrive: Overdrive,
     bitcrunch: Bitcrunch,
+    delay: Delay,
 }
 
 ///
@@ -42,6 +43,7 @@ impl Sampler {
             active_note: [0; AMOUNT_OF_VOICES],
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
+            delay: Delay::new(patch.delay_config),
         }
     }
 
@@ -79,6 +81,10 @@ impl Sampler {
 
         if self.overdrive.config.enabled {
             sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
+        }
+
+         if self.delay.config.enabled {
+            sound_mixing[0] = self.delay.clock(sound_mixing[0]);
         }
 
         [sound_mixing[0], sound_mixing[0]]

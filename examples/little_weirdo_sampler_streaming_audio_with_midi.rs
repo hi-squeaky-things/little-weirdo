@@ -2,6 +2,7 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
 use little_weirdo::effects::bitcrunch::BitcrunchConfiguration;
+use little_weirdo::effects::delay::DelayConfiguration;
 use little_weirdo::effects::filter::FilterConfig;
 use little_weirdo::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
 use little_weirdo::sampler;
@@ -77,8 +78,13 @@ fn main() {
             enabled: false
         },
         bitcrunch_config: BitcrunchConfiguration {
-            enabled: true
-        }
+            enabled: false
+        },
+        delay_config: DelayConfiguration {
+            enabled: true,
+            delay_time: 200,
+            mix: 50,
+        },
     };
 
   
