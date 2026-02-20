@@ -9,7 +9,7 @@ pub mod audio_sampler;
 pub mod patch;
 
 /// Number of voices available in the samplers
-pub const AMOUNT_OF_VOICES: usize = 5;
+pub const AMOUNT_OF_VOICES: usize = 8;
 /// Number of output channels (stereo)
 pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
