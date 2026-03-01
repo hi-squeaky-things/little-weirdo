@@ -8,12 +8,12 @@
             "glide_rate": 200,
             "detune": 0,
             "freq_detune": 0,
-            "grains": false,
+            "grains": true,
             "grains_seq": [
                 0,
-                255,
-                255,
-                255,
+                0,
+                1,
+                1,
                 255,
                 255,
                 255,
@@ -240,13 +240,13 @@
         "enabled": false
     },
     "bitcrunch_config": {
-        "enabled": false
+        "enabled": true
     },
     "delay_config": {
         "enabled": true,
         "delay_time": 5000,
         "mix_percentage": 70,
-        "feedback": false,
+        "feedback": true,
         "feedback_percentage": 70
     },
     "routering_config": {

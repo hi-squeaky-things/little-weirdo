@@ -55,7 +55,7 @@ fn main() {
 
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/ebass.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/supersaw_4_oscillators.json")).unwrap();
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt));
