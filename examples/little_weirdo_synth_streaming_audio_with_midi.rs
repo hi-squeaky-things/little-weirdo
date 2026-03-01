@@ -38,7 +38,7 @@ fn main() {
 
     // Create a collection of wavetables and load them from files
     let mut wt_on_heap = BoxedWavetables::new();
-    for id in 0..10 {
+    for id in 0..12 {
         let filename = format!(
             "examples/soundbank/waveforms/src/wav{}.raw",
             id

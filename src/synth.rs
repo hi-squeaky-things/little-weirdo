@@ -242,14 +242,16 @@ impl Synth {
             }
         }
 
-        // Apply filter to mixed signal
-        sound_mixing[0] = self.filter.clock(sound_mixing[0]);
-
+      
         // Apply final effects
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
         sound_mixing[0] = self.delay.clock(sound_mixing[0]);
+
+        // Apply filter to mixed signal
+        sound_mixing[0] = self.filter.clock(sound_mixing[0]);
+
         
         [sound_mixing[0], sound_mixing[0]]
     }

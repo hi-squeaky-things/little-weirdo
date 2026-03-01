@@ -1,69 +1,157 @@
 {
-    "$schema": "schema/lw_patch.json", 
-     "name": "supersaw",
+    "$schema": "schema/lw_patch.json",
+    "name": "supersaw",
     "voices": [
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": -2
+            "freq_detune": -2,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 2
+            "freq_detune": 2,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 4
+            "freq_detune": 4,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 10,
-            "freq_detune": 0
+            "freq_detune": 0,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 14,
-            "freq_detune": 0
+            "freq_detune": 0,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 18,
-            "freq_detune": 0
+            "freq_detune": 0,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         },
         {
             "soundbank_index": 1,
             "glide": false,
             "glide_rate": 200,
             "detune": 20,
-            "freq_detune": 0
+            "freq_detune": 0,
+            "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
         }
     ],
     "envelops": [
         {
             "attack_time": 1000,
             "decay_time": 100,
-            "release_time":500,
+            "release_time": 500,
             "sustain_level": 80
         },
         {
@@ -163,14 +251,14 @@
     },
     "routering_config": {
         "voices_to_envelop": [
-         0,
-         0,
-         0,
-         0,
-         0,
-         0,
-         0,
-         0
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
         ],
         "lfo_to_voice": [
             {

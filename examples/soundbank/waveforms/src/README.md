@@ -12,3 +12,5 @@
 | 7 | "07_AKWF_eorgan_0001.wav" | "wav7.lwt" | 600 | 1200 |
 | 8 | "08_AKWF_epiano_0001.wav" | "wav8.lwt" | 600 | 1200 |
 | 9 | "09_AKWF_overtone_0001.wav" | "wav9.lwt" | 600 | 1200 |
+| 10 | "CONTRA_BASS.wav" | "wav10.lwt" | 600 | 1200 |
+| 11 | "HST_SLAP_BASS.wav" | "wav11.lwt" | 600 | 1200 |

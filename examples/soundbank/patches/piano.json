@@ -7,56 +7,152 @@
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
        },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         },
         {
             "soundbank_index": 8,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
-            "freq_detune": 0
+            "freq_detune": 0,
+             "grains": false,
+            "grains_seq": [
+                0,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255,
+                255
+            ]
+
         }
     ],
     "envelops": [
