@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{Effect, bitcrunch::Bitcrunch, delay::{Delay, DelayConfiguration}, overdrive::{Overdrive, OverdriveConfiguration}}, math, sampler::{audio_sampler::AudioSampler, patch::Patch}, synth::Clockable
+    effects::{Effect, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive}, math, sampler::{audio_sampler::AudioSampler, patch::Patch}, synth::Clockable
 };
 
 pub mod audio_sampler;
@@ -153,7 +153,7 @@ impl Sampler {
     /// Check if the note is within the valid range (C0 to C8)
     /// Returns true if the note is outside the valid range
     fn range_safeguard(&mut self, note: u8) -> bool {
-        if !(35..=39).contains(&note) {
+        if !(36..=40).contains(&note) {
             return true;
         }
         false

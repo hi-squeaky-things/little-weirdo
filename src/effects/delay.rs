@@ -32,6 +32,12 @@ impl Delay {
             delay_time: config.delay_time,
         }
     }
+
+    pub fn reload(&mut self, config: DelayConfiguration) {
+        self.config = config;
+        self.delay_time = config.delay_time;
+    }
+
 }
 
 impl Effect for Delay {

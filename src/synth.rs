@@ -12,7 +12,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 
-use crate::{effects::{self, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive}, math};
+use crate::{effects::{self, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive}, math, synth::data::patches::{BoxedPatches, Patches}};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -61,6 +61,8 @@ pub struct Synth {
     active_note: [u8; AMOUNT_OF_VOICES],
     /// Current operating mode of the synthesizer
     mode: SynthMode,
+    ///
+    patches: Arc<BoxedPatches>
 }
 
 ///
@@ -78,9 +80,11 @@ impl Synth {
     /// A new `Synth` instance with the specified configuration.
     pub fn new(
         sample_rate: u16,
-        patch: &Patch,
+        patch_selected: u8,
+        patches: alloc::sync::Arc<BoxedPatches>,
         wavetables: alloc::sync::Arc<BoxedWavetables>
     ) -> Self {
+        let  patch = patches.get_patches_reference(patch_selected);
         Self {
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
@@ -94,6 +98,7 @@ impl Synth {
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
             mode: patch.synth_config.mode,
+            patches
         }
     }
 
@@ -151,20 +156,38 @@ impl Synth {
     /// # Arguments
     /// * `patch` - A `Patch` struct containing configuration data for the LttL Weirdo Wavetable Synthesizer engine.
     ///
-    pub fn load_patch(&mut self, patch: &Patch) {
+    pub fn load_patch(&mut self, patch_selected: u8) {
+
+
+        let patch = self.patches.get_patches_reference(patch_selected);
         self.mode = patch.synth_config.mode;
 
-        for i in 0..AMOUNT_OF_VOICES {
+         for i in 0..self.voices.len() {
             self.voices[i].reload(patch.voices[i]);
             self.envelops[i].reload(patch.envelops[i]);
         }
+         for i in 0..self.lfo.len() {
+            self.lfo[i].reload_lfo(patch.lfos[i]);
+        }
+
+
+        self.router.reload(patch.routering_config);
 
         //effects
         self.filter.reload(patch.filter_config);
         self.overdrive.reload(patch.overdrive_config);
+        self.delay.reload(patch.delay_config);
+        self.bitcrunch.reload(patch.bitcrunch_config);
 
         //mix
         self.mixer.reload(patch.mixer_config);
+    }
+
+    pub fn all_note_off(&mut self) {
+        self.active_note = [0; AMOUNT_OF_VOICES];
+         for i in 0..AMOUNT_OF_VOICES {
+            self.envelops[i].reset();
+        }
     }
 
     ///

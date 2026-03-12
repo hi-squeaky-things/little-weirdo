@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
-use crate::effects::{bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration, filter::FilterConfig, overdrive::OverdriveConfiguration};
+use crate::effects::{bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration, overdrive::OverdriveConfiguration};
 
 
 #[derive(Clone, Serialize, Deserialize)]

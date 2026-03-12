@@ -1,6 +1,7 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
+use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches, Patches};
 use little_weirdo::synth::{
     self,
     data::wavetables::{BoxedWavetable, BoxedWavetables},
@@ -38,7 +39,7 @@ fn main() {
 
     // Create a collection of wavetables and load them from files
     let mut wt_on_heap = BoxedWavetables::new();
-    for id in 0..12 {
+    for id in 0..55 {
         let filename = format!(
             "examples/soundbank/waveforms/src/wav{}.raw",
             id
@@ -55,10 +56,20 @@ fn main() {
 
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/supersaw_4_oscillators.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/granular.json")).unwrap();
+  
+      let patch_box = BoxedPatch::new(patch);
+      let mut patches = BoxedPatches::new();
+      patches.add(patch_box);
+
+      let patch =  patches.get_patches_reference(0);
+
+      let patches_heap = Arc::new(patches);
+
+
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: synth::Synth = synth::Synth::new(44100, &patch, Arc::clone(&wt));
+    let mut synth: synth::Synth = synth::Synth::new(44100,0, Arc::clone(&patches_heap), Arc::clone(&wt));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();

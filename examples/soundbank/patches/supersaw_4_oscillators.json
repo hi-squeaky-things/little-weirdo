@@ -14,8 +14,8 @@
                 0,
                 1,
                 1,
-                255,
-                255,
+                11,
+                11,
                 255,
                 255
             ]
@@ -199,8 +199,8 @@
     ],
     "lfos": [
         {
-            "soundbank_index": 4,
-            "time": 10
+            "soundbank_index": 0,
+            "time": 100
         },
         {
             "soundbank_index": 4,
@@ -240,7 +240,7 @@
         "enabled": false
     },
     "bitcrunch_config": {
-        "enabled": true
+        "enabled": false
     },
     "delay_config": {
         "enabled": true,
@@ -255,10 +255,10 @@
             0,
             0,
             0,
-            0,
-            0,
-            0,
-            0
+            1,
+            1,
+            1,
+            1
         ],
         "lfo_to_voice": [
             {
@@ -266,7 +266,7 @@
                     0,
                     1
                 ],
-                "enable": false
+                "enable": true
             },
             {
                 "voices": [

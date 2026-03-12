@@ -156,12 +156,25 @@ impl EnvelopeGenerator {
     /// Reloads the envelope configuration
     pub fn reload(&mut self, envelop: EnvelopConfiguration) {
         self.configuration = envelop;
+        self.reset();
     }
 
     /// Transitions the envelope to a new state and resets tick counter
     fn transistion_state(&mut self, state: EnvelopeState) {
         self.state = state;
         self.cumulative_time_tick = 0;
+    }
+
+    pub fn reset(&mut self) {
+            self.gate =  false;
+            self.state = EnvelopeState::Idle;
+            self.cumulative_time_tick =  0;
+            self.amout_of_time_ticks_needed_for_one_percent_increase =  0;
+            self.current_output_level_percentage =  0;
+            self.release_level =  0;
+            self.cumalative_time_ticks_for_one_phase =  0;
+            self.retrigger_level =  0;
+            self.gate_open_counter =  0;
     }
 
     /// Closes the gate signal, initiating release phase if configured

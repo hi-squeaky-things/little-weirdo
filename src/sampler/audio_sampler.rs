@@ -124,7 +124,7 @@ impl AudioSampler {
     }
 
     pub fn set_note(&mut self, note: u8) {
-        self.sample_id = note - 35;
+        self.sample_id = note - 36;
         self.length = self.sampler.data[ self.sample_id as usize].data.len() as u32;
     }
 

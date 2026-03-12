@@ -111,9 +111,10 @@ impl Clockable for WaveTableOscillator {
                     self.wavetable_pointer = self.config.grains_seq[self.grain_selector as usize];
 
                     // end of grains
-                    if  self.wavetable_pointer == 255 {
-                         self.grain_selector = 0;
-                         self.wavetable_pointer = self.config.grains_seq[self.grain_selector as usize];
+                    if self.wavetable_pointer == 255 {
+                        self.grain_selector = 0;
+                        self.wavetable_pointer =
+                            self.config.grains_seq[self.grain_selector as usize];
                     }
                 }
 
@@ -230,6 +231,48 @@ impl WaveTableOscillator {
     /// Reload configuration
     pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
         self.config = config;
+        self.phase = 0;
+        self.freq_changed = false;
+        self.target_freq = 440;
+        self.original_freq = 440;
+        self.current_freq = 440;
+        self.freq_step = 0;
+        self.last_output = 0;
+        self.speed_count = 0;
+        self.speed = 1;
+        self.wavetable_pointer = config.soundbank_index;
+        self.grain_selector = 0;
+
+        if self.config.grains {
+            self.wavetable_pointer = config.grains_seq[self.grain_selector as usize];
+        }
+        self.calculate_lookup_table();
+    }
+
+    pub fn reload_lfo(&mut self, config: WaveTableLoFreqOscillatorConfig) {
+        let new_config = WaveTableOscillatorConfig {
+            soundbank_index: config.soundbank_index,
+            glide: false,
+            glide_rate: 0,
+            detune: 0,
+            freq_detune: 0,
+            grains: false,
+            grains_seq: [0; 8],
+        };
+        self.phase = 0;
+        self.freq_changed = false;
+        self.target_freq = 440;
+        self.original_freq = 440;
+        self.current_freq = 440;
+        self.freq_step = 0;
+        self.last_output = 0;
+        self.speed_count = 0;
+        self.speed = 1;
+        self.wavetable_pointer = config.soundbank_index;
+        self.grain_selector = 0;
+        self.speed = 4 * config.time;
+        self.config = new_config;
+        self.calculate_lookup_table();
     }
 
     /// Manipulate frequency with percentage

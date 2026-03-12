@@ -17,6 +17,11 @@ impl Bitcrunch {
     pub fn new(config: BitcrunchConfiguration) -> Self {
         Bitcrunch { config }
     }
+
+    pub fn reload(&mut self, config: BitcrunchConfiguration) {
+        self.config = config;
+    }
+
 }
 
 impl Effect for Bitcrunch {
