@@ -154,7 +154,7 @@ impl Sampler {
         // Run and route voices through envelopes and apply gain
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = math::percentage(generate_voices[i], generate_env[i]);
-            generate_voices[i] = math::percentage(generate_voices[i], 10 as i16);
+            generate_voices[i] = math::percentage(generate_voices[i], 100 as i16);
             sound_mixing[0] += generate_voices[i];
         }
 

@@ -159,10 +159,10 @@ impl AudioSampler {
         };
         audio_sampler.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
         
-        if audio_sampler.one_shot {
-            audio_sampler.length = audio_sampler.sampler.data[audio_sampler.sample_id as usize].data.len() as u32;
+         if audio_sampler.one_shot {
+              audio_sampler.length = (audio_sampler.sampler.data[audio_sampler.sample_id as usize].data.len() / 2) as u32;
         } else {
-            audio_sampler.length = loop_start * 2;
+              audio_sampler.length = audio_sampler.loop_start as u32;
         }
       
 
@@ -186,7 +186,11 @@ impl AudioSampler {
         self.counter = 0.0;
         self.open = true;
         self.loop_is_started = false;
-        self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
+        if self.one_shot {
+              self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
+        } else {
+              self.length = self.loop_start as u32;
+        }
     }
 
     pub fn close_gate(&mut self) {
@@ -216,10 +220,15 @@ impl AudioSampler {
         self.is_drums = is_drum;
         self.sample_id = sample_id;
         self.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
-        self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
         self.loop_is_started = false;
         self.loop_start = loop_start;
         self.loop_end = loop_end;
         self.one_shot = one_shot;
+
+        if self.one_shot {
+              self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
+        } else {
+              self.length = self.loop_start as u32;
+        }
     }
 }
