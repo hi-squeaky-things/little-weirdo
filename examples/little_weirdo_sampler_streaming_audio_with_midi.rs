@@ -8,6 +8,7 @@ use little_weirdo::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration}
 use little_weirdo::sampler;
 
 use little_weirdo::sampler::audio_sampler::{BoxedSample, BoxedSamples};
+use little_weirdo::sampler::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
 use little_weirdo::sampler::patch::Patch;
 use midi_control::consts::control_change::LEGATO_FOOTSWITCH;
 use midi_control::{self, MidiMessage};
@@ -57,19 +58,25 @@ fn main() {
         if path.is_file() {
             println!("{:?}", path.file_name());
             let contents = fs::read(path).unwrap();
-            let bytes: &[u8] = &contents;
-            samples_on_heap.add(BoxedSample::new(bytes));
+           // let bytes: &[u8] = &contents;
+            samples_on_heap.add(BoxedSample::new(contents));
         }
     }
 
     // Wrap wavetables in an Arc for thread-safe sharing
     let samples = Arc::new(samples_on_heap);
 
-    let patch = serde_json::from_slice(include_bytes!("soundbank/samples/patch.json")).unwrap();
+
+    let mut patches_on_heap = BoxedSamplerPatches::new();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/samples/harp.json")).unwrap();
+    patches_on_heap.add(BoxedSamplerPatch::new(patch));
+
+    let patches = Arc::new(patches_on_heap);
+
 
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: sampler::Sampler = sampler::Sampler::new(44100, &patch, Arc::clone(&samples));
+    let mut synth: sampler::Sampler = sampler::Sampler::new(44100, 0, Arc::clone(&patches),Arc::clone(&samples));
     let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new();
     sequencer_1.set_lane_note(0, 35); // Kick drum
     sequencer_1.set_lane_note(1, 36); // Kick drum

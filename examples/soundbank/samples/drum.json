@@ -1,5 +1,7 @@
 {
     "name": "test",
+    "drums": true,
+    "sample_map": 0,
     "overdrive_config": {
         "threshold": 1000,
         "kind": "Softer",
