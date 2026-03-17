@@ -11,8 +11,11 @@ use router::Router;
 extern crate alloc;
 use alloc::sync::Arc;
 
-
-use crate::{effects::{self, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive}, math, synth::data::patches::{BoxedPatches, Patches}};
+use crate::{
+    effects::{self, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive},
+    math,
+    synth::data::patches::{BoxedPatches, Patches},
+};
 
 use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, patch::Patch};
 
@@ -62,7 +65,7 @@ pub struct Synth {
     /// Current operating mode of the synthesizer
     mode: SynthMode,
     ///
-    patches: Arc<BoxedPatches>
+    patches: Arc<BoxedPatches>,
 }
 
 ///
@@ -82,9 +85,9 @@ impl Synth {
         sample_rate: u16,
         patch_selected: u8,
         patches: alloc::sync::Arc<BoxedPatches>,
-        wavetables: alloc::sync::Arc<BoxedWavetables>
+        wavetables: alloc::sync::Arc<BoxedWavetables>,
     ) -> Self {
-        let  patch = patches.get_patches_reference(patch_selected);
+        let patch = patches.get_patches_reference(patch_selected);
         Self {
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&wavetables)),
             envelops: Synth::init_envs(sample_rate, patch),
@@ -98,7 +101,7 @@ impl Synth {
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
             mode: patch.synth_config.mode,
-            patches
+            patches,
         }
     }
 
@@ -131,8 +134,6 @@ impl Synth {
         voices
     }
 
-    
-
     /// Initialize Low-Frequency Oscillators with given parameters
     fn init_lfos(
         sample_rate: u16,
@@ -157,19 +158,16 @@ impl Synth {
     /// * `patch` - A `Patch` struct containing configuration data for the LttL Weirdo Wavetable Synthesizer engine.
     ///
     pub fn load_patch(&mut self, patch_selected: u8) {
-
-
         let patch = self.patches.get_patches_reference(patch_selected);
         self.mode = patch.synth_config.mode;
 
-         for i in 0..self.voices.len() {
+        for i in 0..self.voices.len() {
             self.voices[i].reload(patch.voices[i]);
             self.envelops[i].reload(patch.envelops[i]);
         }
-         for i in 0..self.lfo.len() {
+        for i in 0..self.lfo.len() {
             self.lfo[i].reload_lfo(patch.lfos[i]);
         }
-
 
         self.router.reload(patch.routering_config);
 
@@ -185,7 +183,7 @@ impl Synth {
 
     pub fn all_note_off(&mut self) {
         self.active_note = [0; AMOUNT_OF_VOICES];
-         for i in 0..AMOUNT_OF_VOICES {
+        for i in 0..AMOUNT_OF_VOICES {
             self.envelops[i].reset();
         }
     }
@@ -198,7 +196,7 @@ impl Synth {
     /// An array containing left and right channel samples
     fn clock(&mut self) -> [i16; 2] {
         // Pre-allocate arrays for generated signals
-        
+
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
@@ -245,7 +243,6 @@ impl Synth {
             sound_mixing[0] += generate_voices[i];
         }
 
-    
         // Stereo output (mono to stereo)
         sound_mixing[1] = sound_mixing[0];
 
@@ -265,7 +262,6 @@ impl Synth {
             }
         }
 
-      
         // Apply final effects
         sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
@@ -275,7 +271,6 @@ impl Synth {
         // Apply filter to mixed signal
         sound_mixing[0] = self.filter.clock(sound_mixing[0]);
 
-        
         [sound_mixing[0], sound_mixing[0]]
     }
 
@@ -285,7 +280,6 @@ impl Synth {
     /// * `note` - The MIDI note number (0-108)
     /// * `velocity` - The velocity of the note (0-127)
     pub fn note_on(&mut self, note: u8, velocity: u8) {
-
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {
             return;
@@ -362,6 +356,40 @@ impl Synth {
     ///
     pub fn clock_and_output(&mut self) -> [i16; 2] {
         self.clock()
+    }
+
+    /// Change the settings of all envelopes
+    ///
+    /// # Arguments
+    /// * `attack` - Optional attack time (0-255), defaults to current value
+    /// * `decay` - Optional decay time (0-255), defaults to current value
+    /// * `sustain` - Optional sustain level (0-255), defaults to current value
+    /// * `release` - Optional release time (0-255), defaults to current value
+    pub fn change_all_envelopes(
+        &mut self,
+        attack: Option<i16>,
+        decay: Option<i16>,
+        sustain: Option<i16>,
+        release: Option<i16>,
+    ) {
+        for i in 0..AMOUNT_OF_VOICES {
+            let mut config = self.envelops[i].configuration;
+
+            if let Some(val) = attack {
+                config.attack_time = val;
+            }
+            if let Some(val) = decay {
+                config.decay_time = val;
+            }
+            if let Some(val) = sustain {
+                config.sustain_level = val;
+            }
+            if let Some(val) = release {
+                config.release_time = val;
+            }
+
+            self.envelops[i].reload(config);
+        }
     }
 
     /// Change the main volume of the synthesizer
