@@ -1,5 +1,5 @@
 pub const AMOUNT_OF_STEPS: usize = 16; // Number of steps per lane (e.g. 16th notes in a bar)
-pub const AMOUNT_OF_LANES: usize = 5;  // Number of lanes (e.g. drum voices)
+pub const AMOUNT_OF_LANES: usize = 10;  // Number of lanes (e.g. drum voices)
 
 /// Main sequencer struct
 pub struct Sequencer {
@@ -12,7 +12,7 @@ pub struct Sequencer {
 #[derive(Copy, Clone)]
 pub struct SequencerLane {
     note: u8,                          // MIDI note number
-    steps: [bool; AMOUNT_OF_STEPS],    // Step triggers (true = play note)
+    pub steps: [bool; AMOUNT_OF_STEPS],    // Step triggers (true = play note)
 }
 
 impl Sequencer {
@@ -37,10 +37,11 @@ impl Sequencer {
         }
     }
 
-    pub fn flip_step(&mut self, lane: usize, step: usize) {
+    pub fn flip_step(&mut self, lane: usize, step: usize) ->  bool {
          if step < 16 && lane < AMOUNT_OF_LANES {
             self.lanes[lane].steps[step] = !self.lanes[lane].steps[step] 
         }
+         self.lanes[lane].steps[step]
     }
 
     /// Deactivate a step in a lane
@@ -50,6 +51,9 @@ impl Sequencer {
         }
     }
 
+    pub fn get_lane(&mut self, lane: usize) -> SequencerLane {
+        self.lanes[lane]
+    }
 
 
     /// Start the sequencer
