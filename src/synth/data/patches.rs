@@ -29,6 +29,10 @@ impl BoxedPatches {
     pub fn add(&mut self, wt: BoxedPatch) {
         self.data.push(wt);
     }
+
+    pub fn size(&mut self) -> usize {
+        self.data.len()
+    }
 }
 
 // Struct representing a single patch containing audio samples

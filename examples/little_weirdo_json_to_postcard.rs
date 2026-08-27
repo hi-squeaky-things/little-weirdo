@@ -5,7 +5,7 @@ use std::io::Write;
 
 fn main() {
     // Load a synth patch from a JSON file
-    let patch_dir = "examples/soundbank/patches";
+    let patch_dir = "examples/soundbank/patches/orginal";
 
     // Read all files from the patches directory
     let entries = fs::read_dir(patch_dir).expect("Failed to read directory");
