@@ -85,6 +85,9 @@ fn main() {
         println!("{:}", active_patch.name);
     // Create WAV writer to output audio data
     let mut writer = hound::WavWriter::create(format!("patch_{:}.wav", active_patch.name), spec).unwrap();
+        for _n in 0..SAMPLE_RATE/4 {
+            synth.clock_and_output();
+        }
 
         for note in 0..4 {
             // Turn on a note with velocity 100
@@ -93,7 +96,7 @@ fn main() {
             let mut total: f64 = 0.0; // Accumulator for RMS calculation
 
             // Generate audio samples for one second per note
-            for _n in 0..SAMPLE_RATE {
+            for _n in 0..SAMPLE_RATE/4 {
                 // Get output from synthesizer (stereo)
                 let output = synth.clock_and_output();
 
@@ -119,7 +122,7 @@ fn main() {
             synth.note_off(36 + note * 12);
 
             // Generate more samples while note is off (release phase)
-            for _n in 0..SAMPLE_RATE {
+            for _n in 0..SAMPLE_RATE/4 {
                 let output = synth.clock_and_output();
                 writer.write_sample(output[0]).unwrap();
             }
