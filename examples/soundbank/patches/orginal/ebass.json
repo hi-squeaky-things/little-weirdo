@@ -4,8 +4,8 @@
     "voices": [
         {
             "soundbank_index": 0,
-            "glide": false,
-            "glide_rate": 200,
+            "glide": true,
+            "glide_rate": 10,
             "detune": 0,
             "freq_detune": 0,
             "grains": false,
@@ -22,9 +22,9 @@
         },
         {
             "soundbank_index": 4,
-            "glide": false,
-            "glide_rate": 200,
-            "detune": 0,
+            "glide": true,
+            "glide_rate": 10,
+            "detune": 2,
             "freq_detune": 0,
             "grains": false,
             "grains_seq": [
@@ -216,7 +216,7 @@
         }
     ],
     "filter_config": {
-        "cutoff_frequency": 4000,
+        "cutoff_frequency": 5000,
         "resonance": 5000,
         "kind_of_filter": "Low",
         "enabled": false
@@ -240,13 +240,13 @@
         "enabled": false
     },
     "bitcrunch_config": {
-        "enabled": false
+        "enabled": true
     },
     "delay_config": {
-        "enabled": false,
-        "delay_time": 5000,
-        "mix_percentage": 60,
-        "feedback": false,
+        "enabled": true,
+        "delay_time": 3000,
+        "mix_percentage": 80,
+        "feedback": true,
         "feedback_percentage": 60
     },
     "routering_config": {

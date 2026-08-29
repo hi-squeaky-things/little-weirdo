@@ -18,6 +18,7 @@ use std::{
 fn main() {
     // Initialize MIDI input with a client name
     let midi_input = midir::MidiInput::new("MIDITest").unwrap();
+    println!("{:#}", midi_input.port_count());
 
     // Find the MIDI input port (IAC Driver)
     let device_port = find_port(&midi_input);
@@ -56,7 +57,7 @@ fn main() {
 
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/supersaw_4_oscillators.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/orginal/ebass.json")).unwrap();
   
       let patch_box = BoxedPatch::new(patch);
       let mut patches = BoxedPatches::new();
@@ -175,7 +176,7 @@ where
     for port in midi_io.ports() {
         if let Ok(port_name) = midi_io.port_name(&port) {
             // Check if port name contains "IAC Driver"
-            if port_name.contains("IAC Driver") {
+            if port_name.contains("IAC") {
                 device_port = Some(port);
                 break;
             }

@@ -216,7 +216,7 @@
         }
     ],
     "filter_config": {
-        "cutoff_frequency": 2000,
+        "cutoff_frequency": 5000,
         "resonance": 0,
         "kind_of_filter": "Low",
         "enabled": true
@@ -240,7 +240,7 @@
         "enabled": false
     },
     "bitcrunch_config": {
-        "enabled": false
+        "enabled": true
     },
     "delay_config": {
         "enabled": false,

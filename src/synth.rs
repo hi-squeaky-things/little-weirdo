@@ -286,7 +286,7 @@ impl Synth {
         };
         // Update the mixer velocity for this voice
         // TODO: Velocity is not used in a proper way, need fixing. Each voice need a velocity, not a general one.
-        self.velocity = velocity;
+        self.velocity = (velocity as u32 * 1_000 / 1_270) as u8;
 
         let divider = self.mode as usize;
 

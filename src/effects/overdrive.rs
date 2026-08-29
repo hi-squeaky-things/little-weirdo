@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::effects::Effect;
 
+// Different distortion curves applied once a signal exceeds the configured threshold.
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum KindOfOverdrive {
     Hard,
@@ -10,6 +11,7 @@ pub enum KindOfOverdrive {
     Softer,
 }
 
+// Runtime settings for the effect: when enabled and how aggressively it should clip.
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct OverdriveConfiguration {
     pub threshold: i16,
@@ -17,6 +19,7 @@ pub struct OverdriveConfiguration {
     pub enabled: bool,
 }
 
+// Effect instance holding the active configuration.
 pub struct Overdrive {
     pub config: OverdriveConfiguration,
 }
@@ -26,6 +29,7 @@ impl Overdrive {
         Self { config }
     }
 
+    // Replace the current settings without creating a new effect instance.
     pub fn reload(&mut self, config: OverdriveConfiguration) {
         self.config = config;
     }
@@ -33,36 +37,31 @@ impl Overdrive {
 
 impl Effect for Overdrive {
     fn clock(&mut self, sample: i16) -> i16 {
-        if !self.config.enabled {
+        let threshold = self.config.threshold;
+        let kind = self.config.kind;
+
+        // Ignore the effect when disabled or when the input is still within the threshold.
+        if !self.config.enabled || sample.abs() <= threshold {
             return sample;
         }
 
-        match self.config.kind {
-            KindOfOverdrive::Hard => {
-                if sample > self.config.threshold || -sample > self.config.threshold {
-                    if sample > 0 {
-                        return self.config.threshold;
-                    }
-                    return -self.config.threshold;
-                }
-            }
+        // Keep the sample sign and calculate the absolute magnitude for clipping math.
+        let sign = sample.signum();
+        let magnitude = sample.abs() as i32;
+
+        match kind {
+            // Hard clipping: flatten anything above the threshold to a fixed ceiling.
+            KindOfOverdrive::Hard => sign * threshold as i32 as i16,
+            // Soft clipping: compress the excess gradually before the threshold is reached.
             KindOfOverdrive::Soft => {
-                if sample > self.config.threshold || -sample > self.config.threshold {
-                    if sample > 0 {
-                        return (sample - self.config.threshold) / 2 + self.config.threshold;
-                    }
-                    return (sample + self.config.threshold) / 2 - self.config.threshold;
-                }
+                let value = ((magnitude - threshold as i32) / 2) + threshold as i32;
+                sign * value as i16
             }
+            // Softer clipping: more gentle compression than the standard soft mode.
             KindOfOverdrive::Softer => {
-                if sample > self.config.threshold || -sample > self.config.threshold {
-                    if sample > 0 {
-                        return (sample - self.config.threshold) / 8 + self.config.threshold;
-                    }
-                    return (sample + self.config.threshold) / 8 - self.config.threshold;
-                }
+                let value = ((magnitude - threshold as i32) / 8) + threshold as i32;
+                sign * value as i16
             }
         }
-        sample
     }
 }
