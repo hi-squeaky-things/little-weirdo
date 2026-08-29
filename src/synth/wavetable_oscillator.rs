@@ -104,10 +104,7 @@ impl Clockable for WaveTableOscillator {
             if self.phase == self.loop_end {
                 self.phase = 0;
                 if self.config.grains {
-                    self.grain_selector = self.grain_selector + 1;
-                    if self.grain_selector > 7 {
-                        self.grain_selector = 0;
-                    }
+                    self.grain_selector = (self.grain_selector + 1) & 0x7; // Fast modulo 8
                     self.wavetable_pointer = self.config.grains_seq[self.grain_selector as usize];
 
                     // end of grains
@@ -219,18 +216,16 @@ impl WaveTableOscillator {
         let sample_rate_expanded: u32 = self.sample_rate as u32 * 10_000;
         let one_loop: u32 = sample_rate_expanded / self.current_freq as u32;
         let one_step_loop: u32 = one_loop / 600;
-        let mut increase: u32 = 0;
         let steps: u16 = self.sample_rate / self.current_freq;
 
         for i in 0..steps {
-            self.lookup_table[i as usize] = (increase / one_step_loop) as u16;
-            increase += 10_000;
+            // Direct calculation: (i * 10_000) / one_step_loop
+            self.lookup_table[i as usize] = ((i as u32 * 10_000) / one_step_loop) as u16;
         }
     }
 
-    /// Reload configuration
-    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
-        self.config = config;
+    /// Reset internal state to default values
+    fn reset_state(&mut self) {
         self.phase = 0;
         self.freq_changed = false;
         self.target_freq = 440;
@@ -240,8 +235,14 @@ impl WaveTableOscillator {
         self.last_output = 0;
         self.speed_count = 0;
         self.speed = 1;
-        self.wavetable_pointer = config.soundbank_index;
         self.grain_selector = 0;
+    }
+
+    /// Reload configuration
+    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
+        self.config = config;
+        self.reset_state();
+        self.wavetable_pointer = config.soundbank_index;
 
         if self.config.grains {
             self.wavetable_pointer = config.grains_seq[self.grain_selector as usize];
@@ -259,17 +260,8 @@ impl WaveTableOscillator {
             grains: false,
             grains_seq: [0; 8],
         };
-        self.phase = 0;
-        self.freq_changed = false;
-        self.target_freq = 440;
-        self.original_freq = 440;
-        self.current_freq = 440;
-        self.freq_step = 0;
-        self.last_output = 0;
-        self.speed_count = 0;
-        self.speed = 1;
+        self.reset_state();
         self.wavetable_pointer = config.soundbank_index;
-        self.grain_selector = 0;
         self.speed = 4 * config.time;
         self.config = new_config;
         self.calculate_lookup_table();
