@@ -4,7 +4,7 @@
     "voices": [
         {
             "soundbank_index": 0,
-            "glide": false,
+            "glide": true,
             "glide_rate": 10,
             "detune": 0,
             "freq_detune": 0,
@@ -21,10 +21,10 @@
             ]
         },
         {
-            "soundbank_index": 4,
+            "soundbank_index": 1,
             "glide": false,
             "glide_rate": 10,
-            "detune": 2,
+            "detune": 0,
             "freq_detune": 0,
             "grains": false,
             "grains_seq": [
@@ -39,7 +39,7 @@
             ]
         },
           {
-            "soundbank_index": 0,
+            "soundbank_index": 23,
             "glide": false,
             "glide_rate": 10,
             "detune": 0,
@@ -60,7 +60,7 @@
             "soundbank_index": 4,
             "glide": false,
             "glide_rate": 10,
-            "detune": 2,
+            "detune": 0,
             "freq_detune": 0,
             "grains": false,
             "grains_seq": [
@@ -76,7 +76,7 @@
         },
             {
             "soundbank_index": 0,
-            "glide": false,
+            "glide": true,
             "glide_rate": 10,
             "detune": 0,
             "freq_detune": 0,
@@ -93,10 +93,10 @@
             ]
         },
         {
-            "soundbank_index": 4,
+            "soundbank_index": 1,
             "glide": false,
             "glide_rate": 10,
-            "detune": 2,
+            "detune": 0,
             "freq_detune": 0,
             "grains": false,
             "grains_seq": [
@@ -111,7 +111,7 @@
             ]
         },
            {
-            "soundbank_index": 0,
+            "soundbank_index": 23,
             "glide": false,
             "glide_rate": 10,
             "detune": 0,
@@ -132,7 +132,7 @@
             "soundbank_index": 4,
             "glide": false,
             "glide_rate": 10,
-            "detune": 2,
+            "detune": 0,
             "freq_detune": 0,
             "grains": false,
             "grains_seq": [
@@ -149,51 +149,51 @@
     ],
     "envelops": [
         {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
       {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
       {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
     {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
            {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
            {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
            {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         },
           {
-            "attack_time": 5,
+            "attack_time": 60,
             "decay_time": 20,
-            "release_time": 20,
+            "release_time": 150,
             "sustain_level": 90
         }
     ],
@@ -216,20 +216,20 @@
         }
     ],
     "filter_config": {
-        "cutoff_frequency": 5000,
-        "resonance": 5000,
+        "cutoff_frequency": 3500,
+        "resonance": 0,
         "kind_of_filter": "Low",
-        "enabled": false
+        "enabled": true
     },
     "mixer_config": {
         "gain_voices": [
-            10,
-            10,
-            0,
-            0,
-            10,
+            15,
+            15,
             10,
             0,
+            15,
+            15,
+            10,
             0
         ],
         "gain_main": 80
@@ -243,8 +243,8 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": false,
-        "delay_time": 6000,
+        "enabled": true,
+        "delay_time": 100,
         "mix_percentage": 80,
         "feedback": true,
         "feedback_percentage": 60

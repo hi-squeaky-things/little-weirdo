@@ -29,7 +29,7 @@ fn main() {
     // Create a channel for MIDI messages (though receiver isn't used in this scope)
     let (sender, _receiver) = channel::<midi_control::MidiMessage>();
 
-    // Unwrap the device port (we know it exists from the check above)
+      // Unwrap the device port (we know it exists from the check above)
     let device_port = device_port.unwrap();
 
     // Set up audio output device and configuration
