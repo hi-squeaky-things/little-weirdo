@@ -208,7 +208,7 @@
     "lfos": [
         {
             "soundbank_index": 0,
-            "time": 200
+            "time": 50
         },
         {
             "soundbank_index": 0,
@@ -252,9 +252,9 @@
     },
     "delay_config": {
         "enabled": true,
-        "delay_time": 1000,
+        "delay_time": 5000,
         "mix_percentage": 70,
-        "feedback": false,
+        "feedback": true,
         "feedback_percentage": 70
     },
     "routering_config": {
@@ -300,7 +300,7 @@
         ],
         "lfo_to_filter": false,
         "lfo_to_freq": false,
-        "lfo_to_freq_amount": 0
+        "lfo_to_freq_amount": 5
     },
     "synth_config": {
         "mode": "OctoPoly"
