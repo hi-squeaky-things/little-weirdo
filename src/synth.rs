@@ -288,31 +288,32 @@ impl Synth {
         // TODO: Velocity is not used in a proper way, need fixing. Each voice need a velocity, not a general one.
         self.velocity = (velocity as u32 * 1_000 / 1_270) as u8;
 
-        let divider = self.mode as usize;
+        let voices_per_note = self.mode.voices_per_note();
 
         let id = self.add_note(note);
         if id != 255 {
             // If we have only one voice, play both voices with a detune
-            for i in 0..divider {
+            for i in 0..voices_per_note {
+                let voice_index = id * voices_per_note + i;
                 let freq: u16 =
-                    MIDI2FREQ[(note as i8 + self.voices[id * divider + i].config.detune) as usize];
+                    MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
                 // Update the frequency of the voices
-                self.voices[id * divider + i].change_freq(
-                    (freq as i16 + self.voices[id * divider + i].config.freq_detune as i16) as u16,
+                self.voices[voice_index].change_freq(
+                    (freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16,
                 );
                 //   self.sampler.change_freq(freq);
                 // Open the gate for all voice envelops
-                self.envelops[id * divider + i].open_gate();
+                self.envelops[voice_index].open_gate();
             }
         }
     }
 
     pub fn note_off(&mut self, note: u8) {
-        let divider = self.mode as usize;
+        let voices_per_note = self.mode.voices_per_note();
         let id = self.remove_note(note);
         if id != 255 {
-            for i in 0..divider {
-                self.envelops[id * divider + i].close_gate();
+            for i in 0..voices_per_note {
+                self.envelops[id * voices_per_note + i].close_gate();
             }
         }
     }
@@ -320,7 +321,7 @@ impl Synth {
     /// Add a note to the active notes list
     /// Returns the index of the note in the active notes array, or 255 if no space
     fn add_note(&mut self, note: u8) -> usize {
-        let amount_of_notes: usize = 8 / self.mode as usize;
+        let amount_of_notes: usize = self.mode.max_active_notes();
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => position,
             None => match self.active_note.iter().position(|n| n == &0) {
