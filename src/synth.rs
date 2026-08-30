@@ -295,15 +295,15 @@ impl Synth {
             // If we have only one voice, play both voices with a detune
             for i in 0..voices_per_note {
                 let voice_index = id * voices_per_note + i;
+                let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
                 let freq: u16 =
                     MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
                 // Update the frequency of the voices
                 self.voices[voice_index].change_freq(
                     (freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16,
                 );
-                //   self.sampler.change_freq(freq);
-                // Open the gate for all voice envelops
-                self.envelops[voice_index].open_gate();
+                // Open the gate for the envelope that this voice is routed to.
+                self.envelops[env_index].open_gate();
             }
         }
     }
@@ -313,7 +313,9 @@ impl Synth {
         let id = self.remove_note(note);
         if id != 255 {
             for i in 0..voices_per_note {
-                self.envelops[id * voices_per_note + i].close_gate();
+                let voice_index = id * voices_per_note + i;
+                let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
+                self.envelops[env_index].close_gate();
             }
         }
     }

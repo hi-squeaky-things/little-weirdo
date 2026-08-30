@@ -155,10 +155,10 @@
             "sustain_level": 90
         },
       {
-            "attack_time": 60,
-            "decay_time": 20,
-            "release_time": 150,
-            "sustain_level": 90
+            "attack_time": 10,
+            "decay_time": 100,
+            "release_time": 50,
+            "sustain_level": 50
         },
       {
             "attack_time": 60,
@@ -167,10 +167,10 @@
             "sustain_level": 90
         },
     {
-            "attack_time": 60,
-            "decay_time": 20,
-            "release_time": 150,
-            "sustain_level": 90
+            "attack_time": 10,
+            "decay_time": 100,
+            "release_time": 50,
+            "sustain_level": 50
         },
            {
             "attack_time": 60,
@@ -253,12 +253,12 @@
         "voices_to_envelop": [
             0,
             1,
+            1,
+            1,
             2,
             3,
-            4,
-            5,
-            6,
-            7
+            3,
+            3
         ],
         "lfo_to_voice": [
             {
