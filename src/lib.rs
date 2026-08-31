@@ -4,54 +4,84 @@
 //! // ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
 //! // ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
 //! //
-//! // #no-std optimized wave table synthesizer for embedded devices.
+//! // #no-std optimized wave table synthesizer, sampler and sequencer for embedded devices.
 //! ```
 //!
 //! Example usage:
 //! ```rust
 //! use little_weirdo::synth::{
 //!     self,
-//!     data::wavetables::{BoxedWavetable, BoxedWavetables},
+//!     data::{
+//!         patches::{BoxedPatch, BoxedPatches, Patches},
+//!         wavetables::{BoxedWavetable, BoxedWavetables},
+//!     },
+//!     patch::Patch,
 //! };
 //!
-//! use std::{
-//!     fs,
-//!     sync::Arc,
-//! };
+//! use std::{fs, sync::Arc};
 //!
-//! const SAMPLE_RATE: u16 = 44_100; // Audio sample rate in Hz
+//! const SAMPLE_RATE: u16 = 44_100;
 //!
 //! fn main() {
-//!
-//!     // Create a collection of wavetables and load them from files
+//!     // Create a collection of wavetables and load them from files.
 //!     let mut wt_on_heap = BoxedWavetables::new();
 //!     for id in 0..10 {
-//!         let filename = format!("examples/soundbank/soundbank_pure_elektro/src/wav{}.raw", id);
+//!         let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
 //!         let contents = fs::read(filename).unwrap();
-//!         let bytes: &[u8] = &contents;
-//!         wt_on_heap.add(BoxedWavetable::new(bytes));
+//!         wt_on_heap.add(BoxedWavetable::new(&contents));
 //!     }
-//!     // Wrap wavetables in an Arc for thread-safe sharing
-//!     let wt = Arc::new(wt_on_heap);
-//!     
-//!     // Load a synth patch from a JSON file
-//!     let patch = serde_json::from_slice(include_bytes!("../examples/patches/bass.json")).unwrap();
+//!     let wavetables = Arc::new(wt_on_heap);
 //!
-//!     // Create a new synthesizer instance with specified parameters
-//!     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
+//!     // Load a synth patch into the boxed patch collection used by the library.
+//!     let mut patches = BoxedPatches::new();
+//!     let patch_data = fs::read("examples/soundbank/patches/orginal/bass.json").unwrap();
+//!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
+//!     patches.add(BoxedPatch::new(patch));
+//!     let patches = Arc::new(patches);
 //!
-//!     // Trigger a note
+//!     // Create a new synthesizer instance with the patch index and wavetable set.
+//!     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE, 0, patches, Arc::clone(&wavetables));
+//!
+//!     // Trigger a note.
 //!     synth.note_on(60, 100);
-//!     
-//!     loop {
-//!         let _sample:[i16;2] = synth.clock_and_output();
-//!         // do something with the sample, stream it to a audio device for example
-//!         break;
+//!
+//!     // Get the samples
+//!     for _ in 0..4 {
+//!         let _sample: [i16; 2] = synth.clock_and_output();
 //!     }
 //! }
 //! ```
 
 ///
-/// The wave table synthesizer engine.
+/// The Little Weirdo waveform (table) based subtractive synthesizer.
 ///
 pub mod synth;
+
+///
+/// The Little Weirdo sampler based synthesizer.
+///
+pub mod wave_synth;
+
+///
+/// The Little Weirdo sampler.
+///
+pub mod sampler;
+
+///
+/// The Little Weirdo step-sequencer
+///
+pub mod sequencer;
+
+
+///
+/// The Little Weirdo effects
+///
+pub mod effects;
+
+///
+/// Math helper functions optimized for embedded devices with no FPU
+/// 
+pub mod math;
+
+// TODO: Update the waveform data to use 1024 samples per waveform for better audio quality and more accurate representation of the waveforms. This will allow for smoother sound generation and improved performance in the synthesizer.
+// TODO: Implement the sampler based additive synthesizer

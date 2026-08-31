@@ -5,3 +5,6 @@
 /docs/.asciidoctor
 /docs/*.pdf
 .vscode
+*.bin
+/*.json
+Cargo.lock

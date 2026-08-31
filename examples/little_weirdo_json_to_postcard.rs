@@ -2,9 +2,10 @@ use little_weirdo::synth::patch::Patch;
 use std::fs::{self, File};
 use std::io::Write;
 
+
 fn main() {
     // Load a synth patch from a JSON file
-    let patch_dir = "examples/patches";
+    let patch_dir = "examples/soundbank/patches/orginal";
 
     // Read all files from the patches directory
     let entries = fs::read_dir(patch_dir).expect("Failed to read directory");
@@ -21,7 +22,6 @@ fn main() {
 
                 // Parse JSON
                 let patch: Patch = serde_json::from_str(&json_content).unwrap();
-
                 // Serialize to postcard format
                 let mut buf = [0u8; 256];
                 let serialized =

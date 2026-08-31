@@ -1,39 +1,39 @@
 use little_weirdo::synth::{
     self,
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
+    data::{
+        patches::{BoxedPatch, BoxedPatches, Patches},
+        wavetables::{BoxedWavetable, BoxedWavetables},
+    },
 };
 
 use std::{fs, sync::Arc};
 
-const SAMPLE_RATE: u16 = 44_100; // Audio sample rate in Hz
+const SAMPLE_RATE: u16 = 44_100;
 
 fn main() {
-    // Create a collection of wavetables and load them from files
+    // Create a collection of wavetables and load them from files.
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..10 {
-        let filename = format!(
-            "examples/soundbank/soundbank_pure_elektro/src/wav{}.raw",
-            id
-        );
+        let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
         let contents = fs::read(filename).unwrap();
-        let bytes: &[u8] = &contents;
-        wt_on_heap.add(BoxedWavetable::new(bytes));
+        wt_on_heap.add(BoxedWavetable::new(&contents));
     }
-    // Wrap wavetables in an Arc for thread-safe sharing
-    let wt = Arc::new(wt_on_heap);
+    let wavetables = Arc::new(wt_on_heap);
 
-    // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("patches/bass.json")).unwrap();
+    // Load a synth patch into the boxed patch collection used by the library.
+    let mut patches = BoxedPatches::new();
+    let patch_data = fs::read("examples/soundbank/patches/orginal/bass.json").unwrap();
+    let patch = serde_json::from_slice(&patch_data).unwrap();
+    patches.add(BoxedPatch::new(patch));
+    let patches = Arc::new(patches);
 
-    // Create a new synthesizer instance with specified parameters
-    let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
+    // Create a new synthesizer instance with the patch index and wavetable set.
+    let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE, 0, patches, Arc::clone(&wavetables));
 
-    // Trigger a note
+    // Trigger a note.
     synth.note_on(60, 100);
 
-    loop {
+    for _ in 0..4 {
         let _sample: [i16; 2] = synth.clock_and_output();
-        // do something with the sample, stream it to a audio device for example
-        break;
     }
 }

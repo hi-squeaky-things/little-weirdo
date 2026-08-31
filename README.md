@@ -16,63 +16,71 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 > [!IMPORTANT]
 > **Hi Squeaky Things** can happen at any time. _Little Weirdo_ is ready to squeak, squuuueak, squeeeeeaak, squeaaaaaaaaak!
 
-## How to use it
+## Features
 
-Get the library!
-```
-$ cargo add little_weirdo
+- ✅ No-std compatible for embedded devices
+- ✅ Lightweight and efficient (no floating point calculations)
+- ✅ Waveform (table) based subtractive synthesizer with customizable patches
+- ✅ Waveform (table) based granular synthesizer with customizable patches
+- ✅ Sampler based synthesizer (soundfont-a-like).
+- ✅ MIDI support
+- ✅ Real-time audio processing (distortion/overdrive, filter, delay, bit-crunch, lfo, ring-modulation)
+- ✅ Modular architecture for easy extension
+
+## Installation
+
+Add the library to your project:
+
+```bash
+cargo add little_weirdo
 ```
 
-Start using it in your own code:
+## Quick Start
+
+Here's a basic example to get you started:
 
 ``` rust
 use little_weirdo::synth::{
     self,
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
+    data::{
+        patches::{BoxedPatch, BoxedPatches, Patches},
+        wavetables::{BoxedWavetable, BoxedWavetables},
+    },
+    patch::Patch,
 };
- 
- use std::{
-    fs,
-    sync::Arc,
-};
-
- const SAMPLE_RATE: u16 = 44_100; // Audio sample rate in Hz
- 
- fn main() {
-     // Create a collection of wavetables and load them from files
+use std::{fs, sync::Arc};
+const SAMPLE_RATE: u16 = 44_100;
+fn main() {
+    // Create a collection of wavetables and load them from files.
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..10 {
-        let filename = format!("examples/soundbank/soundbank_pure_elektro/src/wav{}.raw", id);
+        let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
         let contents = fs::read(filename).unwrap();
-        let bytes: &[u8] = &contents;
-        wt_on_heap.add(BoxedWavetable::new(bytes));
+        wt_on_heap.add(BoxedWavetable::new(&contents));
     }
-    // Wrap wavetables in an Arc for thread-safe sharing
-    let wt = Arc::new(wt_on_heap);
-    
-    // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("patches/bass.json")).unwrap();
-
-    // Create a new synthesizer instance with specified parameters
-    let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE as u16, &patch, Arc::clone(&wt));
-
-    // Trigger a note
+    let wavetables = Arc::new(wt_on_heap);
+    // Load a synth patch into the boxed patch collection used by the library.
+    let mut patches = BoxedPatches::new();
+    let patch_data = fs::read("examples/soundbank/patches/orginal/bass.json").unwrap();
+    let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
+    patches.add(BoxedPatch::new(patch));
+    let patches = Arc::new(patches);
+    // Create a new synthesizer instance with the patch index and wavetable set.
+    let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE, 0, patches, Arc::clone(&wavetables));
+    // Trigger a note.
     synth.note_on(60, 100);
-
-    loop {
-        let _sample:[i16;2] = synth.clock_and_output();
-        // do something with the sample, stream it to a audio device for example
-        break;
+    // Get the samples
+    for _ in 0..4 {
+        let _sample: [i16; 2] = synth.clock_and_output();
     }
-    
- }
+}
 ```
 
-Run Little Weirdo as a MIDI device while outputting to a local Audio Output, check out [Little Weirdo Streaming Audio With MIDI](examples/little_weirdo_streaming_audio_with_midi.rs)
+## Examples
 
-If you just want to play with a patch for Little Weirdo, check out [Little Weirdo Patch Tester](examples/little_weirdo_patch_tester.rs)
-
-To generate you own Soundbank, download some Wavetable samples from AKWF and run [Little Weirdo Generate Soundbank](examples/little_weirdo_generate_soundbanks.rs)
+- **[Little Weirdo Streaming Audio With MIDI](examples/little_weirdo_streaming_audio_with_midi.rs)**: Run Little Weirdo as a MIDI device while outputting to a local Audio Output.
+- **[Little Weirdo Patch Tester](examples/little_weirdo_patch_tester.rs)**: Play with patches for Little Weirdo.
+- **[Little Weirdo Generate Soundbank](examples/little_weirdo_generate_soundbanks.rs)**: Generate your own Soundbank using Wavetable samples from AKWF.
 
 ## Performance
 
@@ -80,19 +88,18 @@ The performance tests on real embedded hardware can be found here [Little Weirdo
 
 ## Patches
 
-Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices).  Checkout the [patches](examples/patches/)
+Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices). Checkout the [patches](examples/patches/) for examples.
 
-🎹 Listen to the Ebass patch (unmute the audio 🔇 ➡️ 🔊) :
+## Documentation
 
-https://github.com/user-attachments/assets/56b9666d-ab76-4716-8fe9-58ffc7642058
+- [API Documentation](https://docs.rs/little_weirdo/0.1.2/little_weirdo/)
 
-🎹 SuperSaw with 4 oscillators enabled :
+## Contributing
 
-https://github.com/user-attachments/assets/149d2a91-86f8-4a7f-bbc5-ff8ae06aa395
+Contributions are welcome! Please open an issue or submit a pull request.
 
-## Credits
+## License
 
-- [Small Braille ASCII Font](https://patorjk.com/software/taag/#p=display&f=Small+Braille&t=LITTLE+WEIRDO&x=rainbow1&v=1&h=1&w=80&we=false)
-- [Wavetable samples by Adventure Kid Waveforms ](https://github.com/KristofferKarlAxelEkstrand/AKWF-FREE)
+This project is licensed under the [MIT License](LICENSE).
 
 
