@@ -48,6 +48,7 @@ impl BoxedSample {
 }
 
 /// A sampler that plays back audio samples at different speeds.
+#[allow(dead_code)]
 pub struct AudioSampler {
     /// Reference to the underlying audio sample data.
     sampler: Arc<BoxedSamples>,
@@ -158,14 +159,15 @@ impl AudioSampler {
             base_key,
         };
         audio_sampler.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
-        
-         if audio_sampler.one_shot {
-              audio_sampler.length = (audio_sampler.sampler.data[audio_sampler.sample_id as usize].data.len() / 2) as u32;
-        } else {
-              audio_sampler.length = audio_sampler.loop_start as u32;
-        }
-      
 
+        if audio_sampler.one_shot {
+            audio_sampler.length = (audio_sampler.sampler.data[audio_sampler.sample_id as usize]
+                .data
+                .len()
+                / 2) as u32;
+        } else {
+            audio_sampler.length = audio_sampler.loop_start as u32;
+        }
 
         if audio_sampler.loop_end == 0 {
             audio_sampler.loop_end = audio_sampler.length;
@@ -174,7 +176,7 @@ impl AudioSampler {
     }
 
     pub fn set_note(&mut self, note: u8) {
-        if self.is_drums  {
+        if self.is_drums {
             self.sample_id = note - 36;
             self.length = self.sampler.data[self.sample_id as usize].data.len() as u32;
         } else {
@@ -187,9 +189,9 @@ impl AudioSampler {
         self.open = true;
         self.loop_is_started = false;
         if self.one_shot {
-              self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
+            self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
         } else {
-              self.length = self.loop_start as u32;
+            self.length = self.loop_start as u32;
         }
     }
 
@@ -214,6 +216,7 @@ impl AudioSampler {
         loop_start: u32,
         loop_end: u32,
         one_shot: bool,
+        base_key: u8,
     ) {
         self.open = false;
         self.counter = 0.0;
@@ -224,11 +227,12 @@ impl AudioSampler {
         self.loop_start = loop_start;
         self.loop_end = loop_end;
         self.one_shot = one_shot;
+        self.base_key = base_key;
 
         if self.one_shot {
-              self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
+            self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
         } else {
-              self.length = self.loop_start as u32;
+            self.length = self.loop_start as u32;
         }
     }
 }

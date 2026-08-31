@@ -37,6 +37,19 @@ fn main() {
             release_time: 0,
             sustain_level: 0,
         },
+        zones: vec![little_weirdo::sampler::patch::Zone {
+            start_note: 0,
+            end_note: 127,
+            sample_map: 0,
+            base_key: 60,
+            loop_start: 0,
+            loop_end: 0,
+            one_shot: true,
+        }],
+        velocity_layers: false,
+        num_velocity_layers: 0,
+        round_robin: false,
+        round_robin_count: 0,
     };
     let output = serde_json::to_string(&patch);
 

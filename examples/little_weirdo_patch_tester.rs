@@ -1,6 +1,5 @@
 use cpal::Sample; // For audio sample conversion
 use little_weirdo::{
-    sampler::patch,
     synth::{
         self,
         data::{
@@ -8,7 +7,6 @@ use little_weirdo::{
             wavetables::{BoxedWavetable, BoxedWavetables},
         },
         patch::Patch,
-        Synth,
     },
 };
 use std::{
@@ -46,7 +44,7 @@ fn main() {
     // Create an Arc (thread-safe reference) to the wavetables
     let wt = Arc::new(wt_on_heap);
 
-    let path = "examples/soundbank/patches/orginal".to_string();
+    let path = "examples/soundbank/waveforms/patches/orginal".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
     let mut patches = BoxedPatches::new();
     // Sort directory entries by filename for consistent processing

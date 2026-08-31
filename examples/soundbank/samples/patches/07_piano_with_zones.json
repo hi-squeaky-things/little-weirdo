@@ -1,0 +1,63 @@
+{
+  "name": "Piano with Zones",
+  "drums": false,
+  "sample_map": 12,
+  "loop_start": 0,
+  "loop_end": 0,
+  "one_shot": true,
+  "base_key": 60,
+  "overdrive_config": {
+    "threshold": 30000,
+    "kind": "Hard",
+    "enabled": false
+  },
+  "bitcrunch_config": {
+    "enabled": false
+  },
+  "delay_config": {
+    "enabled": false,
+    "delay_time": 500,
+    "mix_percentage": 50,
+    "feedback": false,
+    "feedback_percentage": 50
+  },
+   "env_config": {
+            "attack_time": 5,
+            "decay_time": 10,
+            "release_time": 500,
+            "sustain_level": 80
+    },
+  "zones": [
+    {
+      "start_note": 21,
+      "end_note": 48,
+      "sample_map": 12,
+      "base_key": 60,
+      "loop_start": 0,
+      "loop_end": 0,
+      "one_shot": true
+    },
+    {
+      "start_note": 49,
+      "end_note": 72,
+      "sample_map": 13,
+      "base_key": 60,
+      "loop_start": 0,
+      "loop_end": 0,
+      "one_shot": true
+    },
+    {
+      "start_note": 73,
+      "end_note": 108,
+      "sample_map": 12,
+      "base_key": 60,
+      "loop_start": 0,
+      "loop_end": 0,
+      "one_shot": true
+    }
+  ],
+  "velocity_layers": false,
+  "num_velocity_layers": 3,
+  "round_robin": false,
+  "round_robin_count": 2
+}

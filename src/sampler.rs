@@ -23,18 +23,23 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
 /// Main synthesizer struct that handles audio generation
 pub struct Sampler {
-    drums: bool,
-    sample_map: u8,
+    pub drums: bool,
+    pub sample_map: u8,
     sampler_voices: [AudioSampler; AMOUNT_OF_VOICES],
     /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
 
     /// Array tracking active notes
     active_note: [u8; AMOUNT_OF_VOICES],
+    /// Array tracking active velocities for round-robin
+    active_velocity: [u8; AMOUNT_OF_VOICES],
     overdrive: Overdrive,
     bitcrunch: Bitcrunch,
     delay: Delay,
-    patches: Arc<BoxedSamplerPatches>,
+    pub patches: Arc<BoxedSamplerPatches>,
+    
+    /// Current round-robin counter for each voice
+    round_robin_counter: [u8; AMOUNT_OF_VOICES],
 }
 
 ///
@@ -72,16 +77,20 @@ impl Sampler {
             ),
             envelops: Sampler::init_envs(patch.env_config, sample_rate),
             active_note: [0; AMOUNT_OF_VOICES],
+            active_velocity: [0; AMOUNT_OF_VOICES],
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
             delay: Delay::new(patch.delay_config),
             patches,
+            round_robin_counter: [0; AMOUNT_OF_VOICES],
         }
     }
 
     pub fn load_patch(&mut self, patch_selected: u8) {
         let patch = self.patches.get_patches_reference(patch_selected);
         self.drums = patch.drums;
+        self.sample_map = patch.sample_map;
+        
         for i in 0..self.sampler_voices.len() {
             let sample_id = if patch.drums {
                 i as u8
@@ -89,7 +98,7 @@ impl Sampler {
                 patch.sample_map
             };
 
-            self.sampler_voices[i].reload(patch.drums, sample_id, patch.loop_start, patch.loop_end, patch.one_shot);
+            self.sampler_voices[i].reload(patch.drums, sample_id, patch.loop_start, patch.loop_end, patch.one_shot, patch.base_key);
             self.envelops[i].reload(patch.env_config);
         }
 
@@ -170,7 +179,7 @@ impl Sampler {
     /// # Arguments
     /// * `note` - The MIDI note number (0-108)
     /// * `velocity` - The velocity of the note (0-127)
-    pub fn note_on(&mut self, note: u8, _velocity: u8) {
+    pub fn note_on(&mut self, note: u8, velocity: u8) {
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {
             return;
@@ -178,6 +187,30 @@ impl Sampler {
 
         let id = self.add_note(note);
         if id != 255 {
+            self.active_velocity[id] = velocity;
+            
+            // Get the current patch to check for SoundFont-like features
+            let patch = self.patches.get_patches_reference(0).clone(); // TODO: Use current patch index
+            
+            // Handle zones
+            let (sample_id, base_key, loop_start, loop_end, one_shot) = 
+                self.get_zone_params(note, &patch);
+            
+            // Handle velocity layers
+            let final_sample_id = self.get_velocity_layer_sample(sample_id, velocity, &patch);
+            
+            // Handle round-robin
+            let rr_sample_id = self.get_round_robin_sample(final_sample_id, id, &patch);
+            
+            self.sampler_voices[id].reload(
+                patch.drums, 
+                rr_sample_id, 
+                loop_start, 
+                loop_end, 
+                one_shot, 
+                base_key
+            );
+            
             self.sampler_voices[id].set_note(note);
             self.sampler_voices[id].open_gate();
             self.envelops[id].open_gate();
@@ -247,5 +280,64 @@ impl Sampler {
             }
         }
         false
+    }
+
+    /// Get zone parameters based on the note
+    /// Returns (sample_id, base_key, loop_start, loop_end, one_shot)
+    pub fn get_zone_params(&self, note: u8, patch: &patch::Patch) -> (u8, u8, u32, u32, bool) {
+        // Check if zones are defined
+        if !patch.zones.is_empty() {
+            // Find the first zone that contains this note
+            for zone in &patch.zones {
+                if note >= zone.start_note && note <= zone.end_note {
+                    return (
+                        zone.sample_map,
+                        zone.base_key,
+                        zone.loop_start,
+                        zone.loop_end,
+                        zone.one_shot
+                    );
+                }
+            }
+        }
+        
+        // Fallback to default patch parameters
+        (
+            patch.sample_map,
+            patch.base_key,
+            patch.loop_start,
+            patch.loop_end,
+            patch.one_shot
+        )
+    }
+
+    /// Get velocity layer sample based on velocity
+    pub fn get_velocity_layer_sample(&self, base_sample_id: u8, velocity: u8, patch: &patch::Patch) -> u8 {
+        if !patch.velocity_layers || patch.num_velocity_layers == 0 {
+            return base_sample_id;
+        }
+        
+        // Calculate which velocity layer to use
+        let layer_index = (velocity as usize) * patch.num_velocity_layers as usize / 128;
+        let layer_index = layer_index.min(patch.num_velocity_layers as usize - 1);
+        
+        // Offset the sample ID by the layer index
+        base_sample_id + layer_index as u8
+    }
+
+    /// Get round-robin sample based on current counter
+    pub fn get_round_robin_sample(&mut self, base_sample_id: u8, voice_id: usize, patch: &patch::Patch) -> u8 {
+        if !patch.round_robin || patch.round_robin_count == 0 {
+            return base_sample_id;
+        }
+        
+        let rr_index = self.round_robin_counter[voice_id] as usize;
+        let rr_index = rr_index % patch.round_robin_count as usize;
+        
+        // Increment counter for next time
+        self.round_robin_counter[voice_id] = (self.round_robin_counter[voice_id] + 1) % patch.round_robin_count;
+        
+        // Offset the sample ID by the round-robin index
+        base_sample_id + rr_index as u8
     }
 }

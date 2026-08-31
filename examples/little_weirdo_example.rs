@@ -1,7 +1,7 @@
 use little_weirdo::synth::{
     self,
     data::{
-        patches::{BoxedPatch, BoxedPatches, Patches},
+        patches::{BoxedPatch, BoxedPatches},
         wavetables::{BoxedWavetable, BoxedWavetables},
     },
 };
@@ -14,7 +14,7 @@ fn main() {
     // Create a collection of wavetables and load them from files.
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..10 {
-        let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
+        let filename = format!("examples/soundbank/waveforms/src/{}_sample.raw", id);
         let contents = fs::read(filename).unwrap();
         wt_on_heap.add(BoxedWavetable::new(&contents));
     }
@@ -22,7 +22,7 @@ fn main() {
 
     // Load a synth patch into the boxed patch collection used by the library.
     let mut patches = BoxedPatches::new();
-    let patch_data = fs::read("examples/soundbank/patches/orginal/bass.json").unwrap();
+    let patch_data = fs::read("examples/soundbank/patches/original/bass.json").unwrap();
     let patch = serde_json::from_slice(&patch_data).unwrap();
     patches.add(BoxedPatch::new(patch));
     let patches = Arc::new(patches);

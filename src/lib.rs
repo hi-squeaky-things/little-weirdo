@@ -26,7 +26,7 @@
 //!     // Create a collection of wavetables and load them from files.
 //!     let mut wt_on_heap = BoxedWavetables::new();
 //!     for id in 0..10 {
-//!         let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
+//!         let filename = format!("examples/soundbank/waveforms/src/{}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
 //!         wt_on_heap.add(BoxedWavetable::new(&contents));
 //!     }
@@ -34,7 +34,7 @@
 //!
 //!     // Load a synth patch into the boxed patch collection used by the library.
 //!     let mut patches = BoxedPatches::new();
-//!     let patch_data = fs::read("examples/soundbank/patches/orginal/bass.json").unwrap();
+//!     let patch_data = fs::read("examples/soundbank/waveforms/patches/original/bass.json").unwrap();
 //!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
 //!     patches.add(BoxedPatch::new(patch));
 //!     let patches = Arc::new(patches);
@@ -68,18 +68,23 @@
 //! fn main() {
 //!     // Create a collection of samples and load them from files.
 //!     let mut samples = BoxedSamples::new();
-//!     let sample_data = fs::read("examples/soundbank/samples/src/0012_sample.raw").unwrap();
-//!     samples.add(BoxedSample::new(&sample_data));
-//!
+//!     for id in 0..15 {
+//!         let filename = format!("examples/soundbank/samples/src/{}_sample.raw", id);
+//!         let contents = fs::read(filename).unwrap();
+//!         samples.add(BoxedSample::new(contents));
+//!     }
+//! 
+//!     let samples_on_heap = Arc::new(samples);
+//!     
 //!     // Load a sampler patch into the boxed patch collection used by the library.
 //!     let mut patches = BoxedSamplerPatches::new();
-//!     let patch_data = fs::read("examples/soundbank/samples/01_piano.json").unwrap();
+//!     let patch_data = fs::read("examples/soundbank/samples/patches/01_piano.json").unwrap();
 //!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
 //!     patches.add(BoxedSamplerPatch::new(patch));
 //!     let patches = Arc::new(patches);
 //!
 //!     // Create a new sampler instance with the patch index and sample set.
-//!     let mut sampler: sampler::Sampler = sampler::Sampler::new(SAMPLE_RATE, 0, patches, Arc::clone(&samples));
+//!     let mut sampler: sampler::Sampler = sampler::Sampler::new(SAMPLE_RATE, 0, patches, Arc::clone(&samples_on_heap));
 //!
 //!     // Trigger a note.
 //!     sampler.note_on(60, 100);

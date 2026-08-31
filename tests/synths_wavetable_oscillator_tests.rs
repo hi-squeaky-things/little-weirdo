@@ -3,11 +3,10 @@ use std::{fs, sync::Arc};
 use little_weirdo::synth::{
     data::wavetables::{BoxedWavetable, BoxedWavetables},
     wavetable_oscillator::{WaveTableOscillator, WaveTableOscillatorConfig},
-    Clockable,
 };
 
 fn load_sine_wavetable() -> Arc<BoxedWavetables> {
-    let raw = fs::read("examples/soundbank/waveforms/src/wav0.raw").unwrap();
+    let raw = fs::read("examples/soundbank/waveforms/src/0_sample.raw").unwrap();
     let mut wavetables = BoxedWavetables::new();
     wavetables.add(BoxedWavetable::new(&raw));
     Arc::new(wavetables)
@@ -26,7 +25,7 @@ fn wavetable_oscillator_outputs_samples_from_the_selected_table() {
         grains_seq: [0; 8],
     };
 
-    let mut osc = WaveTableOscillator::new(config, 1000, Arc::clone(&wavetables));
+    let _osc = WaveTableOscillator::new(config, 1000, Arc::clone(&wavetables));
 
 
 }

@@ -10,10 +10,10 @@ use std::{
 use hound::WavReader;
 
 // Define constants for soundbank configuration
-const SOUNDBANK_ITEMS: usize = 1;
+const SOUNDBANK_ITEMS: usize = 2;
 const SOUNDBANK_ORIGINAL: [&str; SOUNDBANK_ITEMS] =
-    ["examples/soundbank/waveforms/original"];
-const SOUNDBANK_OUTPUT: [&str; SOUNDBANK_ITEMS] = ["examples/soundbank/waveforms/src"];
+    ["examples/soundbank/waveforms/original","examples/soundbank/samples/original"];
+const SOUNDBANK_OUTPUT: [&str; SOUNDBANK_ITEMS] = ["examples/soundbank/waveforms/src", "examples/soundbank/samples/src"];
 
 // Main function - entry point of the program
 fn main() {
@@ -56,7 +56,7 @@ fn main() {
         for entry in paths {
             // Format the original source name for the README table
             let orginal_src_name = format!(
-                "| {} | {:?} | \"wav{:?}.lwt\" | 600 | 1200 |\n",
+                "| {} | {:?} | \"{:?}wav.raw\" | 600 | 1200 |\n",
                 counter,
                 entry.file_name(),
                 counter
@@ -66,7 +66,7 @@ fn main() {
             let _ = soundbank_reference_file.write(orginal_src_name.as_bytes());
 
             // Create the output filename for the raw audio data
-            let soundbank_source_file_name = format!("wav{:?}.raw", counter);
+            let soundbank_source_file_name = format!("{:?}_sample.raw", counter);
             let soundbank_source =
                 Path::new(soundbank_source_path).join(soundbank_source_file_name);
 

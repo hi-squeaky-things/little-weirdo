@@ -1,7 +1,7 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
-use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches, Patches};
+use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
 use little_weirdo::synth::{
     self,
     data::wavetables::{BoxedWavetable, BoxedWavetables},
@@ -57,14 +57,13 @@ fn main() {
 
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/orginal/piano.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/waveforms/patches/original/piano.json")).unwrap();
   
       let patch_box = BoxedPatch::new(patch);
       let mut patches = BoxedPatches::new();
       patches.add(patch_box);
 
-      let patch =  patches.get_patches_reference(0);
-
+    
       let patches_heap = Arc::new(patches);
 
 
@@ -143,7 +142,7 @@ fn setup_device() -> (Device, StreamConfig) {
         .ok_or_else(|| anyhow::Error::msg("Default output device is not available"))
         .unwrap();
 
-    println!("Output device : {}", device.name().unwrap());
+    println!("Output device : {:?}", device.description().unwrap());
 
     // Get the default output configuration
     let supported_config: cpal::SupportedStreamConfig = device.default_output_config().unwrap();
