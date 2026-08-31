@@ -4,11 +4,18 @@
 ```
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hi-squeaky-things/little-weirdo/rust.yml?branch=main)
 ![GitHub License](https://img.shields.io/github/license/hi-squeaky-things/little-weirdo)
-![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.1)
-![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.1?style=flat)
-
+![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.2)
+![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.2?style=flat)
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.
+
+Our first project is launching soon using the LttL Weirdo: our LttL Squeaky Machine! Put yourself on the list to get notified when we are ready to ship. 
+We are iteration on revision 3.0. Soon to be released.
+[Join the waitinglist](https://www.hi-squeaky-things.nl/waiting-list)
+
+<img src="https://www.hi-squeaky-things.nl/web/image/1400-5c54f567/Jouw%20alineatekst%20%281%29.webp" width="300">
+
+[See Little Squeaky Machine Hardware)](https://github.com/hi-squeaky-things/little-squeaky-machine-hardware)
 
 > [!CAUTION]
 > This project is actively being developed with frequent breaking changes. APIs may shift, features are incomplete, and stability is not guaranteed. Use at your own risk and expect regular updates that might require code adjustments. Have fun!
