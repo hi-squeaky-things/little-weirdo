@@ -11,6 +11,7 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 
 Our first project is launching soon using the LttL Weirdo: our LttL Squeaky Machine! Put yourself on the list to get notified when we are ready to ship. 
 We are iteration on revision 3.0. Soon to be released.
+
 [Join the waitinglist](https://www.hi-squeaky-things.nl/waiting-list)
 
 <img src="https://www.hi-squeaky-things.nl/web/image/1400-5c54f567/Jouw%20alineatekst%20%281%29.webp" width="300">
