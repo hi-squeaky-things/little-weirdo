@@ -11,9 +11,14 @@ use hound::WavReader;
 
 // Define constants for soundbank configuration
 const SOUNDBANK_ITEMS: usize = 2;
-const SOUNDBANK_ORIGINAL: [&str; SOUNDBANK_ITEMS] =
-    ["examples/soundbank/synth/original","examples/soundbank/sampler/original"];
-const SOUNDBANK_OUTPUT: [&str; SOUNDBANK_ITEMS] = ["examples/soundbank/synth/src", "examples/soundbank/sampler/src"];
+const SOUNDBANK_ORIGINAL: [&str; SOUNDBANK_ITEMS] = [
+    "examples/soundbank/synth/original",
+    "examples/soundbank/sampler/original",
+];
+const SOUNDBANK_OUTPUT: [&str; SOUNDBANK_ITEMS] = [
+    "examples/soundbank/synth/src",
+    "examples/soundbank/sampler/src",
+];
 
 // Main function - entry point of the program
 fn main() {
@@ -37,10 +42,8 @@ fn main() {
         paths.sort_by_key(|dir| dir.file_name());
 
         // Create a README.md file to document the soundbank
-        let soundbank_reference_file_name = soundbank_source_path
-            .parent()
-            .unwrap()
-            .join("README.md");
+        let soundbank_reference_file_name =
+            soundbank_source_path.parent().unwrap().join("README.md");
         let mut soundbank_reference_file =
             File::create(soundbank_reference_file_name).expect("Failed to open file");
 

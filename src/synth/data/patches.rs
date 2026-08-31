@@ -1,14 +1,14 @@
 extern crate alloc;
-use alloc::vec::Vec;
-use alloc::boxed::Box;
 use crate::synth::patch::Patch;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 pub trait Patches {
     fn get_patches_reference(&self, index: u8) -> &Patch;
 }
 
 #[derive(Clone)]
-pub struct BoxedPatches{
+pub struct BoxedPatches {
     data: Vec<BoxedPatch>,
 }
 
@@ -45,9 +45,9 @@ impl BoxedPatch {
     // Creates a new patch from raw byte data
     // Each sample is assumed to be 2 bytes (16-bit) in big-endian format
     pub fn new(patch: Patch) -> Self {
-         Self {
-            data: Box::new(patch)
-         }
+        Self {
+            data: Box::new(patch),
+        }
     }
 }
 

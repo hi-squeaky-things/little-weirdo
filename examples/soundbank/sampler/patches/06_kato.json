@@ -16,17 +16,17 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": false,
-        "delay_time": 5000,
+        "enabled": true,
+        "delay_time": 500,
         "mix_percentage": 70,
         "feedback": true,
-        "feedback_percentage": 70
+        "feedback_percentage": 30
     },
     "env_config": {
-            "attack_time": 5,
-            "decay_time": 10,
+            "attack_time": 50,
+            "decay_time": 60,
             "release_time": 500,
-            "sustain_level": 100
+            "sustain_level": 80
     },
     "zones": []
 }

@@ -73,7 +73,7 @@
 //!         let contents = fs::read(filename).unwrap();
 //!         samples.add(BoxedSample::new(contents));
 //!     }
-//! 
+//!
 //!     let samples_on_heap = Arc::new(samples);
 //!     
 //!     // Load a sampler patch into the boxed patch collection used by the library.
@@ -111,7 +111,6 @@ pub mod sampler;
 ///
 pub mod sequencer;
 
-
 ///
 /// The Little Weirdo effects
 ///
@@ -119,7 +118,7 @@ pub mod effects;
 
 ///
 /// Math helper functions optimized for embedded devices with no FPU
-/// 
+///
 pub mod math;
 
 // TODO: Update the waveform data to use 1024 samples per waveform for better audio quality and more accurate representation of the waveforms. This will allow for smoother sound generation and improved performance in the synthesizer.

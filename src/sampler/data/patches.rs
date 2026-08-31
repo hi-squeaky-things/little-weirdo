@@ -1,19 +1,21 @@
 extern crate alloc;
-use alloc::vec::Vec;
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 use crate::sampler::patch::Patch;
 
 pub trait Patches {
     fn get_patches_reference(&self, index: u8) -> &Patch;
     fn get_patches_reference_safe(&self, index: u8) -> Option<&Patch> {
-        self.data().get(index as usize).map(|patch| patch.data.as_ref())
+        self.data()
+            .get(index as usize)
+            .map(|patch| patch.data.as_ref())
     }
     fn data(&self) -> &[BoxedSamplerPatch];
 }
 
 #[derive(Clone)]
-pub struct BoxedSamplerPatches{
+pub struct BoxedSamplerPatches {
     data: Vec<BoxedSamplerPatch>,
 }
 
@@ -46,9 +48,9 @@ impl BoxedSamplerPatch {
     // Creates a new patch from raw byte data
     // Each sample is assumed to be 2 bytes (16-bit) in big-endian format
     pub fn new(patch: Patch) -> Self {
-         Self {
-            data: Box::new(patch)
-         }
+        Self {
+            data: Box::new(patch),
+        }
     }
 }
 

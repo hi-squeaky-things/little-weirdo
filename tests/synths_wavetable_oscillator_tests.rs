@@ -26,8 +26,6 @@ fn wavetable_oscillator_outputs_samples_from_the_selected_table() {
     };
 
     let _osc = WaveTableOscillator::new(config, 1000, Arc::clone(&wavetables));
-
-
 }
 
 #[test]
@@ -45,5 +43,4 @@ fn wavetable_oscillator_can_change_frequency() {
 
     let mut osc = WaveTableOscillator::new(config, 1000, Arc::clone(&wavetables));
     osc.change_freq(220);
-
 }

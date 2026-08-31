@@ -2,12 +2,10 @@ use little_weirdo::synth::patch::Patch;
 use std::fs::{self, File};
 use std::io::Write;
 
-
 fn main() {
     // Load a synth patch from a JSON file
     let patch_dir = "examples/soundbank/synth/patches/original";
     let output_dir = "examples/soundbank/synth/patches/src";
-
 
     // Read all files from the patches directory
     let entries = fs::read_dir(patch_dir).expect("Failed to read directory");

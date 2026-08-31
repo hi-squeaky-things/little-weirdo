@@ -1,10 +1,15 @@
-
-
 use little_weirdo::sampler::{
-    self, audio_sampler::{BoxedSample, BoxedSamples}, data::{patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}}, patch::Patch,
+    self,
+    audio_sampler::{BoxedSample, BoxedSamples},
+    data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches},
+    patch::Patch,
 };
 use little_weirdo::{
-    effects::{bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration, overdrive::{OverdriveConfiguration, KindOfOverdrive}},
+    effects::{
+        bitcrunch::BitcrunchConfiguration,
+        delay::DelayConfiguration,
+        overdrive::{KindOfOverdrive, OverdriveConfiguration},
+    },
     synth::envelope::EnvelopConfiguration,
 };
 
@@ -24,9 +29,7 @@ fn test_sampler_with_zones() {
             kind: KindOfOverdrive::Hard,
             enabled: false,
         },
-        bitcrunch_config: BitcrunchConfiguration {
-            enabled: false,
-        },
+        bitcrunch_config: BitcrunchConfiguration { enabled: false },
         delay_config: DelayConfiguration {
             enabled: false,
             delay_time: 500,
@@ -59,7 +62,7 @@ fn test_sampler_with_zones() {
                 loop_end: 0,
                 one_shot: true,
             },
-        ]
+        ],
     };
 
     // Create patches collection
@@ -84,7 +87,6 @@ fn test_sampler_with_zones() {
     // but the sampler creation should succeed without panicking
 }
 
-
 #[test]
 fn test_zone_selection() {
     // Create a patch with multiple zones
@@ -101,9 +103,7 @@ fn test_zone_selection() {
             kind: KindOfOverdrive::Hard,
             enabled: false,
         },
-        bitcrunch_config: BitcrunchConfiguration {
-            enabled: false,
-        },
+        bitcrunch_config: BitcrunchConfiguration { enabled: false },
         delay_config: DelayConfiguration {
             enabled: false,
             delay_time: 500,
@@ -145,7 +145,7 @@ fn test_zone_selection() {
                 loop_end: 0,
                 one_shot: true,
             },
-        ]
+        ],
     };
 
     // Create patches collection
@@ -168,17 +168,17 @@ fn test_zone_selection() {
 
     // Test zone selection logic
     let patch_ref = sampler.patches.get_patches_reference(0);
-    
+
     // Test note in first zone
     let (sample_id, base_key, _, _, _) = sampler.get_zone_params(36, patch_ref);
     assert_eq!(sample_id, 0);
     assert_eq!(base_key, 45);
-    
+
     // Test note in second zone
     let (sample_id, base_key, _, _, _) = sampler.get_zone_params(60, patch_ref);
     assert_eq!(sample_id, 1);
     assert_eq!(base_key, 60);
-    
+
     // Test note in third zone
     let (sample_id, base_key, _, _, _) = sampler.get_zone_params(84, patch_ref);
     assert_eq!(sample_id, 2);
