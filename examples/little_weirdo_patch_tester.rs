@@ -35,7 +35,7 @@ fn main() {
 
     // Load 10 wavetables from files
     for id in 0..55 {
-        let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
+        let filename = format!("examples/soundbank/waveforms/src/{}_sample.raw", id);
         let contents = fs::read(filename).unwrap(); // Read file contents
         let bytes: &[u8] = &contents; // Convert to byte slice
         wt_on_heap.add(BoxedWavetable::new(bytes)); // Add to wavetables collection
@@ -44,7 +44,7 @@ fn main() {
     // Create an Arc (thread-safe reference) to the wavetables
     let wt = Arc::new(wt_on_heap);
 
-    let path = "examples/soundbank/waveforms/patches/orginal".to_string();
+    let path = "examples/soundbank/waveforms/patches/original".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
     let mut patches = BoxedPatches::new();
     // Sort directory entries by filename for consistent processing

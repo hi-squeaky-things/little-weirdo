@@ -22,7 +22,7 @@ fn main() {
 
     // Load a synth patch into the boxed patch collection used by the library.
     let mut patches = BoxedPatches::new();
-    let patch_data = fs::read("examples/soundbank/patches/original/bass.json").unwrap();
+    let patch_data = fs::read("examples/soundbank/waveforms/patches/original/bass.json").unwrap();
     let patch = serde_json::from_slice(&patch_data).unwrap();
     patches.add(BoxedPatch::new(patch));
     let patches = Arc::new(patches);
@@ -33,7 +33,8 @@ fn main() {
     // Trigger a note.
     synth.note_on(60, 100);
 
-    for _ in 0..4 {
-        let _sample: [i16; 2] = synth.clock_and_output();
+    for _ in 0..400 {
+        let sample: [i16; 2] = synth.clock_and_output();
+        println!("sample = {:?}", sample);
     }
 }
