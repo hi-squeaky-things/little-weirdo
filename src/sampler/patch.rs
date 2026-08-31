@@ -24,21 +24,7 @@ pub struct Patch {
     #[serde(default)]
     pub zones: Vec<Zone>,
     
-    /// Enable velocity layers (multiple samples based on MIDI velocity)
-    #[serde(default)]
-    pub velocity_layers: bool,
-    
-    /// Number of velocity layers (e.g., 3 = low, medium, high velocity)
-    #[serde(default)]
-    pub num_velocity_layers: u8,
-    
-    /// Enable round-robin (cycle through multiple samples for the same note)
-    #[serde(default)]
-    pub round_robin: bool,
-    
-    /// Number of round-robin samples per note
-    #[serde(default)]
-    pub round_robin_count: u8,
+   
 }
 
 /// SoundFont-like zone definition

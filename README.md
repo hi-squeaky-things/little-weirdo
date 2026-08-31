@@ -16,7 +16,7 @@ We are iteration on revision 3.0. Soon to be released.
 
 <img src="https://www.hi-squeaky-things.nl/web/image/1400-5c54f567/Jouw%20alineatekst%20%281%29.webp" width="300">
 
-[See Little Squeaky Machine Hardware)](https://github.com/hi-squeaky-things/little-squeaky-machine-hardware)
+[See Little Squeaky Machine Hardware!](https://github.com/hi-squeaky-things/little-squeaky-machine-hardware)
 
 > [!CAUTION]
 > This project is actively being developed with frequent breaking changes. APIs may shift, features are incomplete, and stability is not guaranteed. Use at your own risk and expect regular updates that might require code adjustments. Have fun!

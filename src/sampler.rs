@@ -31,16 +31,11 @@ pub struct Sampler {
 
     /// Array tracking active notes
     active_note: [u8; AMOUNT_OF_VOICES],
-    /// Array tracking active velocities for round-robin
-    active_velocity: [u8; AMOUNT_OF_VOICES],
     overdrive: Overdrive,
     bitcrunch: Bitcrunch,
     delay: Delay,
     pub patches: Arc<BoxedSamplerPatches>,
     pub current_patch: u8,
-    
-    /// Current round-robin counter for each voice
-    round_robin_counter: [u8; AMOUNT_OF_VOICES],
 }
 
 ///
@@ -74,17 +69,15 @@ impl Sampler {
                 patch.loop_start,
                 patch.loop_end,
                 patch.one_shot,
-                patch.base_key
+                patch.base_key,
             ),
             envelops: Sampler::init_envs(patch.env_config, sample_rate),
             active_note: [0; AMOUNT_OF_VOICES],
-            active_velocity: [0; AMOUNT_OF_VOICES],
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
             delay: Delay::new(patch.delay_config),
             patches,
             current_patch: patch_selected,
-            round_robin_counter: [0; AMOUNT_OF_VOICES],
         }
     }
 
@@ -93,7 +86,7 @@ impl Sampler {
         self.current_patch = patch_selected;
         self.drums = patch.drums;
         self.sample_map = patch.sample_map;
-        
+
         for i in 0..self.sampler_voices.len() {
             let sample_id = if patch.drums {
                 i as u8
@@ -101,7 +94,14 @@ impl Sampler {
                 patch.sample_map
             };
 
-            self.sampler_voices[i].reload(patch.drums, sample_id, patch.loop_start, patch.loop_end, patch.one_shot, patch.base_key);
+            self.sampler_voices[i].reload(
+                patch.drums,
+                sample_id,
+                patch.loop_start,
+                patch.loop_end,
+                patch.one_shot,
+                patch.base_key,
+            );
             self.envelops[i].reload(patch.env_config);
         }
 
@@ -111,7 +111,10 @@ impl Sampler {
     }
 
     /// Initialize envelope generators with given parameters
-    fn init_envs(config: EnvelopConfiguration, sample_rate: u16) -> [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES] {
+    fn init_envs(
+        config: EnvelopConfiguration,
+        sample_rate: u16,
+    ) -> [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES] {
         let envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES] =
             array_init::array_init(|_i: usize| {
                 envelope::EnvelopeGenerator::new(config, sample_rate)
@@ -140,7 +143,7 @@ impl Sampler {
                     loop_start,
                     loop_end,
                     one_shot,
-                    base_key
+                    base_key,
                 )
             });
         voice_samplers
@@ -182,7 +185,8 @@ impl Sampler {
     /// # Arguments
     /// * `note` - The MIDI note number (0-108)
     /// * `velocity` - The velocity of the note (0-127)
-    pub fn note_on(&mut self, note: u8, velocity: u8) {
+    /// TODO: Implement velocity
+    pub fn note_on(&mut self, note: u8, _velocity: u8) {
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {
             return;
@@ -190,13 +194,10 @@ impl Sampler {
 
         let id = self.add_note(note);
         if id != 255 {
-            self.active_velocity[id] = velocity;
-
-            let (_sample_id, base_key, loop_start, loop_end, one_shot, drums, final_sample_id, rr_enabled, rr_count) = {
+            let (sample_id, base_key, loop_start, loop_end, one_shot, drums) = {
                 let patch = self.patches.get_patches_reference(self.current_patch);
                 let (sample_id, base_key, loop_start, loop_end, one_shot) =
                     self.get_zone_params(note, patch);
-                let final_sample_id = self.get_velocity_layer_sample(sample_id, velocity, patch);
                 (
                     sample_id,
                     base_key,
@@ -204,28 +205,11 @@ impl Sampler {
                     loop_end,
                     one_shot,
                     patch.drums,
-                    final_sample_id,
-                    patch.round_robin && patch.round_robin_count != 0,
-                    patch.round_robin_count,
                 )
             };
 
-            let rr_sample_id = if rr_enabled {
-                let rr_index = self.round_robin_counter[id] as usize % rr_count as usize;
-                self.round_robin_counter[id] = (self.round_robin_counter[id] + 1) % rr_count;
-                final_sample_id + rr_index as u8
-            } else {
-                final_sample_id
-            };
-
-            self.sampler_voices[id].reload(
-                drums,
-                rr_sample_id,
-                loop_start,
-                loop_end,
-                one_shot,
-                base_key
-            );
+            self.sampler_voices[id]
+                .reload(drums, sample_id, loop_start, loop_end, one_shot, base_key);
 
             self.sampler_voices[id].set_note(note);
             self.sampler_voices[id].open_gate();
@@ -311,45 +295,19 @@ impl Sampler {
                         zone.base_key,
                         zone.loop_start,
                         zone.loop_end,
-                        zone.one_shot
+                        zone.one_shot,
                     );
                 }
             }
         }
-        
+
         // Fallback to default patch parameters
         (
             patch.sample_map,
             patch.base_key,
             patch.loop_start,
             patch.loop_end,
-            patch.one_shot
+            patch.one_shot,
         )
     }
-
-    /// Get velocity layer sample based on velocity
-    pub fn get_velocity_layer_sample(&self, base_sample_id: u8, velocity: u8, patch: &patch::Patch) -> u8 {
-        if !patch.velocity_layers || patch.num_velocity_layers == 0 {
-            return base_sample_id;
-        }
-        
-        // Calculate which velocity layer to use
-        let layer_index = (velocity as usize) * patch.num_velocity_layers as usize / 128;
-        let layer_index = layer_index.min(patch.num_velocity_layers as usize - 1);
-        
-        // Offset the sample ID by the layer index
-        base_sample_id + layer_index as u8
-    }
-
-    /// Get round-robin sample based on current counter
-    pub fn get_round_robin_sample(&mut self, base_sample_id: u8, voice_id: usize, patch: &patch::Patch) -> u8 {
-        if !patch.round_robin || patch.round_robin_count == 0 {
-            return base_sample_id;
-        }
-
-        let rr_index = self.round_robin_counter[voice_id] as usize % patch.round_robin_count as usize;
-        self.round_robin_counter[voice_id] = (self.round_robin_counter[voice_id] + 1) % patch.round_robin_count;
-        base_sample_id + rr_index as u8
-    }
 }
-

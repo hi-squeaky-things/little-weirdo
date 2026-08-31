@@ -61,7 +61,7 @@ fn main() {
 
     let mut patches_on_heap = BoxedSamplerPatches::new();
     let patch =
-        serde_json::from_slice(include_bytes!("soundbank/sampler/patches/07_piano_with_zones.json"))
+        serde_json::from_slice(include_bytes!("soundbank/sampler/patches/06_kato.json"))
             .unwrap();
     patches_on_heap.add(BoxedSamplerPatch::new(patch));
 

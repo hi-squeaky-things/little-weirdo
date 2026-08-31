@@ -55,9 +55,5 @@
       "loop_end": 0,
       "one_shot": true
     }
-  ],
-  "velocity_layers": false,
-  "num_velocity_layers": 3,
-  "round_robin": false,
-  "round_robin_count": 2
+  ]
 }

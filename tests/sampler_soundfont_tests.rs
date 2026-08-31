@@ -1,7 +1,7 @@
-use std::sync::Arc;
+
 
 use little_weirdo::sampler::{
-    self, Sampler, audio_sampler::{BoxedSample, BoxedSamples}, data::{self, patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}}, patch::Patch,
+    self, audio_sampler::{BoxedSample, BoxedSamples}, data::{patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}}, patch::Patch,
 };
 use little_weirdo::{
     effects::{bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration, overdrive::{OverdriveConfiguration, KindOfOverdrive}},
@@ -59,11 +59,7 @@ fn test_sampler_with_zones() {
                 loop_end: 0,
                 one_shot: true,
             },
-        ],
-        velocity_layers: false,
-        num_velocity_layers: 0,
-        round_robin: false,
-        round_robin_count: 0,
+        ]
     };
 
     // Create patches collection
@@ -88,129 +84,6 @@ fn test_sampler_with_zones() {
     // but the sampler creation should succeed without panicking
 }
 
-#[test]
-fn test_sampler_with_velocity_layers() {
-    // Create a patch with velocity layers
-    let patch = Patch {
-        name: "Test Patch with Velocity Layers".to_string(),
-        drums: false,
-        sample_map: 0,
-        loop_start: 0,
-        loop_end: 0,
-        one_shot: true,
-        base_key: 60,
-        overdrive_config: OverdriveConfiguration {
-            threshold: 30000,
-            kind: KindOfOverdrive::Hard,
-            enabled: false,
-        },
-        bitcrunch_config: BitcrunchConfiguration {
-            enabled: false,
-        },
-        delay_config: DelayConfiguration {
-            enabled: false,
-            delay_time: 500,
-            mix_percentage: 50,
-            feedback: false,
-            feedback_percentage: 50,
-        },
-        env_config: EnvelopConfiguration {
-            attack_time: 0,
-            decay_time: 1000,
-            sustain_level: 10000,
-            release_time: 1000,
-        },
-        zones: vec![],
-        velocity_layers: true,
-        num_velocity_layers: 3,
-        round_robin: false,
-        round_robin_count: 0,
-    };
-
-    // Create patches collection
-    let mut patches = BoxedSamplerPatches::new();
-    patches.add(BoxedSamplerPatch::new(patch));
-
-    // Create samples collection (empty for this test)
-    let mut samples = BoxedSamples::new();
-    samples.add(BoxedSample::new(vec![]));
-    samples.add(BoxedSample::new(vec![]));
-    samples.add(BoxedSample::new(vec![]));
-
-    // Create sampler
-    let _sampler = sampler::Sampler::new(
-        44100,
-        0,
-        std::sync::Arc::new(patches),
-        std::sync::Arc::new(samples),
-    );
-
-    // Test that sampler was created successfully
-    // Note: sample_map and drums are private fields, so we can't test them directly
-    // but the sampler creation should succeed without panicking
-}
-
-#[test]
-fn test_sampler_with_round_robin() {
-    // Create a patch with round-robin
-    let patch = Patch {
-        name: "Test Patch with Round-Robin".to_string(),
-        drums: false,
-        sample_map: 0,
-        loop_start: 0,
-        loop_end: 0,
-        one_shot: true,
-        base_key: 60,
-        overdrive_config: OverdriveConfiguration {
-            threshold: 30000,
-            kind: KindOfOverdrive::Hard,
-            enabled: false,
-        },
-        bitcrunch_config: BitcrunchConfiguration {
-            enabled: false,
-        },
-        delay_config: DelayConfiguration {
-            enabled: false,
-            delay_time: 500,
-            mix_percentage: 50,
-            feedback: false,
-            feedback_percentage: 50,
-        },
-        env_config: EnvelopConfiguration {
-            attack_time: 0,
-            decay_time: 1000,
-            sustain_level: 10000,
-            release_time: 1000,
-        },
-        zones: vec![],
-        velocity_layers: false,
-        num_velocity_layers: 0,
-        round_robin: true,
-        round_robin_count: 3,
-    };
-
-    // Create patches collection
-    let mut patches = BoxedSamplerPatches::new();
-    patches.add(BoxedSamplerPatch::new(patch));
-
-    // Create samples collection (empty for this test)
-    let mut samples = BoxedSamples::new();
-    samples.add(BoxedSample::new(vec![]));
-    samples.add(BoxedSample::new(vec![]));
-    samples.add(BoxedSample::new(vec![]));
-
-    // Create sampler
-    let sampler = sampler::Sampler::new(
-        44100,
-        0,
-        std::sync::Arc::new(patches),
-        std::sync::Arc::new(samples),
-    );
-
-    // Test that sampler was created successfully
-    assert_eq!(sampler.sample_map, 0);
-    assert!(!sampler.drums);
-}
 
 #[test]
 fn test_zone_selection() {
@@ -272,11 +145,7 @@ fn test_zone_selection() {
                 loop_end: 0,
                 one_shot: true,
             },
-        ],
-        velocity_layers: false,
-        num_velocity_layers: 0,
-        round_robin: false,
-        round_robin_count: 0,
+        ]
     };
 
     // Create patches collection

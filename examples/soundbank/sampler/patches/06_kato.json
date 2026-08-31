@@ -27,5 +27,6 @@
             "decay_time": 10,
             "release_time": 500,
             "sustain_level": 100
-    }
+    },
+    "zones": []
 }
