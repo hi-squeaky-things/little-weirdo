@@ -6,6 +6,10 @@ use crate::sampler::patch::Patch;
 
 pub trait Patches {
     fn get_patches_reference(&self, index: u8) -> &Patch;
+    fn get_patches_reference_safe(&self, index: u8) -> Option<&Patch> {
+        self.data().get(index as usize).map(|patch| patch.data.as_ref())
+    }
+    fn data(&self) -> &[BoxedSamplerPatch];
 }
 
 #[derive(Clone)]
@@ -53,5 +57,9 @@ impl BoxedSamplerPatch {
 impl Patches for BoxedSamplerPatches {
     fn get_patches_reference(&self, index: u8) -> &Patch {
         &self.data[index as usize].data
+    }
+
+    fn data(&self) -> &[BoxedSamplerPatch] {
+        &self.data
     }
 }

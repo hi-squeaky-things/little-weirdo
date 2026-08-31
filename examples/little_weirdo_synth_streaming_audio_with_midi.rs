@@ -42,7 +42,7 @@ fn main() {
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..55 {
         let filename = format!(
-            "examples/soundbank/waveforms/src/wav{}.raw",
+            "examples/soundbank/synth/src/wav{}.raw",
             id
         );
         let contents = fs::read(filename).unwrap();
@@ -57,7 +57,7 @@ fn main() {
 
 
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("soundbank/waveforms/patches/original/piano.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!("soundbank/synth/patches/original/piano.json")).unwrap();
   
       let patch_box = BoxedPatch::new(patch);
       let mut patches = BoxedPatches::new();

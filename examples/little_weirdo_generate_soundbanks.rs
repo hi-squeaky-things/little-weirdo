@@ -12,8 +12,8 @@ use hound::WavReader;
 // Define constants for soundbank configuration
 const SOUNDBANK_ITEMS: usize = 2;
 const SOUNDBANK_ORIGINAL: [&str; SOUNDBANK_ITEMS] =
-    ["examples/soundbank/waveforms/original","examples/soundbank/samples/original"];
-const SOUNDBANK_OUTPUT: [&str; SOUNDBANK_ITEMS] = ["examples/soundbank/waveforms/src", "examples/soundbank/samples/src"];
+    ["examples/soundbank/synth/original","examples/soundbank/sampler/original"];
+const SOUNDBANK_OUTPUT: [&str; SOUNDBANK_ITEMS] = ["examples/soundbank/synth/src", "examples/soundbank/sampler/src"];
 
 // Main function - entry point of the program
 fn main() {

@@ -23,24 +23,24 @@
 //! const SAMPLE_RATE: u16 = 44_100;
 //!
 //! fn main() {
-//!     // Create a collection of wavetables and load them from files.
-//!     let mut wt_on_heap = BoxedWavetables::new();
+//!     // Create a collection of waveforms and load them from files.
+//!     let mut oscillator_waveforms = BoxedWavetables::new();
 //!     for id in 0..10 {
-//!         let filename = format!("examples/soundbank/waveforms/src/{}_sample.raw", id);
+//!         let filename = format!("examples/soundbank/synth/src/{}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
-//!         wt_on_heap.add(BoxedWavetable::new(&contents));
+//!         oscillator_waveforms.add(BoxedWavetable::new(&contents));
 //!     }
-//!     let wavetables = Arc::new(wt_on_heap);
+//!     let oscillator_waveforms_on_heap = Arc::new(oscillator_waveforms);
 //!
 //!     // Load a synth patch into the boxed patch collection used by the library.
 //!     let mut patches = BoxedPatches::new();
-//!     let patch_data = fs::read("examples/soundbank/waveforms/patches/original/bass.json").unwrap();
+//!     let patch_data = fs::read("examples/soundbank/synth/patches/original/bass.json").unwrap();
 //!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
 //!     patches.add(BoxedPatch::new(patch));
 //!     let patches = Arc::new(patches);
 //!
 //!     // Create a new synthesizer instance with the patch index and wavetable set.
-//!     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE, 0, patches, Arc::clone(&wavetables));
+//!     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE, 0, patches, Arc::clone(&oscillator_waveforms_on_heap));
 //!
 //!     // Trigger a note.
 //!     synth.note_on(60, 100);
@@ -69,7 +69,7 @@
 //!     // Create a collection of samples and load them from files.
 //!     let mut samples = BoxedSamples::new();
 //!     for id in 0..15 {
-//!         let filename = format!("examples/soundbank/samples/src/{}_sample.raw", id);
+//!         let filename = format!("examples/soundbank/sampler/src/{}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
 //!         samples.add(BoxedSample::new(contents));
 //!     }
@@ -78,7 +78,7 @@
 //!     
 //!     // Load a sampler patch into the boxed patch collection used by the library.
 //!     let mut patches = BoxedSamplerPatches::new();
-//!     let patch_data = fs::read("examples/soundbank/samples/patches/01_piano.json").unwrap();
+//!     let patch_data = fs::read("examples/soundbank/sampler/patches/01_piano.json").unwrap();
 //!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
 //!     patches.add(BoxedSamplerPatch::new(patch));
 //!     let patches = Arc::new(patches);
@@ -100,11 +100,6 @@
 /// The Little Weirdo waveform (table) based subtractive synthesizer.
 ///
 pub mod synth;
-
-///
-/// The Little Weirdo sampler based synthesizer.
-///
-pub mod wave_synth;
 
 ///
 /// The Little Weirdo sampler.

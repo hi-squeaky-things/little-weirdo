@@ -15,7 +15,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     // Load 10 wavetables from files
     for id in 0..10 {
         let filename = format!(
-            "examples/soundbank/waveforms/src/wav{}.raw",
+            "examples/soundbank/waveforms/src/{}_samples.raw",
             id
         );
         let contents = fs::read(filename).unwrap(); // Read file contents

@@ -37,6 +37,7 @@ pub struct Sampler {
     bitcrunch: Bitcrunch,
     delay: Delay,
     pub patches: Arc<BoxedSamplerPatches>,
+    current_patch: u8,
     
     /// Current round-robin counter for each voice
     round_robin_counter: [u8; AMOUNT_OF_VOICES],
@@ -82,12 +83,14 @@ impl Sampler {
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
             delay: Delay::new(patch.delay_config),
             patches,
+            current_patch: patch_selected,
             round_robin_counter: [0; AMOUNT_OF_VOICES],
         }
     }
 
     pub fn load_patch(&mut self, patch_selected: u8) {
         let patch = self.patches.get_patches_reference(patch_selected);
+        self.current_patch = patch_selected;
         self.drums = patch.drums;
         self.sample_map = patch.sample_map;
         
@@ -188,29 +191,42 @@ impl Sampler {
         let id = self.add_note(note);
         if id != 255 {
             self.active_velocity[id] = velocity;
-            
-            // Get the current patch to check for SoundFont-like features
-            let patch = self.patches.get_patches_reference(0).clone(); // TODO: Use current patch index
-            
-            // Handle zones
-            let (sample_id, base_key, loop_start, loop_end, one_shot) = 
-                self.get_zone_params(note, &patch);
-            
-            // Handle velocity layers
-            let final_sample_id = self.get_velocity_layer_sample(sample_id, velocity, &patch);
-            
-            // Handle round-robin
-            let rr_sample_id = self.get_round_robin_sample(final_sample_id, id, &patch);
-            
+
+            let (_sample_id, base_key, loop_start, loop_end, one_shot, drums, final_sample_id, rr_enabled, rr_count) = {
+                let patch = self.patches.get_patches_reference(self.current_patch);
+                let (sample_id, base_key, loop_start, loop_end, one_shot) =
+                    self.get_zone_params(note, patch);
+                let final_sample_id = self.get_velocity_layer_sample(sample_id, velocity, patch);
+                (
+                    sample_id,
+                    base_key,
+                    loop_start,
+                    loop_end,
+                    one_shot,
+                    patch.drums,
+                    final_sample_id,
+                    patch.round_robin && patch.round_robin_count != 0,
+                    patch.round_robin_count,
+                )
+            };
+
+            let rr_sample_id = if rr_enabled {
+                let rr_index = self.round_robin_counter[id] as usize % rr_count as usize;
+                self.round_robin_counter[id] = (self.round_robin_counter[id] + 1) % rr_count;
+                final_sample_id + rr_index as u8
+            } else {
+                final_sample_id
+            };
+
             self.sampler_voices[id].reload(
-                patch.drums, 
-                rr_sample_id, 
-                loop_start, 
-                loop_end, 
-                one_shot, 
+                drums,
+                rr_sample_id,
+                loop_start,
+                loop_end,
+                one_shot,
                 base_key
             );
-            
+
             self.sampler_voices[id].set_note(note);
             self.sampler_voices[id].open_gate();
             self.envelops[id].open_gate();
@@ -330,14 +346,106 @@ impl Sampler {
         if !patch.round_robin || patch.round_robin_count == 0 {
             return base_sample_id;
         }
-        
-        let rr_index = self.round_robin_counter[voice_id] as usize;
-        let rr_index = rr_index % patch.round_robin_count as usize;
-        
-        // Increment counter for next time
+
+        let rr_index = self.round_robin_counter[voice_id] as usize % patch.round_robin_count as usize;
         self.round_robin_counter[voice_id] = (self.round_robin_counter[voice_id] + 1) % patch.round_robin_count;
-        
-        // Offset the sample ID by the round-robin index
         base_sample_id + rr_index as u8
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        effects::{
+            bitcrunch::BitcrunchConfiguration,
+            delay::DelayConfiguration,
+            overdrive::{KindOfOverdrive, OverdriveConfiguration},
+        },
+        sampler::{audio_sampler::BoxedSamples, patch::Patch},
+    };
+    use alloc::{sync::Arc, vec::Vec};
+
+    #[test]
+    fn note_on_uses_current_patch_after_load_patch() {
+        let patch_a = Patch {
+            name: "A".into(),
+            drums: false,
+            sample_map: 0,
+            loop_start: 0,
+            loop_end: 0,
+            one_shot: false,
+            base_key: 60,
+            overdrive_config: OverdriveConfiguration {
+                threshold: 0,
+                kind: KindOfOverdrive::Soft,
+                enabled: false,
+            },
+            bitcrunch_config: BitcrunchConfiguration { enabled: false },
+            delay_config: DelayConfiguration {
+                enabled: false,
+                delay_time: 0,
+                mix_percentage: 0,
+                feedback: false,
+                feedback_percentage: 0,
+            },
+            env_config: EnvelopConfiguration {
+                attack_time: 0,
+                decay_time: 0,
+                release_time: 0,
+                sustain_level: 0,
+            },
+            zones: Vec::new(),
+            velocity_layers: false,
+            num_velocity_layers: 0,
+            round_robin: false,
+            round_robin_count: 0,
+        };
+
+        let patch_b = Patch {
+            name: "B".into(),
+            drums: false,
+            sample_map: 7,
+            loop_start: 0,
+            loop_end: 0,
+            one_shot: false,
+            base_key: 60,
+            overdrive_config: OverdriveConfiguration {
+                threshold: 0,
+                kind: KindOfOverdrive::Soft,
+                enabled: false,
+            },
+            bitcrunch_config: BitcrunchConfiguration { enabled: false },
+            delay_config: DelayConfiguration {
+                enabled: false,
+                delay_time: 0,
+                mix_percentage: 0,
+                feedback: false,
+                feedback_percentage: 0,
+            },
+            env_config: EnvelopConfiguration {
+                attack_time: 0,
+                decay_time: 0,
+                release_time: 0,
+                sustain_level: 0,
+            },
+            zones: Vec::new(),
+            velocity_layers: false,
+            num_velocity_layers: 0,
+            round_robin: false,
+            round_robin_count: 0,
+        };
+
+        let mut patches = BoxedSamplerPatches::new();
+        patches.add(data::patches::BoxedSamplerPatch::new(patch_a));
+        patches.add(data::patches::BoxedSamplerPatch::new(patch_b));
+        let patches = Arc::new(patches);
+
+        let mut sampler = Sampler::new(44100, 0, Arc::clone(&patches), Arc::new(BoxedSamples::new()));
+        sampler.load_patch(1);
+        sampler.note_on(60, 100);
+
+        assert_eq!(sampler.current_patch, 1);
+        assert_eq!(sampler.sample_map, 7);
     }
 }
