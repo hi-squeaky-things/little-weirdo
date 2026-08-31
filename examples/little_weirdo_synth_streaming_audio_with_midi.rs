@@ -42,7 +42,7 @@ fn main() {
     let mut wt_on_heap = BoxedWavetables::new();
     for id in 0..55 {
         let filename = format!(
-            "examples/soundbank/synth/src/wav{}.raw",
+            "examples/soundbank/synth/src/{:03}_sample.raw",
             id
         );
         let contents = fs::read(filename).unwrap();

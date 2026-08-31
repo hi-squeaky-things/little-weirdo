@@ -37,7 +37,10 @@ fn main() {
         paths.sort_by_key(|dir| dir.file_name());
 
         // Create a README.md file to document the soundbank
-        let soundbank_reference_file_name = Path::new(soundbank_source_path).join("README.md");
+        let soundbank_reference_file_name = soundbank_source_path
+            .parent()
+            .unwrap()
+            .join("README.md");
         let mut soundbank_reference_file =
             File::create(soundbank_reference_file_name).expect("Failed to open file");
 
@@ -56,7 +59,7 @@ fn main() {
         for entry in paths {
             // Format the original source name for the README table
             let orginal_src_name = format!(
-                "| {} | {:?} | \"{:?}wav.raw\" | 600 | 1200 |\n",
+                "| {:03} | {:?} | \"{:03}_sample.raw\" | 600 | 1200 |\n",
                 counter,
                 entry.file_name(),
                 counter
@@ -66,7 +69,7 @@ fn main() {
             let _ = soundbank_reference_file.write(orginal_src_name.as_bytes());
 
             // Create the output filename for the raw audio data
-            let soundbank_source_file_name = format!("{:?}_sample.raw", counter);
+            let soundbank_source_file_name = format!("{:03}_sample.raw", counter);
             let soundbank_source =
                 Path::new(soundbank_source_path).join(soundbank_source_file_name);
 

@@ -39,27 +39,17 @@ fn main() {
     // Create a collection of samples and load them from files
 
     // Read directory entries and collect them into a vector
-    let path = "./examples/soundbank/samples/src".to_string();
+    let path = "./examples/soundbank/sampler/src".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
 
     // Sort directory entries by filename for consistent processing
-    paths.sort_by_key(|dir| {
-        dir.file_name()
-            .to_str()
-            .unwrap_or("")
-            .split('_')
-            .next()
-            .unwrap_or("")
-            .parse::<u32>()
-            .unwrap_or(0)
-    });
+    paths.sort_by_key(|dir| dir.file_name().to_string_lossy().to_ascii_lowercase());
 
     let mut samples_on_heap = BoxedSamples::new();
 
     for entry in paths {
         let path = entry.path();
         if path.is_file() {
-            println!("{:?}", path.file_name());
             let contents = fs::read(path).unwrap();
             // let bytes: &[u8] = &contents;
             samples_on_heap.add(BoxedSample::new(contents));
@@ -80,34 +70,6 @@ fn main() {
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: sampler::Sampler =
         sampler::Sampler::new(44100, 0, Arc::clone(&patches), Arc::clone(&samples));
-
-    /*
-    let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new();
-    sequencer_1.set_lane_note(0, 35); // Kick drum
-    sequencer_1.set_lane_note(1, 36); // Kick drum
-    sequencer_1.set_lane_note(2, 37); // Kick drum
-
-     sequencer_1.set_step(2, 0);
-      sequencer_1.set_step(2, 1);
-       sequencer_1.set_step(2, 2);
-        sequencer_1.set_step(2, 3);
-
-    // Kick pattern (syncopated D&B style) - on 16th notes
-    sequencer_1.set_step(0, 0);
-    sequencer_1.set_step(0, 2);
-
-    sequencer_1.set_step(1, 2);
-    sequencer_1.set_step(0, 4);
-    sequencer_1.set_step(1, 6);
-
-    sequencer_1.set_step(0, 8);
-    sequencer_1.set_step(1, 10);
-
-    sequencer_1.set_step(0, 12);
-    sequencer_1.set_step(1, 14);
-
-    sequencer_1.start();
-    */
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
