@@ -6,7 +6,7 @@ use little_weirdo::synth::{
 };
 
 fn load_sine_wavetable() -> Arc<BoxedWavetables> {
-    let raw = fs::read("examples/soundbank/synth/src/0_sample.raw").unwrap();
+    let raw = fs::read("examples/soundbank/synth/src/000_sample.raw").unwrap();
     let mut wavetables = BoxedWavetables::new();
     wavetables.add(BoxedWavetable::new(&raw));
     Arc::new(wavetables)

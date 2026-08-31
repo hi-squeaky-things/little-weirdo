@@ -26,7 +26,7 @@
 //!     // Create a collection of waveforms and load them from files.
 //!     let mut oscillator_waveforms = BoxedWavetables::new();
 //!     for id in 0..10 {
-//!         let filename = format!("examples/soundbank/synth/src/{}_sample.raw", id);
+//!         let filename = format!("examples/soundbank/synth/src/{:03}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
 //!         oscillator_waveforms.add(BoxedWavetable::new(&contents));
 //!     }
@@ -69,7 +69,7 @@
 //!     // Create a collection of samples and load them from files.
 //!     let mut samples = BoxedSamples::new();
 //!     for id in 0..15 {
-//!         let filename = format!("examples/soundbank/sampler/src/{}_sample.raw", id);
+//!         let filename = format!("examples/soundbank/sampler/src/{:03}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
 //!         samples.add(BoxedSample::new(contents));
 //!     }
