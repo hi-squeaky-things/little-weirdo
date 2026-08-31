@@ -4,7 +4,7 @@ use super::data::wavetables::{BoxedWavetables, Wavetables};
 use super::math::percentage;
 use super::Clockable;
 use rand::rngs::SmallRng;
-use rand::{Rng, SeedableRng};
+use rand::{SeedableRng, RngExt};
 
 use serde::Deserialize;
 use serde::Serialize;
