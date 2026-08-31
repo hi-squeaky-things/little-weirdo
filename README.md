@@ -19,10 +19,12 @@ A Rust #no-std optimized wave table synthesizer for embedded devices.
 ## Features
 
 - ✅ No-std compatible for embedded devices
-- ✅ Lightweight and efficient
-- ✅ Wavetable synthesis with customizable patches
+- ✅ Lightweight and efficient (no floating point calculations)
+- ✅ Waveform (table) based subtractive synthesizer with customizable patches
+- ✅ Waveform (table) based granular synthesizer with customizable patches
+- ✅ Sampler based synthesizer (soundfont-a-like).
 - ✅ MIDI support
-- ✅ Real-time audio processing
+- ✅ Real-time audio processing (distortion/overdrive, filter, delay, bit-crunch, lfo, ring-modulation)
 - ✅ Modular architecture for easy extension
 
 ## Installation

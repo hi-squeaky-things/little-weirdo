@@ -58,7 +58,7 @@
 pub mod synth;
 
 ///
-/// The Little Weirdo sampler based subtractive synthesizer.
+/// The Little Weirdo sampler based synthesizer.
 ///
 pub mod wave_synth;
 
