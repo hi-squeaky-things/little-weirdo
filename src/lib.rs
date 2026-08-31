@@ -51,6 +51,45 @@
 //!     }
 //! }
 //! ```
+//!
+//! Example usage with sampler:
+//! ```rust
+//! use little_weirdo::sampler::{
+//!     self,
+//!     audio_sampler::{BoxedSample, BoxedSamples},
+//!     data::patches::{BoxedSamplerPatch, BoxedSamplerPatches},
+//!     patch::Patch,
+//! };
+//!
+//! use std::{fs, sync::Arc};
+//!
+//! const SAMPLE_RATE: u16 = 44_100;
+//!
+//! fn main() {
+//!     // Create a collection of samples and load them from files.
+//!     let mut samples = BoxedSamples::new();
+//!     let sample_data = fs::read("examples/soundbank/samples/src/0012_sample.raw").unwrap();
+//!     samples.add(BoxedSample::new(&sample_data));
+//!
+//!     // Load a sampler patch into the boxed patch collection used by the library.
+//!     let mut patches = BoxedSamplerPatches::new();
+//!     let patch_data = fs::read("examples/soundbank/samples/01_piano.json").unwrap();
+//!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
+//!     patches.add(BoxedSamplerPatch::new(patch));
+//!     let patches = Arc::new(patches);
+//!
+//!     // Create a new sampler instance with the patch index and sample set.
+//!     let mut sampler: sampler::Sampler = sampler::Sampler::new(SAMPLE_RATE, 0, patches, Arc::clone(&samples));
+//!
+//!     // Trigger a note.
+//!     sampler.note_on(60, 100);
+//!
+//!     // Get the samples
+//!     for _ in 0..4 {
+//!         let _sample: [i16; 2] = sampler.clock_and_output();
+//!     }
+//! }
+//! ```
 
 ///
 /// The Little Weirdo waveform (table) based subtractive synthesizer.

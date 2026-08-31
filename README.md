@@ -85,7 +85,8 @@ fn main() {
 
 ## Examples
 
-- **[Little Weirdo Streaming Audio With MIDI](examples/little_weirdo_streaming_audio_with_midi.rs)**: Run Little Weirdo as a MIDI device while outputting to a local Audio Output.
+- **[Little Weirdo Streaming Audio With MIDI](examples/little_weirdo_synth_streaming_audio_with_midi.rs)**: Run Little Weirdo as a MIDI device while outputting to a local Audio Output.
+- **[Little Weirdo Sampler Streaming Audio With MIDI](examples/little_weirdo_sampler_streaming_audio_with_midi.rs)**: Run Little Weirdo Sampler as a MIDI device while outputting to a local Audio Output.
 - **[Little Weirdo Patch Tester](examples/little_weirdo_patch_tester.rs)**: Play with patches for Little Weirdo.
 - **[Little Weirdo Generate Soundbank](examples/little_weirdo_generate_soundbanks.rs)**: Generate your own Soundbank using Wavetable samples from AKWF.
 
