@@ -37,7 +37,7 @@ pub struct Sampler {
     bitcrunch: Bitcrunch,
     delay: Delay,
     pub patches: Arc<BoxedSamplerPatches>,
-    current_patch: u8,
+    pub current_patch: u8,
     
     /// Current round-robin counter for each voice
     round_robin_counter: [u8; AMOUNT_OF_VOICES],
@@ -353,99 +353,3 @@ impl Sampler {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        effects::{
-            bitcrunch::BitcrunchConfiguration,
-            delay::DelayConfiguration,
-            overdrive::{KindOfOverdrive, OverdriveConfiguration},
-        },
-        sampler::{audio_sampler::BoxedSamples, patch::Patch},
-    };
-    use alloc::{sync::Arc, vec::Vec};
-
-    #[test]
-    fn note_on_uses_current_patch_after_load_patch() {
-        let patch_a = Patch {
-            name: "A".into(),
-            drums: false,
-            sample_map: 0,
-            loop_start: 0,
-            loop_end: 0,
-            one_shot: false,
-            base_key: 60,
-            overdrive_config: OverdriveConfiguration {
-                threshold: 0,
-                kind: KindOfOverdrive::Soft,
-                enabled: false,
-            },
-            bitcrunch_config: BitcrunchConfiguration { enabled: false },
-            delay_config: DelayConfiguration {
-                enabled: false,
-                delay_time: 0,
-                mix_percentage: 0,
-                feedback: false,
-                feedback_percentage: 0,
-            },
-            env_config: EnvelopConfiguration {
-                attack_time: 0,
-                decay_time: 0,
-                release_time: 0,
-                sustain_level: 0,
-            },
-            zones: Vec::new(),
-            velocity_layers: false,
-            num_velocity_layers: 0,
-            round_robin: false,
-            round_robin_count: 0,
-        };
-
-        let patch_b = Patch {
-            name: "B".into(),
-            drums: false,
-            sample_map: 7,
-            loop_start: 0,
-            loop_end: 0,
-            one_shot: false,
-            base_key: 60,
-            overdrive_config: OverdriveConfiguration {
-                threshold: 0,
-                kind: KindOfOverdrive::Soft,
-                enabled: false,
-            },
-            bitcrunch_config: BitcrunchConfiguration { enabled: false },
-            delay_config: DelayConfiguration {
-                enabled: false,
-                delay_time: 0,
-                mix_percentage: 0,
-                feedback: false,
-                feedback_percentage: 0,
-            },
-            env_config: EnvelopConfiguration {
-                attack_time: 0,
-                decay_time: 0,
-                release_time: 0,
-                sustain_level: 0,
-            },
-            zones: Vec::new(),
-            velocity_layers: false,
-            num_velocity_layers: 0,
-            round_robin: false,
-            round_robin_count: 0,
-        };
-
-        let mut patches = BoxedSamplerPatches::new();
-        patches.add(data::patches::BoxedSamplerPatch::new(patch_a));
-        patches.add(data::patches::BoxedSamplerPatch::new(patch_b));
-        let patches = Arc::new(patches);
-
-        let mut sampler = Sampler::new(44100, 0, Arc::clone(&patches), Arc::new(BoxedSamples::new()));
-        sampler.load_patch(1);
-        sampler.note_on(60, 100);
-
-        assert_eq!(sampler.current_patch, 1);
-        assert_eq!(sampler.sample_map, 7);
-    }
-}

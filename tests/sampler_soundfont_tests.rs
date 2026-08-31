@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use little_weirdo::sampler::{
-    self, audio_sampler::{BoxedSample, BoxedSamples}, data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}, patch::Patch,
+    self, Sampler, audio_sampler::{BoxedSample, BoxedSamples}, data::{self, patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}}, patch::Patch,
 };
 use little_weirdo::{
     effects::{bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration, overdrive::{OverdriveConfiguration, KindOfOverdrive}},
