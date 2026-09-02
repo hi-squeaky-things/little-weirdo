@@ -1,7 +1,7 @@
 //! Low, High, Band, Notch pass filters
-use serde::{Deserialize, Serialize};
 use crate::effects::Effect;
 use crate::math::{fx_mul, ifx_mul, ucfx_mul};
+use serde::{Deserialize, Serialize};
 
 /// Types of filters available
 #[derive(Copy, Clone, Serialize, Deserialize)]

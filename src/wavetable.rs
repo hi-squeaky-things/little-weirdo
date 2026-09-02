@@ -4,11 +4,11 @@ use alloc::sync::Arc;
 use crate::{
     effects::{bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive, Effect},
     math,
-    wavetable::audio_sampler::AudioSampler,
     synth::{
         envelope::{self, EnvelopConfiguration},
         Clockable,
     },
+    wavetable::audio_sampler::AudioSampler,
 };
 
 pub mod audio_sampler;

@@ -2,7 +2,7 @@
 
 use crate::synth::data::waveforms::BoxedWaveforms;
 
-use super::data::waveforms::{Waveforms};
+use super::data::waveforms::Waveforms;
 use super::math::percentage;
 use super::Clockable;
 use rand::rngs::SmallRng;
@@ -148,8 +148,7 @@ impl Clockable for WaveformOscillator {
                 _ => {
                     // Wavetable lookup
                     let index = self.lookup_table[self.phase as usize] as usize;
-                    self.waveforms
-                        .get_waveform_reference(self.waveform_pointer)[index]
+                    self.waveforms.get_waveform_reference(self.waveform_pointer)[index]
                 }
             };
 

@@ -60,8 +60,10 @@ fn main() {
     let samples = Arc::new(samples_on_heap);
 
     let mut patches_on_heap = BoxedSamplerPatches::new();
-    let patch =
-        serde_json::from_slice(include_bytes!("soundbank/wavetable/patches/original/05_bass.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!(
+        "soundbank/wavetable/patches/original/05_bass.json"
+    ))
+    .unwrap();
     patches_on_heap.add(BoxedSamplerPatch::new(patch));
 
     let patches = Arc::new(patches_on_heap);

@@ -1,5 +1,8 @@
 use little_weirdo::wavetable::{
-    self, audio_sampler::{BoxedSample, BoxedSamples}, data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}, patch::Patch,
+    self,
+    audio_sampler::{BoxedSample, BoxedSamples},
+    data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches},
+    patch::Patch,
 };
 use little_weirdo::{
     effects::{

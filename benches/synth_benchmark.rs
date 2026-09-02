@@ -14,7 +14,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
     // Load 10 wavetables from files
     for id in 0..10 {
-        let filename = format!("examples/soundbank/synth/waveforms/src/{:03}_sample.raw", id);
+        let filename = format!(
+            "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
+            id
+        );
         let contents = fs::read(filename).unwrap(); // Read file contents
         let bytes: &[u8] = &contents; // Convert to byte slice
         wt_on_heap.add(BoxedWaveform::new(bytes)); // Add to wavetables collection

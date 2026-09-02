@@ -1,6 +1,6 @@
 #![no_std]
 //! # `The Little Weirdo Digital Audio Synthesizer Library`
-//! 
+//!
 //! ```text
 //! ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
 //! ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
@@ -11,10 +11,10 @@
 //!
 //! **[Hi Squeaky Things](https://www.hi-squeaky-things.nl)** can happen at any time™. _Little Weirdo_ is ready to squeak, squuuueak, squeeeeeaak, squeaaaaaaaaak!
 //!
-//!  See the Little Weirdo in embedded context action, checkout **[Little Squeaky Machine Hardware!](https://github.com/hi-squeaky-things/little-squeaky-machine-hardware)** or 
+//!  See the Little Weirdo in embedded context action, checkout **[Little Squeaky Machine Hardware!](https://github.com/hi-squeaky-things/little-squeaky-machine-hardware)** or
 //!  buy the embedded reference hardware @ **[Hi Squeaky Things](https://www.hi-squeaky-things.nl)** to support the development of this library.
-//! 
-//! 
+//!
+//!
 //! ## Features
 //! - `no_std` library optimized for embedded devices
 //! - Lightweight and efficient (no floating point calculations)
@@ -25,13 +25,13 @@
 //! - Modular architecture for easy extension
 //!
 //! The library is designed to be highly customizable, allowing developers to create their own synthesizers and effects using the provided components.
-//! 
+//!
 //! ## Performance
-//! 
+//!
 //! The performance tests on real embedded hardware can be found here [Little Weirdo performance tests on a ESP32/ESP32S3](https://github.com/hi-squeaky-things/little-weirdo-esp32)
-//! 
+//!
 //! ## Examples
-//! 
+//!
 //! Example usage of the additive/subtractive/granular based synthesizer components:
 //! ```rust
 //! use little_weirdo::synth::{

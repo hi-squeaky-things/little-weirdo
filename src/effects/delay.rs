@@ -1,6 +1,6 @@
 //! Delay/Echo effect
-use serde::{Deserialize, Serialize};
 use crate::{effects::Effect, math};
+use serde::{Deserialize, Serialize};
 extern crate alloc;
 use alloc::collections::VecDeque;
 

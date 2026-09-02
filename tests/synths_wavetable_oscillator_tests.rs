@@ -1,7 +1,8 @@
 use std::{fs, sync::Arc};
 
 use little_weirdo::synth::{
-    data::waveforms::{BoxedWaveform, BoxedWaveforms}, waveform_oscillator::{WaveformOscillator, WaveformOscillatorConfig},
+    data::waveforms::{BoxedWaveform, BoxedWaveforms},
+    waveform_oscillator::{WaveformOscillator, WaveformOscillatorConfig},
 };
 
 fn load_sine_wavetable() -> Arc<BoxedWaveforms> {
