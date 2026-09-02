@@ -1,10 +1,7 @@
-use core::i16;
-
+//! Delay/Echo effect
 use serde::{Deserialize, Serialize};
-
 use crate::{effects::Effect, math};
 extern crate alloc;
-
 use alloc::collections::VecDeque;
 
 // Runtime settings for the delay effect: whether it is active, how long the delay is,

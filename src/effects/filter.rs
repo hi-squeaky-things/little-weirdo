@@ -1,6 +1,5 @@
-//! Lowpass filter implementation
+//! Low, High, Band, Notch pass filters
 use serde::{Deserialize, Serialize};
-
 use crate::effects::Effect;
 use crate::math::{fx_mul, ifx_mul, ucfx_mul};
 

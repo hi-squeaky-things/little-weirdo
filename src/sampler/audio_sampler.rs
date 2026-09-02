@@ -132,7 +132,6 @@ impl Clockable for AudioSampler {
 
 impl AudioSampler {
     /// Creates a new sampler instance with the given sample rate and audio data.
-
     pub fn new(
         sample_rate: u16,
         sample_id: u8,
