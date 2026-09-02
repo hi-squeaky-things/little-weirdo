@@ -3,7 +3,7 @@ use alloc::{sync::Arc, vec::Vec};
 
 use crate::synth::{data::frequencies::MIDI2FREQ, Clockable};
 
-// Struct that holds multiple boxed wavetables
+// Holds multiple boxed audio samples.
 #[derive(Clone)]
 pub struct BoxedSamples {
     data: Vec<BoxedSample>,
@@ -16,20 +16,20 @@ impl Default for BoxedSamples {
 }
 
 impl BoxedSamples {
-    // Creates a new empty BoxedWavetables instance with capacity for 10 wavetables
+    // Creates an empty sample collection with capacity for 10 samples.
     pub fn new() -> Self {
         Self {
             data: Vec::with_capacity(10),
         }
     }
 
-    // Adds a new wavetable to the collection
-    pub fn add(&mut self, wt: BoxedSample) {
-        self.data.push(wt);
+    // Adds a sample to the collection.
+    pub fn add(&mut self, sample: BoxedSample) {
+        self.data.push(sample);
     }
 }
 
-/// A boxed sample containing audio data as a vector of 16-bit signed integers.
+/// A boxed sample containing raw audio data as little-endian bytes.
 #[derive(Clone)]
 pub struct BoxedSample {
     /// The actual audio sample data.
@@ -37,19 +37,16 @@ pub struct BoxedSample {
 }
 
 impl BoxedSample {
-    /// Creates a new `BoxedSample` from a vector of 8-bit unsigned integers.
-    ///
-    /// This constructor converts 16-bit little-endian samples from the input data
-    /// into a vector of 16-bit signed integers for internal processing.
+    /// Creates a new `BoxedSample` from raw audio data.
     pub fn new(data: Vec<u8>) -> Self {
         let init = Self { data };
         init
     }
 }
 
-/// A sampler that plays back audio samples at different speeds.
+/// A voice that plays back an audio sample at variable speeds.
 #[allow(dead_code)]
-pub struct AudioSampler {
+pub struct SampleVoice {
     /// Reference to the underlying audio sample data.
     sampler: Arc<BoxedSamples>,
 
@@ -70,8 +67,8 @@ pub struct AudioSampler {
     base_key: u8,
 }
 
-impl Clockable for AudioSampler {
-    /// Processes one clock cycle of the sampler.
+impl Clockable for SampleVoice {
+    /// Processes one clock cycle of the sample voice.
     ///
     /// Advances the playback position based on the configured speed and increment,
     /// and returns the current sample value.
@@ -130,8 +127,25 @@ impl Clockable for AudioSampler {
     }
 }
 
-impl AudioSampler {
-    /// Creates a new sampler instance with the given sample rate and audio data.
+impl SampleVoice {
+    /// Creates a new, closed `SampleVoice` with the given sample configuration.
+    ///
+    /// For one-shot playback, the voice length is derived from the selected
+    /// sample's byte length. For looping playback, `loop_start` initially
+    /// defines the end of the non-looping portion. A `loop_end` value of zero
+    /// uses that initial length as the loop end.
+    ///
+    /// # Arguments
+    ///
+    /// * `sample_rate` - The audio rate associated with the sample data.
+    /// * `sample_id` - The index of the sample in `sampler`.
+    /// * `sampler` - The shared collection containing the sample data.
+    /// * `is_drums` - Whether MIDI notes select samples instead of changing pitch.
+    /// * `loop_start` - The sample position where looping begins.
+    /// * `loop_end` - The exclusive sample position where looping ends, or zero
+    ///   to use the derived initial length.
+    /// * `one_shot` - Whether playback stops after one pass instead of looping.
+    /// * `base_key` - The MIDI note used as the sample's original pitch.
     pub fn new(
         sample_rate: u16,
         sample_id: u8,
@@ -142,7 +156,7 @@ impl AudioSampler {
         one_shot: bool,
         base_key: u8,
     ) -> Self {
-        let mut audio_sampler = AudioSampler {
+        let mut audio_sampler = SampleVoice {
             sample_rate,
             sampler,
             sample_id,
@@ -174,6 +188,12 @@ impl AudioSampler {
         audio_sampler
     }
 
+    /// Selects a note for playback.
+    ///
+    /// In drum mode, the note is converted to a sample index by subtracting
+    /// MIDI note 36. Otherwise, the note's frequency is used to update the
+    /// playback increment relative to `base_key` and the playback position is
+    /// reset.
     pub fn set_note(&mut self, note: u8) {
         if self.is_drums {
             self.sample_id = note - 36;
@@ -183,6 +203,11 @@ impl AudioSampler {
         }
     }
 
+    /// Opens the voice gate and restarts playback from the beginning.
+    ///
+    /// This resets the sample position and loop state. The active length is
+    /// recalculated so a one-shot uses the full sample and a looping voice
+    /// plays its pre-loop section before entering the loop.
     pub fn open_gate(&mut self) {
         self.counter = 0.0;
         self.open = true;
@@ -194,6 +219,10 @@ impl AudioSampler {
         }
     }
 
+    /// Closes the voice gate.
+    ///
+    /// Gate closing is currently reserved for future release behavior and
+    /// does not stop or otherwise modify playback.
     pub fn close_gate(&mut self) {
         /*   self.counter = 0;
         self.open = false;*/
@@ -201,13 +230,33 @@ impl AudioSampler {
 
     /// Changes the playback frequency by adjusting speed and increment values.
     ///
-    /// This method maps specific frequencies to corresponding speed and increment settings
-    /// to achieve desired pitch variations.
+    /// The increment is calculated as `freq / base_frequency`, where the base
+    /// frequency is the frequency of `base_key`. The playback position is reset
+    /// before the new frequency takes effect.
+    ///
+    /// # Arguments
+    ///
+    /// * `freq` - The target frequency in hertz.
     pub fn change_freq(&mut self, freq: u16) {
         self.counter = 0.0;
         self.increment = freq as f32 / MIDI2FREQ[self.base_key as usize] as f32
     }
 
+    /// Stops playback and replaces the voice's sample configuration.
+    ///
+    /// The voice remains closed until [`SampleVoice::open_gate`] is called.
+    /// Playback speed, loop state, selected sample, drum mode, and pitch
+    /// settings are reset from the supplied arguments. The sample collection
+    /// itself is shared and is not modified.
+    ///
+    /// # Arguments
+    ///
+    /// * `is_drum` - Whether MIDI notes select samples instead of changing pitch.
+    /// * `sample_id` - The index of the replacement sample.
+    /// * `loop_start` - The sample position where looping begins.
+    /// * `loop_end` - The sample position where looping ends.
+    /// * `one_shot` - Whether playback stops after one pass.
+    /// * `base_key` - The MIDI note used as the replacement sample's original pitch.
     pub fn reload(
         &mut self,
         is_drum: bool,

@@ -3,7 +3,7 @@ use cpal::{Device, Sample, StreamConfig};
 
 use little_weirdo::wavetable;
 
-use little_weirdo::wavetable::audio_sampler::{BoxedSample, BoxedSamples};
+use little_weirdo::wavetable::sample_voice::{BoxedSample, BoxedSamples};
 use little_weirdo::wavetable::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
 use midi_control::{self, MidiMessage};
 use midir;

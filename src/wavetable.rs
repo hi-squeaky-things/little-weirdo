@@ -8,10 +8,10 @@ use crate::{
         envelope::{self, EnvelopConfiguration},
         Clockable,
     },
-    wavetable::audio_sampler::AudioSampler,
+    wavetable::sample_voice::SampleVoice,
 };
 
-pub mod audio_sampler;
+pub mod sample_voice;
 pub mod data;
 pub mod patch;
 use data::patches::{BoxedSamplerPatches, Patches};
@@ -25,7 +25,7 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 pub struct WavetableSynth {
     pub drums: bool,
     pub sample_map: u8,
-    sampler_voices: [AudioSampler; AMOUNT_OF_VOICES],
+    sample_voices: [SampleVoice; AMOUNT_OF_VOICES],
     /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
 
@@ -55,13 +55,13 @@ impl WavetableSynth {
         sample_rate: u16,
         patch_selected: u8,
         patches: alloc::sync::Arc<BoxedSamplerPatches>,
-        samples: alloc::sync::Arc<audio_sampler::BoxedSamples>,
+        samples: alloc::sync::Arc<sample_voice::BoxedSamples>,
     ) -> Self {
         let patch = patches.get_patches_reference(patch_selected);
         Self {
             sample_map: patch.sample_map,
             drums: patch.drums,
-            sampler_voices: WavetableSynth::init_sampler_voices(
+            sample_voices: WavetableSynth::init_sample_voices(
                 sample_rate,
                 Arc::clone(&samples),
                 patch.drums,
@@ -87,14 +87,14 @@ impl WavetableSynth {
         self.drums = patch.drums;
         self.sample_map = patch.sample_map;
 
-        for i in 0..self.sampler_voices.len() {
+        for i in 0..self.sample_voices.len() {
             let sample_id = if patch.drums {
                 i as u8
             } else {
                 patch.sample_map
             };
 
-            self.sampler_voices[i].reload(
+            self.sample_voices[i].reload(
                 patch.drums,
                 sample_id,
                 patch.loop_start,
@@ -123,19 +123,19 @@ impl WavetableSynth {
     }
 
     /// Initialize waveform oscillators with given parameters
-    fn init_sampler_voices(
+    fn init_sample_voices(
         sample_rate: u16,
-        samples: Arc<audio_sampler::BoxedSamples>,
+        samples: Arc<sample_voice::BoxedSamples>,
         drums: bool,
         sample_map: u8,
         loop_start: u32,
         loop_end: u32,
         one_shot: bool,
         base_key: u8,
-    ) -> [AudioSampler; AMOUNT_OF_VOICES] {
-        let voice_samplers: [AudioSampler; AMOUNT_OF_VOICES] =
+    ) -> [SampleVoice; AMOUNT_OF_VOICES] {
+        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
-                AudioSampler::new(
+                SampleVoice::new(
                     sample_rate,
                     if drums { i as u8 } else { sample_map },
                     Arc::clone(&samples),
@@ -162,7 +162,7 @@ impl WavetableSynth {
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
 
         for i in 0..AMOUNT_OF_VOICES {
-            generate_voices[i] = self.sampler_voices[i].clock(None);
+            generate_voices[i] = self.sample_voices[i].clock(None);
             generate_env[i] = self.envelops[i].clock(None);
         }
 
@@ -211,11 +211,11 @@ impl WavetableSynth {
                 )
             };
 
-            self.sampler_voices[id]
+            self.sample_voices[id]
                 .reload(drums, sample_id, loop_start, loop_end, one_shot, base_key);
 
-            self.sampler_voices[id].set_note(note);
-            self.sampler_voices[id].open_gate();
+            self.sample_voices[id].set_note(note);
+            self.sample_voices[id].open_gate();
             self.envelops[id].open_gate();
         }
     }
