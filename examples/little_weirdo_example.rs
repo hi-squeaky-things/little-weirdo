@@ -14,7 +14,10 @@ fn main() {
     // Create a collection of waveforms and load them from files.
     let mut oscillator_waveforms = BoxedWaveforms::new();
     for id in 0..10 {
-        let filename = format!("examples/soundbank/synth/waveforms/src/{:03}_sample.raw", id);
+        let filename = format!(
+            "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
+            id
+        );
         let contents = fs::read(filename).unwrap();
         oscillator_waveforms.add(BoxedWaveform::new(&contents));
     }
