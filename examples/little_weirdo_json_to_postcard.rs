@@ -2,10 +2,10 @@ use little_weirdo::synth::patch::Patch;
 use std::fs::{self, File};
 use std::io::Write;
 
-
 fn main() {
     // Load a synth patch from a JSON file
-    let patch_dir = "examples/soundbank/patches/orginal";
+    let patch_dir = "examples/soundbank/synth/patches/original";
+    let output_dir = "examples/soundbank/synth/patches/src";
 
     // Read all files from the patches directory
     let entries = fs::read_dir(patch_dir).expect("Failed to read directory");
@@ -28,8 +28,9 @@ fn main() {
                     postcard::to_slice(&patch, &mut buf).expect("Failed to serialize to postcard");
 
                 // Create output filename (same name, different extension)
-                let output_path = path.with_extension("lwp");
-
+                let filename = path.file_stem().unwrap().to_str().unwrap().to_string() + ".lwp";
+                let output_path = std::path::Path::new(output_dir).join(filename);
+                println!("{:?}", output_path);
                 // Write to file
                 let mut postcard_patch_file =
                     File::create(&output_path).expect("Failed to create output file");

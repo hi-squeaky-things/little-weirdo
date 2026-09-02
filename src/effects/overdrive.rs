@@ -1,7 +1,6 @@
-//! Overdrive
-use serde::{Deserialize, Serialize};
-
+//! Overdrive/Distortion effect
 use crate::effects::Effect;
+use serde::{Deserialize, Serialize};
 
 // Different distortion curves applied once a signal exceeds the configured threshold.
 #[derive(Copy, Clone, Serialize, Deserialize)]

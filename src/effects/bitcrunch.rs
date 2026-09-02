@@ -1,8 +1,7 @@
-use core::i16;
-
-use serde::{Deserialize, Serialize};
+//! Bitcrunch (chip-tune/8 bit) effect
 
 use crate::effects::Effect;
+use serde::{Deserialize, Serialize};
 
 // 16-bit audio is reduced to 8-bit steps by quantizing to a 256-sample grid.
 const QUANTIZE_STEP: i32 = 256;

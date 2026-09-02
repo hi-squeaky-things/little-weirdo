@@ -1,16 +1,10 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
-use little_weirdo::effects::bitcrunch::BitcrunchConfiguration;
-use little_weirdo::effects::delay::DelayConfiguration;
-use little_weirdo::effects::filter::FilterConfig;
-use little_weirdo::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
-use little_weirdo::sampler;
+use little_weirdo::wavetable;
 
-use little_weirdo::sampler::audio_sampler::{BoxedSample, BoxedSamples};
-use little_weirdo::sampler::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
-use little_weirdo::sampler::patch::Patch;
-use midi_control::consts::control_change::LEGATO_FOOTSWITCH;
+use little_weirdo::wavetable::audio_sampler::{BoxedSample, BoxedSamples};
+use little_weirdo::wavetable::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
 use midi_control::{self, MidiMessage};
 use midir;
 use std::fs::read_dir;
@@ -45,20 +39,19 @@ fn main() {
     // Create a collection of samples and load them from files
 
     // Read directory entries and collect them into a vector
-    let path = "./examples/soundbank/samples/src".to_string();
+    let path = "./examples/soundbank/wavetable/samples/src".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
 
     // Sort directory entries by filename for consistent processing
-    paths.sort_by_key(|dir| dir.file_name());
+    paths.sort_by_key(|dir| dir.file_name().to_string_lossy().to_ascii_lowercase());
 
     let mut samples_on_heap = BoxedSamples::new();
 
     for entry in paths {
         let path = entry.path();
         if path.is_file() {
-            println!("{:?}", path.file_name());
             let contents = fs::read(path).unwrap();
-           // let bytes: &[u8] = &contents;
+            // let bytes: &[u8] = &contents;
             samples_on_heap.add(BoxedSample::new(contents));
         }
     }
@@ -66,42 +59,18 @@ fn main() {
     // Wrap wavetables in an Arc for thread-safe sharing
     let samples = Arc::new(samples_on_heap);
 
-
     let mut patches_on_heap = BoxedSamplerPatches::new();
-    let patch = serde_json::from_slice(include_bytes!("soundbank/samples/05_bass.json")).unwrap();
+    let patch = serde_json::from_slice(include_bytes!(
+        "soundbank/wavetable/patches/original/05_bass.json"
+    ))
+    .unwrap();
     patches_on_heap.add(BoxedSamplerPatch::new(patch));
 
     let patches = Arc::new(patches_on_heap);
 
-
-
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: sampler::Sampler = sampler::Sampler::new(44100, 0, Arc::clone(&patches),Arc::clone(&samples));
-    let mut sequencer_1 = little_weirdo::sequencer::Sequencer::new();
-    sequencer_1.set_lane_note(0, 35); // Kick drum
-    sequencer_1.set_lane_note(1, 36); // Kick drum
-    sequencer_1.set_lane_note(2, 37); // Kick drum
-
-     sequencer_1.set_step(2, 0);
-      sequencer_1.set_step(2, 1);
-       sequencer_1.set_step(2, 2);
-        sequencer_1.set_step(2, 3);
-
-    // Kick pattern (syncopated D&B style) - on 16th notes
-    sequencer_1.set_step(0, 0);
-    sequencer_1.set_step(0, 2);
-   
-    sequencer_1.set_step(1, 2);
-    sequencer_1.set_step(0, 4);
-    sequencer_1.set_step(1, 6);
-
-    sequencer_1.set_step(0, 8);
-    sequencer_1.set_step(1, 10);
-
-    sequencer_1.set_step(0, 12);
-    sequencer_1.set_step(1, 14);
-
-    sequencer_1.start();
+    let mut synth: wavetable::WavetableSynth =
+        wavetable::WavetableSynth::new(44100, 0, Arc::clone(&patches), Arc::clone(&samples));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -109,7 +78,7 @@ fn main() {
     // Connect to the MIDI input port and start listening for messages
     let _connect_in = midi_input.connect(
         &device_port,
-        "IAC Driver",
+        "IAC",
         move |_timestamp, data, _sender| {
             // Convert raw MIDI data to our MidiMessage type
             let msg: midi_control::MidiMessage = midi_control::MidiMessage::from(data);
@@ -136,13 +105,13 @@ fn main() {
                     // Get the next sample from the synth
                     let output = synth.clock_and_output();
 
-                   // let trigger_1 = sequencer_1.clock(); // Update the sequencer state (not currently used to trigger anything)
+                    // let trigger_1 = sequencer_1.clock(); // Update the sequencer state (not currently used to trigger anything)
 
-                 //   for (i, &hit) in trigger_1.iter().enumerate() {
-                   //     if hit.0 {
-                     //       synth.note_on(hit.1, 100);
-                       // }
-                   // }
+                    //   for (i, &hit) in trigger_1.iter().enumerate() {
+                    //     if hit.0 {
+                    //       synth.note_on(hit.1, 100);
+                    // }
+                    // }
 
                     // Convert samples to f32 format
                     let left: f32 = Sample::from_sample(output[0]);
@@ -182,7 +151,7 @@ fn setup_device() -> (Device, StreamConfig) {
         .ok_or_else(|| anyhow::Error::msg("Default output device is not available"))
         .unwrap();
 
-    println!("Output device : {}", device.name().unwrap());
+    println!("Output device : {}", device.description().unwrap());
 
     // Get the default output configuration
     let supported_config: cpal::SupportedStreamConfig = device.default_output_config().unwrap();
@@ -193,7 +162,7 @@ fn setup_device() -> (Device, StreamConfig) {
 }
 
 /// Processes MIDI messages and updates the synthesizer state
-fn process_midimessage(synth: &mut sampler::Sampler, command: MidiMessage) {
+fn process_midimessage(synth: &mut wavetable::WavetableSynth, command: MidiMessage) {
     match command {
         // Handle note-on messages
         MidiMessage::NoteOn(_ch, e) => synth.note_on(e.key, e.value),
@@ -215,7 +184,7 @@ where
     for port in midi_io.ports() {
         if let Ok(port_name) = midi_io.port_name(&port) {
             // Check if port name contains "IAC Driver"
-            if port_name.contains("IAC Driver") {
+            if port_name.contains("IAC") {
                 device_port = Some(port);
                 break;
             }

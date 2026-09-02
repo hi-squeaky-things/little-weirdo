@@ -1,10 +1,10 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
-use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches, Patches};
+use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
 use little_weirdo::synth::{
     self,
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
+    data::waveforms::{BoxedWaveform, BoxedWaveforms},
 };
 use midi_control::{self, MidiMessage};
 use midir;
@@ -14,7 +14,7 @@ use std::{
     fs,
     sync::{mpsc, Arc},
 };
- 
+
 fn main() {
     // Initialize MIDI input with a client name
     let midi_input = midir::MidiInput::new("MIDITest").unwrap();
@@ -29,7 +29,7 @@ fn main() {
     // Create a channel for MIDI messages (though receiver isn't used in this scope)
     let (sender, _receiver) = channel::<midi_control::MidiMessage>();
 
-      // Unwrap the device port (we know it exists from the check above)
+    // Unwrap the device port (we know it exists from the check above)
     let device_port = device_port.unwrap();
 
     // Set up audio output device and configuration
@@ -39,38 +39,34 @@ fn main() {
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
     // Create a collection of wavetables and load them from files
-    let mut wt_on_heap = BoxedWavetables::new();
+    let mut wt_on_heap = BoxedWaveforms::new();
     for id in 0..55 {
         let filename = format!(
-            "examples/soundbank/waveforms/src/wav{}.raw",
+            "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
             id
         );
         let contents = fs::read(filename).unwrap();
         let bytes: &[u8] = &contents;
-        wt_on_heap.add(BoxedWavetable::new(bytes));
+        wt_on_heap.add(BoxedWaveform::new(bytes));
     }
     // Wrap wavetables in an Arc for thread-safe sharing
     let wt = Arc::new(wt_on_heap);
 
-
-
-
-
     // Load a synth patch from a JSON file
-    let patch = serde_json::from_slice(include_bytes!("soundbank/patches/orginal/piano.json")).unwrap();
-  
-      let patch_box = BoxedPatch::new(patch);
-      let mut patches = BoxedPatches::new();
-      patches.add(patch_box);
+    let patch = serde_json::from_slice(include_bytes!(
+        "soundbank/synth/patches/original/piano.json"
+    ))
+    .unwrap();
 
-      let patch =  patches.get_patches_reference(0);
+    let patch_box = BoxedPatch::new(patch);
+    let mut patches = BoxedPatches::new();
+    patches.add(patch_box);
 
-      let patches_heap = Arc::new(patches);
-
-
+    let patches_heap = Arc::new(patches);
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: synth::Synth = synth::Synth::new(44100,0, Arc::clone(&patches_heap), Arc::clone(&wt));
+    let mut synth: synth::Synth =
+        synth::Synth::new(44100, 0, Arc::clone(&patches_heap), Arc::clone(&wt));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -143,7 +139,7 @@ fn setup_device() -> (Device, StreamConfig) {
         .ok_or_else(|| anyhow::Error::msg("Default output device is not available"))
         .unwrap();
 
-    println!("Output device : {}", device.name().unwrap());
+    println!("Output device : {:?}", device.description().unwrap());
 
     // Get the default output configuration
     let supported_config: cpal::SupportedStreamConfig = device.default_output_config().unwrap();

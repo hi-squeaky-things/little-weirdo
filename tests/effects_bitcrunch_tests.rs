@@ -1,8 +1,6 @@
-use little_weirdo::{
-    effects::{
-        bitcrunch::{Bitcrunch, BitcrunchConfiguration},
-        Effect,
-    },
+use little_weirdo::effects::{
+    bitcrunch::{Bitcrunch, BitcrunchConfiguration},
+    Effect,
 };
 
 #[test]

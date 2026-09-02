@@ -1,22 +1,21 @@
 use std::{fs, sync::Arc};
 
 use little_weirdo::synth::{
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
-    wavetable_oscillator::{WaveTableOscillator, WaveTableOscillatorConfig},
-    Clockable,
+    data::waveforms::{BoxedWaveform, BoxedWaveforms},
+    waveform_oscillator::{WaveformOscillator, WaveformOscillatorConfig},
 };
 
-fn load_sine_wavetable() -> Arc<BoxedWavetables> {
-    let raw = fs::read("examples/soundbank/waveforms/src/wav0.raw").unwrap();
-    let mut wavetables = BoxedWavetables::new();
-    wavetables.add(BoxedWavetable::new(&raw));
-    Arc::new(wavetables)
+fn load_sine_wavetable() -> Arc<BoxedWaveforms> {
+    let raw = fs::read("examples/soundbank/synth/waveforms/src/000_sample.raw").unwrap();
+    let mut waveforms = BoxedWaveforms::new();
+    waveforms.add(BoxedWaveform::new(&raw));
+    Arc::new(waveforms)
 }
 
 #[test]
 fn wavetable_oscillator_outputs_samples_from_the_selected_table() {
     let wavetables = load_sine_wavetable();
-    let config = WaveTableOscillatorConfig {
+    let config = WaveformOscillatorConfig {
         soundbank_index: 0,
         glide: false,
         glide_rate: 0,
@@ -26,15 +25,13 @@ fn wavetable_oscillator_outputs_samples_from_the_selected_table() {
         grains_seq: [0; 8],
     };
 
-    let mut osc = WaveTableOscillator::new(config, 1000, Arc::clone(&wavetables));
-
-
+    let _osc = WaveformOscillator::new(config, 1000, Arc::clone(&wavetables));
 }
 
 #[test]
 fn wavetable_oscillator_can_change_frequency() {
     let wavetables = load_sine_wavetable();
-    let config = WaveTableOscillatorConfig {
+    let config = WaveformOscillatorConfig {
         soundbank_index: 0,
         glide: false,
         glide_rate: 0,
@@ -44,7 +41,6 @@ fn wavetable_oscillator_can_change_frequency() {
         grains_seq: [0; 8],
     };
 
-    let mut osc = WaveTableOscillator::new(config, 1000, Arc::clone(&wavetables));
+    let mut osc = WaveformOscillator::new(config, 1000, Arc::clone(&wavetables));
     osc.change_freq(220);
-
 }

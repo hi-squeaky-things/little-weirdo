@@ -1,8 +1,6 @@
-use little_weirdo::{
-    effects::{
-        delay::{Delay, DelayConfiguration},
-        Effect,
-    },
+use little_weirdo::effects::{
+    delay::{Delay, DelayConfiguration},
+    Effect,
 };
 
 #[test]

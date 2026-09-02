@@ -1,15 +1,11 @@
 use cpal::Sample; // For audio sample conversion
-use little_weirdo::{
-    sampler::patch,
-    synth::{
-        self,
-        data::{
-            patches::{BoxedPatch, BoxedPatches, Patches},
-            wavetables::{BoxedWavetable, BoxedWavetables},
-        },
-        patch::Patch,
-        Synth,
+use little_weirdo::synth::{
+    self,
+    data::{
+        patches::{BoxedPatch, BoxedPatches, Patches},
+        waveforms::{BoxedWaveform, BoxedWaveforms},
     },
+    patch::Patch,
 };
 use std::{
     fs::{self, read_dir, File},
@@ -31,22 +27,24 @@ fn main() {
         sample_format: hound::SampleFormat::Int, // Integer format
     };
 
-
     // Initialize wavetables storage on heap
-    let mut wt_on_heap = BoxedWavetables::new();
+    let mut wt_on_heap = BoxedWaveforms::new();
 
     // Load 10 wavetables from files
     for id in 0..55 {
-        let filename = format!("examples/soundbank/waveforms/src/wav{}.raw", id);
+        let filename = format!(
+            "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
+            id
+        );
         let contents = fs::read(filename).unwrap(); // Read file contents
         let bytes: &[u8] = &contents; // Convert to byte slice
-        wt_on_heap.add(BoxedWavetable::new(bytes)); // Add to wavetables collection
+        wt_on_heap.add(BoxedWaveform::new(bytes)); // Add to wavetables collection
     }
 
     // Create an Arc (thread-safe reference) to the wavetables
     let wt = Arc::new(wt_on_heap);
 
-    let path = "examples/soundbank/patches/orginal".to_string();
+    let path = "examples/soundbank/synth/patches/original".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
     let mut patches = BoxedPatches::new();
     // Sort directory entries by filename for consistent processing
@@ -83,9 +81,10 @@ fn main() {
         synth.load_patch(patch_index as u8);
         let active_patch = &patches_heap.get_patches_reference(patch_index as u8);
         println!("{:}", active_patch.name);
-    // Create WAV writer to output audio data
-    let mut writer = hound::WavWriter::create(format!("patch_{:}.wav", active_patch.name), spec).unwrap();
-        for _n in 0..SAMPLE_RATE/4 {
+        // Create WAV writer to output audio data
+        let mut writer =
+            hound::WavWriter::create(format!("patch_{:}.wav", active_patch.name), spec).unwrap();
+        for _n in 0..SAMPLE_RATE / 4 {
             synth.clock_and_output();
         }
 
@@ -96,7 +95,7 @@ fn main() {
             let mut total: f64 = 0.0; // Accumulator for RMS calculation
 
             // Generate audio samples for one second per note
-            for _n in 0..SAMPLE_RATE/4 {
+            for _n in 0..SAMPLE_RATE / 4 {
                 // Get output from synthesizer (stereo)
                 let output = synth.clock_and_output();
 
@@ -122,7 +121,7 @@ fn main() {
             synth.note_off(36 + note * 12);
 
             // Generate more samples while note is off (release phase)
-            for _n in 0..SAMPLE_RATE/4 {
+            for _n in 0..SAMPLE_RATE / 4 {
                 let output = synth.clock_and_output();
                 writer.write_sample(output[0]).unwrap();
             }

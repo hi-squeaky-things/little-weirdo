@@ -1,0 +1,32 @@
+{
+    "$schema": "schema/sampler_patch_schema.json",
+    "name": "drum",
+    "drums": true,
+    "sample_map": 0,
+     "loop_start": 0,
+    "loop_end": 0,
+    "one_shot": true,
+     "base_key": 74,
+    "overdrive_config": {
+        "threshold": 1000,
+        "kind": "Softer",
+        "enabled": false
+    },
+    "bitcrunch_config": {
+        "enabled": false
+    },
+    "delay_config": {
+        "enabled": false,
+        "delay_time": 5000,
+        "mix_percentage": 70,
+        "feedback": true,
+        "feedback_percentage": 70
+    },
+    "env_config": {
+            "attack_time": 5,
+            "decay_time": 10,
+            "release_time": 500,
+            "sustain_level": 80
+    },
+    "zones": []
+}

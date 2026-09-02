@@ -16,7 +16,7 @@ fn envelope_attack_time_1ms_reaches_full_level() {
     );
 
     env.open_gate();
-     let mut value = 0;
+    let mut value = 0;
     for _ in 0..2 {
         value = env.clock(None);
     }

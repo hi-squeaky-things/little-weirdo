@@ -1,24 +1,32 @@
 pub const AMOUNT_OF_STEPS: usize = 16; // Number of steps per lane (e.g. 16th notes in a bar)
-pub const AMOUNT_OF_LANES: usize = 10;  // Number of lanes (e.g. drum voices)
+pub const AMOUNT_OF_LANES: usize = 10; // Number of lanes (e.g. drum voices)
 
 /// Main sequencer struct
 pub struct Sequencer {
     lanes: [SequencerLane; AMOUNT_OF_LANES], // Array of lanes
-    playing: bool,                     // Is the sequencer running?
-    pub counter: u8,                       // Current step index
+    playing: bool,                           // Is the sequencer running?
+    pub counter: u8,                         // Current step index
 }
 
 /// Represents a single lane (e.g. drum voice)
 #[derive(Copy, Clone)]
 pub struct SequencerLane {
-    note: u8,                          // MIDI note number
-    pub steps: [bool; AMOUNT_OF_STEPS],    // Step triggers (true = play note)
+    note: u8,                           // MIDI note number
+    pub steps: [bool; AMOUNT_OF_STEPS], // Step triggers (true = play note)
+}
+impl Default for Sequencer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Sequencer {
     pub fn new() -> Self {
         Sequencer {
-            lanes: [SequencerLane { note: 0, steps: [false; AMOUNT_OF_STEPS] }; AMOUNT_OF_LANES],
+            lanes: [SequencerLane {
+                note: 0,
+                steps: [false; AMOUNT_OF_STEPS],
+            }; AMOUNT_OF_LANES],
             playing: false,
             counter: 0,
         }
@@ -37,11 +45,11 @@ impl Sequencer {
         }
     }
 
-    pub fn flip_step(&mut self, lane: usize, step: usize) ->  bool {
-         if step < 16 && lane < AMOUNT_OF_LANES {
-            self.lanes[lane].steps[step] = !self.lanes[lane].steps[step] 
+    pub fn flip_step(&mut self, lane: usize, step: usize) -> bool {
+        if step < 16 && lane < AMOUNT_OF_LANES {
+            self.lanes[lane].steps[step] = !self.lanes[lane].steps[step]
         }
-         self.lanes[lane].steps[step]
+        self.lanes[lane].steps[step]
     }
 
     /// Deactivate a step in a lane
@@ -55,24 +63,24 @@ impl Sequencer {
         self.lanes[lane]
     }
 
-
     /// Start the sequencer
     pub fn start(&mut self) {
- 
-       self.playing = true;
+        self.playing = true;
     }
 
     /// Stop the sequencer
     pub fn stop(&mut self) {
-       self.playing = false;
+        self.playing = false;
     }
 
     /// Called once per audio sample.
     /// Returns an array for each lane: (should trigger, note number).
     /// Timing is calculated based on sample rate and BPM.
-    pub fn clock(&mut self) -> [(bool, u8); AMOUNT_OF_LANES]  {
+    pub fn clock(&mut self) -> [(bool, u8); AMOUNT_OF_LANES] {
         // If not playing or BPM is zero, return no triggers
-        if !self.playing { return [(false, 0); AMOUNT_OF_LANES]; }
+        if !self.playing {
+            return [(false, 0); AMOUNT_OF_LANES];
+        }
 
         // Increment sample accumulator
         self.counter = self.counter.wrapping_add(1);
@@ -84,12 +92,9 @@ impl Sequencer {
         let idx = (self.counter as usize) % AMOUNT_OF_STEPS;
         let mut hits = [(false, 0); AMOUNT_OF_LANES];
         // For each lane, check if the step is active and return note
-        for i in 0..AMOUNT_OF_LANES {
-            hits[i] = (self.lanes[i].steps[idx], self.lanes[i].note);
+        for (i, hit) in hits.iter_mut().enumerate().take(AMOUNT_OF_LANES) {
+            *hit = (self.lanes[i].steps[idx], self.lanes[i].note);
         }
-        // Advance step counter
-    
-        return hits;
-    
+        hits
     }
 }

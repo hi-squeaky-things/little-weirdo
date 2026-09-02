@@ -1,4 +1,10 @@
-//! The data module contains the wavetables (static data) en pre calculated freqencies tables (static data)
+//! Data helpers to define the waveforms (samples) and patches
+
+/// MIDI notes to frequency lookup table
 pub mod frequencies;
-pub mod wavetables;
+
+/// Synth patch format
 pub mod patches;
+
+/// Datastructure for waveforms
+pub mod waveforms;
