@@ -1,4 +1,4 @@
-//! WaveTableOscillator to generate sounds using Wavetable synthesis.
+//! Oscillator to generate waveforms based on waveform samples.
 
 use crate::synth::data::waveforms::BoxedWaveforms;
 
