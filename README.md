@@ -4,8 +4,8 @@
 ```
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hi-squeaky-things/little-weirdo/rust.yml?branch=main)
 ![GitHub License](https://img.shields.io/github/license/hi-squeaky-things/little-weirdo)
-![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.2)
-![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.2?style=flat)
+![Deps.rs Crate Dependencies (specific version)](https://img.shields.io/deps-rs/little_weirdo/0.1.3)
+![docs.rs (with version)](https://img.shields.io/docsrs/little_weirdo/0.1.3?style=flat)
 
 A Rust #no-std optimized wave table synthesizer for embedded devices.
 
@@ -26,12 +26,11 @@ We are iteration on revision 3.0. Soon to be released.
 
 ## Features
 
-- ✅ No-std compatible for embedded devices
+- ✅ `no_std` library optimized for embedded devices
 - ✅ Lightweight and efficient (no floating point calculations)
-- ✅ Waveform (table) based subtractive synthesizer with customizable patches
-- ✅ Waveform (table) based granular synthesizer with customizable patches
-- ✅ Sampler based synthesizer (soundfont-a-like).
-- ✅ MIDI support
+- ✅ WAVEFORM (table) based additive/subtractive and granular (sort-of) synthesizer.
+- ✅ SAMPLER (sound-font-a-like) based synthesizer
+- ✅ Customizable patches
 - ✅ Real-time audio processing (distortion/overdrive, filter, delay, bit-crunch, lfo, ring-modulation)
 - ✅ Modular architecture for easy extension
 
@@ -108,11 +107,13 @@ The performance tests on real embedded hardware can be found here [Little Weirdo
 
 ## Patches
 
-Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices). Checkout the [patches](examples/patches/) for examples.
+Patches can be fully programmed in Rust or loaded using JSON (Testing) or Postcard (Embedded Devices). 
+- [synth patches](examples/soundbank/synth/patches/original/) for examples.
+- [sampler patches](examples/soundbank/sampler/patches/) for examples.
 
 ## Documentation
 
-- [API Documentation](https://docs.rs/little_weirdo/0.1.2/little_weirdo/)
+- [API Documentation](https://docs.rs/little_weirdo/0.1.3/little_weirdo/)
 
 ## Contributing
 
