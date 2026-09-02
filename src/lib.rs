@@ -1,14 +1,12 @@
 #![no_std]
 //!
-//! ```no_run
+//! Example usage:
+//! ```rust
+//! //
 //! // ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
 //! // ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
 //! //
 //! // #no-std optimized wave table synthesizer, sampler and sequencer for embedded devices.
-//! ```
-//!
-//! Example usage:
-//! ```rust
 //! use little_weirdo::synth::{
 //!     self,
 //!     data::{
@@ -49,6 +47,7 @@
 //!     for _ in 0..4 {
 //!         let _sample: [i16; 2] = synth.clock_and_output();
 //!     }
+//!     println!("___Hi Squeaky Things! can happen at any time ™___");
 //! }
 //! ```
 //!
@@ -93,33 +92,33 @@
 //!     for _ in 0..4 {
 //!         let _sample: [i16; 2] = sampler.clock_and_output();
 //!     }
+//!     println!("___Hi Squeaky Things! can happen at any time ™___");
 //! }
 //! ```
 
 ///
-/// The Little Weirdo waveform (table) based subtractive synthesizer.
+/// The Little Weirdo WAVEFORM (table) based additive/subtractive and granular (sort-of) synthesizer.
 ///
 pub mod synth;
 
 ///
-/// The Little Weirdo sampler.
+/// The Little Weirdo SAMPLER (sound-font-a-like) based synthesizer.
 ///
 pub mod sampler;
 
 ///
-/// The Little Weirdo step-sequencer
+/// The Little Weirdo STEP-SEQUENCER
 ///
 pub mod sequencer;
 
 ///
-/// The Little Weirdo effects
+/// The Little Weirdo EFFECTS (delay/echo, filters, overdrive/distortion, bit-crunch)
 ///
 pub mod effects;
 
 ///
-/// Math helper functions optimized for embedded devices with no FPU
+/// Math helper functions optimized for embedded devices (no floating point operations)
 ///
 pub mod math;
 
 // TODO: Update the waveform data to use 1024 samples per waveform for better audio quality and more accurate representation of the waveforms. This will allow for smoother sound generation and improved performance in the synthesizer.
-// TODO: Implement the sampler based additive synthesizer
