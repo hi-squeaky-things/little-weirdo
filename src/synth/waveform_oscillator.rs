@@ -1,6 +1,8 @@
 //! WaveTableOscillator to generate sounds using Wavetable synthesis.
 
-use super::data::wavetables::{BoxedWavetables, Wavetables};
+use crate::synth::data::waveforms::BoxedWaveforms;
+
+use super::data::waveforms::{Waveforms};
 use super::math::percentage;
 use super::Clockable;
 use rand::rngs::SmallRng;
@@ -12,18 +14,18 @@ use serde::Serialize;
 extern crate alloc;
 use alloc::sync::Arc;
 
-/// Configuration for low-frequency wave table oscillator
+/// Configuration for low-frequency waveform oscillator
 #[derive(Copy, Clone, Serialize, Deserialize)]
-pub struct WaveTableLoFreqOscillatorConfig {
+pub struct WaveformLFOConfig {
     /// Index of the soundbank to use for waveform generation
     pub soundbank_index: u8,
     /// Time parameter for LFO operations (in 100x seconds)
     pub time: u16,
 }
 
-/// Configuration for standard wave table oscillator
+/// Configuration for standard waveform oscillator
 #[derive(Copy, Clone, Serialize, Deserialize)]
-pub struct WaveTableOscillatorConfig {
+pub struct WaveformOscillatorConfig {
     /// Index of the soundbank to use for waveform generation
     pub soundbank_index: u8,
     /// Whether to enable frequency glide (smooth frequency transitions)
@@ -40,16 +42,16 @@ pub struct WaveTableOscillatorConfig {
     pub grains_seq: [u8; 8],
 }
 
-/// WaveTableOscillator generates audio signals using wavetable synthesis
+/// WaveformOscillator generates audio signals using waveform (sample) synthesis
 /// This oscillator supports both standard audio rate oscillators and low-frequency oscillators
-pub struct WaveTableOscillator {
+pub struct WaveformOscillator {
     /// Configuration settings for this oscillator instance
-    pub config: WaveTableOscillatorConfig,
+    pub config: WaveformOscillatorConfig,
 
-    /// Current phase position in the wavetable (0 to loop_end)
+    /// Current phase position in the waveform (0 to loop_end)
     phase: u16,
 
-    /// End point of the wavetable loop (determines period length)
+    /// End point of the waveform loop (determines period length)
     loop_end: u16,
 
     /// Flag indicating whether frequency has changed and needs processing
@@ -61,7 +63,7 @@ pub struct WaveTableOscillator {
     /// Sample rate of the audio system (used for frequency calculations)
     sample_rate: u16,
 
-    /// Lookup table for converting phase to wavetable indices
+    /// Lookup table for converting phase to waveform indices
     lookup_table: [u16; 3000],
 
     /// Target frequency for glide operations
@@ -85,16 +87,16 @@ pub struct WaveTableOscillator {
     /// Counter for tracking when to process next sample
     speed_count: u16,
 
-    /// Shared reference to the wavetables data structure
-    wavetables: Arc<BoxedWavetables>,
+    /// Shared reference to the waveforms data structure
+    waveforms: Arc<BoxedWaveforms>,
 
-    /// Wavetable pointer, points to the grain being selected
-    wavetable_pointer: u8,
+    /// Waveform pointer, points to the grain being selected
+    waveform_pointer: u8,
 
     grain_selector: u8,
 }
 
-impl Clockable for WaveTableOscillator {
+impl Clockable for WaveformOscillator {
     fn clock(&mut self, _sample: Option<i16>) -> i16 {
         self.speed_count += 1;
         if self.speed == self.speed_count {
@@ -105,12 +107,12 @@ impl Clockable for WaveTableOscillator {
                 self.phase = 0;
                 if self.config.grains {
                     self.grain_selector = (self.grain_selector + 1) & 0x7; // Fast modulo 8
-                    self.wavetable_pointer = self.config.grains_seq[self.grain_selector as usize];
+                    self.waveform_pointer = self.config.grains_seq[self.grain_selector as usize];
 
                     // end of grains
-                    if self.wavetable_pointer == 255 {
+                    if self.waveform_pointer == 255 {
                         self.grain_selector = 0;
-                        self.wavetable_pointer =
+                        self.waveform_pointer =
                             self.config.grains_seq[self.grain_selector as usize];
                     }
                 }
@@ -146,8 +148,8 @@ impl Clockable for WaveTableOscillator {
                 _ => {
                     // Wavetable lookup
                     let index = self.lookup_table[self.phase as usize] as usize;
-                    self.wavetables
-                        .get_wavetable_reference(self.wavetable_pointer)[index]
+                    self.waveforms
+                        .get_waveform_reference(self.waveform_pointer)[index]
                 }
             };
 
@@ -159,15 +161,15 @@ impl Clockable for WaveTableOscillator {
     }
 }
 
-impl WaveTableOscillator {
+impl WaveformOscillator {
     /// Creates a new low-frequency oscillator instance
     /// Used for modulation effects like LFOs
     pub fn new_lfo(
-        config: WaveTableLoFreqOscillatorConfig,
+        config: WaveformLFOConfig,
         sample_rate: u16,
-        wavetables: Arc<BoxedWavetables>,
+        waveforms: Arc<BoxedWaveforms>,
     ) -> Self {
-        let new_config = WaveTableOscillatorConfig {
+        let new_config = WaveformOscillatorConfig {
             soundbank_index: config.soundbank_index,
             glide: false,
             glide_rate: 0,
@@ -176,15 +178,15 @@ impl WaveTableOscillator {
             grains: false,
             grains_seq: [0; 8],
         };
-        let mut osc = Self::new(new_config, sample_rate, wavetables);
+        let mut osc = Self::new(new_config, sample_rate, waveforms);
         osc.speed = 4 * config.time;
         osc
     }
 
     pub fn new(
-        config: WaveTableOscillatorConfig,
+        config: WaveformOscillatorConfig,
         sample_rate: u16,
-        wavetables: Arc<BoxedWavetables>,
+        waveforms: Arc<BoxedWaveforms>,
     ) -> Self {
         let mut osc = Self {
             config,
@@ -201,12 +203,12 @@ impl WaveTableOscillator {
             last_output: 0,
             speed_count: 0,
             speed: 1,
-            wavetables,
-            wavetable_pointer: config.soundbank_index,
+            waveforms,
+            waveform_pointer: config.soundbank_index,
             grain_selector: 0,
         };
         if config.grains {
-            osc.wavetable_pointer = config.grains_seq[osc.grain_selector as usize];
+            osc.waveform_pointer = config.grains_seq[osc.grain_selector as usize];
         }
         osc.calculate_lookup_table();
         osc
@@ -239,19 +241,19 @@ impl WaveTableOscillator {
     }
 
     /// Reload configuration
-    pub fn reload(&mut self, config: WaveTableOscillatorConfig) {
+    pub fn reload(&mut self, config: WaveformOscillatorConfig) {
         self.config = config;
         self.reset_state();
-        self.wavetable_pointer = config.soundbank_index;
+        self.waveform_pointer = config.soundbank_index;
 
         if self.config.grains {
-            self.wavetable_pointer = config.grains_seq[self.grain_selector as usize];
+            self.waveform_pointer = config.grains_seq[self.grain_selector as usize];
         }
         self.calculate_lookup_table();
     }
 
-    pub fn reload_lfo(&mut self, config: WaveTableLoFreqOscillatorConfig) {
-        let new_config = WaveTableOscillatorConfig {
+    pub fn reload_lfo(&mut self, config: WaveformLFOConfig) {
+        let new_config = WaveformOscillatorConfig {
             soundbank_index: config.soundbank_index,
             glide: false,
             glide_rate: 0,
@@ -261,7 +263,7 @@ impl WaveTableOscillator {
             grains_seq: [0; 8],
         };
         self.reset_state();
-        self.wavetable_pointer = config.soundbank_index;
+        self.waveform_pointer = config.soundbank_index;
         self.speed = 4 * config.time;
         self.config = new_config;
         self.calculate_lookup_table();

@@ -1,8 +1,5 @@
-use little_weirdo::sampler::{
-    self,
-    audio_sampler::{BoxedSample, BoxedSamples},
-    data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches},
-    patch::Patch,
+use little_weirdo::wavetable::{
+    self, audio_sampler::{BoxedSample, BoxedSamples}, data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches}, patch::Patch,
 };
 use little_weirdo::{
     effects::{
@@ -44,7 +41,7 @@ fn test_sampler_with_zones() {
             release_time: 1000,
         },
         zones: vec![
-            sampler::patch::Zone {
+            wavetable::patch::Zone {
                 start_note: 21,
                 end_note: 48,
                 sample_map: 0,
@@ -53,7 +50,7 @@ fn test_sampler_with_zones() {
                 loop_end: 0,
                 one_shot: true,
             },
-            sampler::patch::Zone {
+            wavetable::patch::Zone {
                 start_note: 49,
                 end_note: 72,
                 sample_map: 1,
@@ -75,7 +72,7 @@ fn test_sampler_with_zones() {
     samples.add(BoxedSample::new(vec![]));
 
     // Create sampler
-    let _sampler = sampler::Sampler::new(
+    let _sampler = wavetable::WavetableSynth::new(
         44100,
         0,
         std::sync::Arc::new(patches),
@@ -118,7 +115,7 @@ fn test_zone_selection() {
             release_time: 1000,
         },
         zones: vec![
-            sampler::patch::Zone {
+            wavetable::patch::Zone {
                 start_note: 21,
                 end_note: 48,
                 sample_map: 0,
@@ -127,7 +124,7 @@ fn test_zone_selection() {
                 loop_end: 0,
                 one_shot: true,
             },
-            sampler::patch::Zone {
+            wavetable::patch::Zone {
                 start_note: 49,
                 end_note: 72,
                 sample_map: 1,
@@ -136,7 +133,7 @@ fn test_zone_selection() {
                 loop_end: 0,
                 one_shot: true,
             },
-            sampler::patch::Zone {
+            wavetable::patch::Zone {
                 start_note: 73,
                 end_note: 108,
                 sample_map: 2,
@@ -159,7 +156,7 @@ fn test_zone_selection() {
     samples.add(BoxedSample::new(vec![]));
 
     // Create sampler
-    let sampler = sampler::Sampler::new(
+    let sampler = wavetable::WavetableSynth::new(
         44100,
         0,
         std::sync::Arc::new(patches),

@@ -1,10 +1,10 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, StreamConfig};
 
-use little_weirdo::sampler;
+use little_weirdo::wavetable;
 
-use little_weirdo::sampler::audio_sampler::{BoxedSample, BoxedSamples};
-use little_weirdo::sampler::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
+use little_weirdo::wavetable::audio_sampler::{BoxedSample, BoxedSamples};
+use little_weirdo::wavetable::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
 use midi_control::{self, MidiMessage};
 use midir;
 use std::fs::read_dir;
@@ -61,14 +61,14 @@ fn main() {
 
     let mut patches_on_heap = BoxedSamplerPatches::new();
     let patch =
-        serde_json::from_slice(include_bytes!("soundbank/sampler/patches/05_bass.json")).unwrap();
+        serde_json::from_slice(include_bytes!("soundbank/wavetable/patches/original/05_bass.json")).unwrap();
     patches_on_heap.add(BoxedSamplerPatch::new(patch));
 
     let patches = Arc::new(patches_on_heap);
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
-    let mut synth: sampler::Sampler =
-        sampler::Sampler::new(44100, 0, Arc::clone(&patches), Arc::clone(&samples));
+    let mut synth: wavetable::WavetableSynth =
+        wavetable::WavetableSynth::new(44100, 0, Arc::clone(&patches), Arc::clone(&samples));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();
@@ -160,7 +160,7 @@ fn setup_device() -> (Device, StreamConfig) {
 }
 
 /// Processes MIDI messages and updates the synthesizer state
-fn process_midimessage(synth: &mut sampler::Sampler, command: MidiMessage) {
+fn process_midimessage(synth: &mut wavetable::WavetableSynth, command: MidiMessage) {
     match command {
         // Handle note-on messages
         MidiMessage::NoteOn(_ch, e) => synth.note_on(e.key, e.value),

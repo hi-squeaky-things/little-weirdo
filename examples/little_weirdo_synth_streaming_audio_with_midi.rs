@@ -4,7 +4,7 @@ use cpal::{Device, Sample, StreamConfig};
 use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
 use little_weirdo::synth::{
     self,
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
+    data::waveforms::{BoxedWaveform, BoxedWaveforms},
 };
 use midi_control::{self, MidiMessage};
 use midir;
@@ -39,12 +39,12 @@ fn main() {
     let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
 
     // Create a collection of wavetables and load them from files
-    let mut wt_on_heap = BoxedWavetables::new();
+    let mut wt_on_heap = BoxedWaveforms::new();
     for id in 0..55 {
         let filename = format!("examples/soundbank/synth/src/{:03}_sample.raw", id);
         let contents = fs::read(filename).unwrap();
         let bytes: &[u8] = &contents;
-        wt_on_heap.add(BoxedWavetable::new(bytes));
+        wt_on_heap.add(BoxedWaveform::new(bytes));
     }
     // Wrap wavetables in an Arc for thread-safe sharing
     let wt = Arc::new(wt_on_heap);

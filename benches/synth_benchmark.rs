@@ -3,21 +3,21 @@ use std::{fs, sync::Arc};
 use criterion::{criterion_group, criterion_main, Criterion};
 use little_weirdo::synth::{
     self,
-    data::wavetables::{BoxedWavetable, BoxedWavetables},
+    data::waveforms::{BoxedWaveform, BoxedWaveforms},
 };
 
 const SAMPLE_RATE: u16 = 44_100; // Audio sample rate in Hz
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     // Initialize wavetables storage on heap
-    let mut wt_on_heap = BoxedWavetables::new();
+    let mut wt_on_heap = BoxedWaveforms::new();
 
     // Load 10 wavetables from files
     for id in 0..10 {
-        let filename = format!("examples/soundbank/synth/src/{:03}_sample.raw", id);
+        let filename = format!("examples/soundbank/synth/waveforms/src/{:03}_sample.raw", id);
         let contents = fs::read(filename).unwrap(); // Read file contents
         let bytes: &[u8] = &contents; // Convert to byte slice
-        wt_on_heap.add(BoxedWavetable::new(bytes)); // Add to wavetables collection
+        wt_on_heap.add(BoxedWaveform::new(bytes)); // Add to wavetables collection
     }
 
     // Create an Arc (thread-safe reference) to the wavetables

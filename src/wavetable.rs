@@ -4,7 +4,7 @@ use alloc::sync::Arc;
 use crate::{
     effects::{bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive, Effect},
     math,
-    sampler::audio_sampler::AudioSampler,
+    wavetable::audio_sampler::AudioSampler,
     synth::{
         envelope::{self, EnvelopConfiguration},
         Clockable,
@@ -22,7 +22,7 @@ pub const AMOUNT_OF_VOICES: usize = 8;
 pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
 /// Main synthesizer struct that handles audio generation
-pub struct Sampler {
+pub struct WavetableSynth {
     pub drums: bool,
     pub sample_map: u8,
     sampler_voices: [AudioSampler; AMOUNT_OF_VOICES],
@@ -41,7 +41,7 @@ pub struct Sampler {
 ///
 /// Implementation of the LttL Weirdo Wavetable Synthesizer
 ///
-impl Sampler {
+impl WavetableSynth {
     /// Creates a new instance of the LttL Weirdo Wavetable Synthesizer.
     ///
     /// # Arguments
@@ -61,7 +61,7 @@ impl Sampler {
         Self {
             sample_map: patch.sample_map,
             drums: patch.drums,
-            sampler_voices: Sampler::init_sampler_voices(
+            sampler_voices: WavetableSynth::init_sampler_voices(
                 sample_rate,
                 Arc::clone(&samples),
                 patch.drums,
@@ -71,7 +71,7 @@ impl Sampler {
                 patch.one_shot,
                 patch.base_key,
             ),
-            envelops: Sampler::init_envs(patch.env_config, sample_rate),
+            envelops: WavetableSynth::init_envs(patch.env_config, sample_rate),
             active_note: [0; AMOUNT_OF_VOICES],
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),

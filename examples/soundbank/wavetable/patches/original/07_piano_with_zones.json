@@ -1,4 +1,5 @@
 {
+  "$schema": "schema/sampler_patch_schema.json",
   "name": "Piano with Zones",
   "drums": false,
   "sample_map": 12,

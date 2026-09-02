@@ -3,8 +3,8 @@ pub mod envelope;
 pub mod mixer;
 pub mod patch;
 pub mod router;
-pub mod wavetable_oscillator;
-use data::wavetables::BoxedWavetables;
+pub mod waveform_oscillator;
+use data::waveforms::BoxedWaveforms;
 use effects::Effect;
 use patch::SynthMode;
 use router::Router;
@@ -38,11 +38,11 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 /// Main synthesizer struct that handles audio generation
 pub struct Synth {
     /// Array of waveform oscillators for generating sounds
-    voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES],
+    voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES],
     /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
     /// Array of Low-Frequency Oscillators for modulation
-    lfo: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2],
+    lfo: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES / 2],
 
     //  sampler: Sampler,
     /// Audio routing system
@@ -85,13 +85,13 @@ impl Synth {
         sample_rate: u16,
         patch_selected: u8,
         patches: alloc::sync::Arc<BoxedPatches>,
-        wavetables: alloc::sync::Arc<BoxedWavetables>,
+        waveforms: alloc::sync::Arc<BoxedWaveforms>,
     ) -> Self {
         let patch = patches.get_patches_reference(patch_selected);
         Self {
-            voices: Synth::init_voices(sample_rate, patch, Arc::clone(&wavetables)),
+            voices: Synth::init_voices(sample_rate, patch, Arc::clone(&waveforms)),
             envelops: Synth::init_envs(sample_rate, patch),
-            lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&wavetables)),
+            lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&waveforms)),
             filter: Filter::new(patch.filter_config),
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
@@ -121,14 +121,14 @@ impl Synth {
     fn init_voices(
         sample_rate: u16,
         patch: &Patch,
-        wavetables: Arc<BoxedWavetables>,
-    ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] {
-        let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES] =
+        waveforms: Arc<BoxedWaveforms>,
+    ) -> [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] {
+        let voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
-                wavetable_oscillator::WaveTableOscillator::new(
+                waveform_oscillator::WaveformOscillator::new(
                     patch.voices[i],
                     sample_rate,
-                    Arc::clone(&wavetables),
+                    Arc::clone(&waveforms),
                 )
             });
         voices
@@ -138,11 +138,11 @@ impl Synth {
     fn init_lfos(
         sample_rate: u16,
         patch: &Patch,
-        wavetables: Arc<BoxedWavetables>,
-    ) -> [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] {
-        let voices: [wavetable_oscillator::WaveTableOscillator; AMOUNT_OF_VOICES / 2] =
+        wavetables: Arc<BoxedWaveforms>,
+    ) -> [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES / 2] {
+        let voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES / 2] =
             array_init::array_init(|i: usize| {
-                wavetable_oscillator::WaveTableOscillator::new_lfo(
+                waveform_oscillator::WaveformOscillator::new_lfo(
                     patch.lfos[i],
                     sample_rate,
                     Arc::clone(&wavetables),

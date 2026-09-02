@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-use crate::sampler::patch::Patch;
+use crate::wavetable::patch::Patch;
 
 pub trait Patches {
     fn get_patches_reference(&self, index: u8) -> &Patch;

@@ -2,7 +2,7 @@ use little_weirdo::synth::{
     self,
     data::{
         patches::{BoxedPatch, BoxedPatches},
-        wavetables::{BoxedWavetable, BoxedWavetables},
+        waveforms::{BoxedWaveform, BoxedWaveforms},
     },
 };
 
@@ -12,11 +12,11 @@ const SAMPLE_RATE: u16 = 44_100;
 
 fn main() {
     // Create a collection of waveforms and load them from files.
-    let mut oscillator_waveforms = BoxedWavetables::new();
+    let mut oscillator_waveforms = BoxedWaveforms::new();
     for id in 0..10 {
         let filename = format!("examples/soundbank/synth/src/{}_sample.raw", id);
         let contents = fs::read(filename).unwrap();
-        oscillator_waveforms.add(BoxedWavetable::new(&contents));
+        oscillator_waveforms.add(BoxedWaveform::new(&contents));
     }
     let oscillator_waveforms_on_heap = Arc::new(oscillator_waveforms);
 

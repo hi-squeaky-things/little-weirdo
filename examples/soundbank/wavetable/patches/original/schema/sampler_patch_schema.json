@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the patch"
+    },
+    "drums": {
+      "type": "boolean",
+      "description": "Whether this is a drum patch"
+    },
+    "sample_map": {
+      "type": "integer",
+      "description": "Sample map index"
+    },
+    "overdrive_config": {
+      "type": "object",
+      "properties": {
+        "threshold": {
+          "type": "integer",
+          "description": "Overdrive threshold level"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Type of overdrive effect ('Soft', 'Hard', 'Softer')",
+          "enum": [
+            "Soft",
+            "Hard",
+            "Softer"
+          ]
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether overdrive effect is enabled"
+        }
+      },
+      "required": [
+        "threshold",
+        "kind",
+        "enabled"
+      ],
+      "description": "Overdrive distortion effect configuration"
+    },
+    "bitcrunch_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether bitcrushing effect (8 bit style) is enabled"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "description": "Bitcrush effect configuration for reducing audio bit depth (8 bit chip tunes!)"
+    },
+    "delay_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether delay effect is enabled"
+        },
+        "delay_time": {
+          "type": "integer",
+          "description": "Delay time in samples"
+        },
+        "mix_percentage": {
+          "type": "integer",
+          "description": "Mix percentage of dry/wet signal (0-100)"
+        },
+        "feedback": {
+          "type": "boolean",
+          "description": "Whether delay feedback is enabled"
+        },
+        "feedback_percentage": {
+          "type": "integer",
+          "description": "Feedback percentage (0-100)"
+        }
+      },
+      "required": [
+        "enabled",
+        "delay_time",
+        "mix_percentage",
+        "feedback",
+        "feedback_percentage"
+      ],
+      "description": "Delay effect configuration"
+    },
+    "zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "start": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "start",
+          "end"
+        ]
+      }
+    }
+  },
+  "required": [
+    "name",
+    "drums",
+    "sample_map",
+    "overdrive_config",
+    "bitcrunch_config",
+    "delay_config",
+    "zones"
+  ]
+}

@@ -1,17 +1,44 @@
 #![no_std]
+//! # `The Little Weirdo Digital Audio Synthesizer Library`
+//! 
+//! ```text
+//! ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
+//! ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
+//! #no-std optimized additive/subtractive/granular/sample based synthesizer and sequencer.
+//! ```
 //!
-//! Example usage:
+//! The Little Weirdo synthesizer library is a high-level Rust library for creating digital audio synthesizers. It provides a flexible and modular architecture for building synthesizers, allowing (squeaky sound) developers/designers to create a wide range of sounds and effects.
+//!
+//! **[Hi Squeaky Things](https://www.hi-squeaky-things.nl)** can happen at any time™. _Little Weirdo_ is ready to squeak, squuuueak, squeeeeeaak, squeaaaaaaaaak!
+//!
+//!  See the Little Weirdo in embedded context action, checkout **[Little Squeaky Machine Hardware!](https://github.com/hi-squeaky-things/little-squeaky-machine-hardware)** or 
+//!  buy the embedded reference hardware @ **[Hi Squeaky Things](https://www.hi-squeaky-things.nl)** to support the development of this library.
+//! 
+//! 
+//! ## Features
+//! - `no_std` library optimized for embedded devices
+//! - Lightweight and efficient (no floating point calculations)
+//! - Waveform (table) based additive/subtractive and granular (sort-of) synthesizer.
+//! - Sample (sound-font-a-like) based synthesizer
+//! - Customizable patches
+//! - Real-time audio processing and effects (distortion/overdrive, filters, echo/delay, bit-crunch, lfo, ring-modulation)
+//! - Modular architecture for easy extension
+//!
+//! The library is designed to be highly customizable, allowing developers to create their own synthesizers and effects using the provided components.
+//! 
+//! ## Performance
+//! 
+//! The performance tests on real embedded hardware can be found here [Little Weirdo performance tests on a ESP32/ESP32S3](https://github.com/hi-squeaky-things/little-weirdo-esp32)
+//! 
+//! ## Examples
+//! 
+//! Example usage of the additive/subtractive/granular based synthesizer components:
 //! ```rust
-//! //
-//! // ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱
-//! // ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜
-//! //
-//! // #no-std optimized wave table synthesizer, sampler and sequencer for embedded devices.
 //! use little_weirdo::synth::{
 //!     self,
 //!     data::{
 //!         patches::{BoxedPatch, BoxedPatches, Patches},
-//!         wavetables::{BoxedWavetable, BoxedWavetables},
+//!         waveforms::{BoxedWaveform, BoxedWaveforms},
 //!     },
 //!     patch::Patch,
 //! };
@@ -22,11 +49,11 @@
 //!
 //! fn main() {
 //!     // Create a collection of waveforms and load them from files.
-//!     let mut oscillator_waveforms = BoxedWavetables::new();
+//!     let mut oscillator_waveforms = BoxedWaveforms::new();
 //!     for id in 0..10 {
-//!         let filename = format!("examples/soundbank/synth/src/{:03}_sample.raw", id);
+//!         let filename = format!("examples/soundbank/synth/waveforms/src/{:03}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
-//!         oscillator_waveforms.add(BoxedWavetable::new(&contents));
+//!         oscillator_waveforms.add(BoxedWaveform::new(&contents));
 //!     }
 //!     let oscillator_waveforms_on_heap = Arc::new(oscillator_waveforms);
 //!
@@ -51,9 +78,9 @@
 //! }
 //! ```
 //!
-//! Example usage with sampler:
+//! Example usage of the sample (sound-font-a-like) based synthesizer components:
 //! ```rust
-//! use little_weirdo::sampler::{
+//! use little_weirdo::wavetable::{
 //!     self,
 //!     audio_sampler::{BoxedSample, BoxedSamples},
 //!     data::patches::{BoxedSamplerPatch, BoxedSamplerPatches},
@@ -68,7 +95,7 @@
 //!     // Create a collection of samples and load them from files.
 //!     let mut samples = BoxedSamples::new();
 //!     for id in 0..15 {
-//!         let filename = format!("examples/soundbank/sampler/src/{:03}_sample.raw", id);
+//!         let filename = format!("examples/soundbank/wavetable/samples/src/{:03}_sample.raw", id);
 //!         let contents = fs::read(filename).unwrap();
 //!         samples.add(BoxedSample::new(contents));
 //!     }
@@ -77,13 +104,13 @@
 //!     
 //!     // Load a sampler patch into the boxed patch collection used by the library.
 //!     let mut patches = BoxedSamplerPatches::new();
-//!     let patch_data = fs::read("examples/soundbank/sampler/patches/01_piano.json").unwrap();
+//!     let patch_data = fs::read("examples/soundbank/wavetable/patches/original/01_piano.json").unwrap();
 //!     let patch: Patch = serde_json::from_slice(&patch_data).unwrap();
 //!     patches.add(BoxedSamplerPatch::new(patch));
 //!     let patches = Arc::new(patches);
 //!
 //!     // Create a new sampler instance with the patch index and sample set.
-//!     let mut sampler: sampler::Sampler = sampler::Sampler::new(SAMPLE_RATE, 0, patches, Arc::clone(&samples_on_heap));
+//!     let mut sampler: wavetable::WavetableSynth = wavetable::WavetableSynth::new(SAMPLE_RATE, 0, patches, Arc::clone(&samples_on_heap));
 //!
 //!     // Trigger a note.
 //!     sampler.note_on(60, 100);
@@ -97,14 +124,14 @@
 //! ```
 
 ///
-/// The Little Weirdo WAVEFORM (table) based additive/subtractive and granular (sort-of) synthesizer.
+/// The Little Weirdo additive/subtractive and granular (sort-of) synthesizer.
 ///
 pub mod synth;
 
 ///
-/// The Little Weirdo SAMPLER (sound-font-a-like) based synthesizer.
+/// The Little Weirdo wavetable (sound-font-a-like) based synthesizer.
 ///
-pub mod sampler;
+pub mod wavetable;
 
 ///
 /// The Little Weirdo STEP-SEQUENCER

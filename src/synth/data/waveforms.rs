@@ -1,26 +1,26 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-// Trait defining the interface for accessing wavetables by index
-pub trait Wavetables {
-    // Returns a reference to the wavetable data at the specified index
-    fn get_wavetable_reference(&self, index: u8) -> &[i16];
+// Trait defining the interface for accessing waveforms by index
+pub trait Waveforms {
+    // Returns a reference to the waveform data at the specified index
+    fn get_waveform_reference(&self, index: u8) -> &[i16];
 }
 
-// Struct that holds multiple boxed wavetables
+// Struct that holds multiple boxed Waveforms
 #[derive(Clone)]
-pub struct BoxedWavetables {
-    data: Vec<BoxedWavetable>,
+pub struct BoxedWaveforms {
+    data: Vec<BoxedWaveform>,
 }
 
-impl Default for BoxedWavetables {
+impl Default for BoxedWaveforms {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl BoxedWavetables {
-    // Creates a new empty BoxedWavetables instance with capacity for 10 wavetables
+impl BoxedWaveforms {
+    // Creates a new empty BoxedWaveforms instance with capacity for 10 waveforms
     pub fn new() -> Self {
         Self {
             data: Vec::with_capacity(10),
@@ -28,19 +28,19 @@ impl BoxedWavetables {
     }
 
     // Adds a new wavetable to the collection
-    pub fn add(&mut self, wt: BoxedWavetable) {
+    pub fn add(&mut self, wt: BoxedWaveform) {
         self.data.push(wt);
     }
 }
 
 // Struct representing a single wavetable containing audio samples
 #[derive(Clone)]
-pub struct BoxedWavetable {
+pub struct BoxedWaveform {
     data: Vec<i16>,
 }
 
-impl BoxedWavetable {
-    // Creates a new wavetable from raw byte data
+impl BoxedWaveform {
+    // Creates a new waveform from raw byte data
     // Each sample is assumed to be 2 bytes (16-bit) in big-endian format
     pub fn new(data: &[u8]) -> Self {
         let mut init = Self {
@@ -58,10 +58,10 @@ impl BoxedWavetable {
     }
 }
 
-// Implementation of the Wavetables trait for BoxedWavetables
-// Allows retrieving a specific wavetable by its index
-impl Wavetables for BoxedWavetables {
-    fn get_wavetable_reference(&self, index: u8) -> &[i16] {
+// Implementation of the Waveforms trait for BoxedWaveforms
+// Allows retrieving a specific waveform by its index
+impl Waveforms for BoxedWaveforms {
+    fn get_waveform_reference(&self, index: u8) -> &[i16] {
         self.data[index as usize].data.as_slice()
     }
 }
