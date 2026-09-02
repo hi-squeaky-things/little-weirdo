@@ -41,7 +41,7 @@ fn main() {
     // Create a collection of wavetables and load them from files
     let mut wt_on_heap = BoxedWaveforms::new();
     for id in 0..55 {
-        let filename = format!("examples/soundbank/synth/src/{:03}_sample.raw", id);
+        let filename = format!("examples/soundbank/synth/waveforms/src/{:03}_sample.raw", id);
         let contents = fs::read(filename).unwrap();
         let bytes: &[u8] = &contents;
         wt_on_heap.add(BoxedWaveform::new(bytes));

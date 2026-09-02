@@ -39,7 +39,7 @@ fn main() {
     // Create a collection of samples and load them from files
 
     // Read directory entries and collect them into a vector
-    let path = "./examples/soundbank/sampler/src".to_string();
+    let path = "./examples/soundbank/wavetable/samples/src".to_string();
     let mut paths: Vec<_> = read_dir(path).unwrap().filter_map(Result::ok).collect();
 
     // Sort directory entries by filename for consistent processing
