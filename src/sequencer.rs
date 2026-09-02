@@ -14,6 +14,11 @@ pub struct SequencerLane {
     note: u8,                           // MIDI note number
     pub steps: [bool; AMOUNT_OF_STEPS], // Step triggers (true = play note)
 }
+impl Default for Sequencer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Sequencer {
     pub fn new() -> Self {
@@ -87,11 +92,9 @@ impl Sequencer {
         let idx = (self.counter as usize) % AMOUNT_OF_STEPS;
         let mut hits = [(false, 0); AMOUNT_OF_LANES];
         // For each lane, check if the step is active and return note
-        for i in 0..AMOUNT_OF_LANES {
-            hits[i] = (self.lanes[i].steps[idx], self.lanes[i].note);
+        for (i, hit) in hits.iter_mut().enumerate().take(AMOUNT_OF_LANES) {
+            *hit = (self.lanes[i].steps[idx], self.lanes[i].note);
         }
-        // Advance step counter
-
-        return hits;
+        hits
     }
 }

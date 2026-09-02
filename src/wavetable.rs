@@ -185,7 +185,10 @@ impl WavetableSynth {
     /// # Arguments
     /// * `note` - The MIDI note number (0-108)
     /// * `velocity` - The velocity of the note (0-127)
+    ///
     /// TODO: Implement velocity
+    ///
+
     pub fn note_on(&mut self, note: u8, _velocity: u8) {
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {
