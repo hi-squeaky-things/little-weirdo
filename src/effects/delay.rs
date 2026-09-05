@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 extern crate alloc;
 use alloc::collections::VecDeque;
 
-// Runtime settings for the delay effect: whether it is active, how long the delay is,
+// Runtime settings for the delay effect: whether it is active, how long the delay is in
+// milliseconds,
 // how much of the delayed signal is mixed back in, and whether feedback is enabled.
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct DelayConfiguration {
@@ -19,30 +20,35 @@ pub struct DelayConfiguration {
 pub struct Delay {
     pub config: DelayConfiguration,
     buffer: VecDeque<i16>,
-    delay_time: u16,
+    delay_time: usize,
 }
 
 impl Delay {
-    pub fn new(config: DelayConfiguration) -> Self {
+    pub fn new(config: DelayConfiguration, sample_rate: u16) -> Self {
+        let delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
         Delay {
             config,
             // Reserve enough room for the delay buffer to grow without frequent reallocations.
-            buffer: VecDeque::with_capacity((config.delay_time * 2) as usize),
-            delay_time: config.delay_time,
+            buffer: VecDeque::with_capacity(delay_time * 2),
+            delay_time,
         }
     }
 
     // Update the effect settings while keeping the same instance alive.
-    pub fn reload(&mut self, config: DelayConfiguration) {
+    pub fn reload(&mut self, config: DelayConfiguration, sample_rate: u16) {
         self.config = config;
-        self.delay_time = config.delay_time;
+        self.delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
+    }
+
+    fn delay_time_in_samples(delay_time: u16, sample_rate: u16) -> usize {
+        delay_time as usize * sample_rate as usize / 1000
     }
 }
 
 impl Effect for Delay {
     fn clock(&mut self, sample: i16) -> i16 {
         // Convert config values to the types needed for the signal math.
-        let delay_time = self.delay_time as usize;
+        let delay_time = self.delay_time;
         let mix_percentage = self.config.mix_percentage as i16;
         let feedback = self.config.feedback;
         let feedback_percentage = self.config.feedback_percentage as i16;

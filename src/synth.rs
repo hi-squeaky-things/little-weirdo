@@ -38,6 +38,7 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
 /// Main synthesizer struct that handles audio generation
 pub struct Synth {
+    sample_rate: u16,
     /// Array of waveform oscillators for generating sounds
     voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES],
     /// Array of envelope generators for shaping sound
@@ -90,6 +91,7 @@ impl Synth {
     ) -> Self {
         let patch = patches.get_patches_reference(patch_selected);
         Self {
+            sample_rate,
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&waveforms)),
             envelops: Synth::init_envs(sample_rate, patch),
             lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&waveforms)),
@@ -97,7 +99,7 @@ impl Synth {
             mixer: Mixer::new(patch.mixer_config),
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
-            delay: Delay::new(patch.delay_config),
+            delay: Delay::new(patch.delay_config, sample_rate),
             router: Router::new(patch.routering_config),
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
@@ -176,7 +178,7 @@ impl Synth {
         //effects
         self.filter.reload(patch.filter_config);
         self.overdrive.reload(patch.overdrive_config);
-        self.delay.reload(patch.delay_config);
+        self.delay.reload(patch.delay_config, self.sample_rate);
         self.bitcrunch.reload(patch.bitcrunch_config);
 
         //mix

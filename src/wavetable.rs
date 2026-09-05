@@ -23,6 +23,7 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 
 /// Main synthesizer struct that handles audio generation
 pub struct WavetableSynth {
+    sample_rate: u16,
     pub drums: bool,
     pub sample_map: u8,
     sample_voices: [SampleVoice; AMOUNT_OF_VOICES],
@@ -59,6 +60,7 @@ impl WavetableSynth {
     ) -> Self {
         let patch = patches.get_patches_reference(patch_selected);
         Self {
+            sample_rate,
             sample_map: patch.sample_map,
             drums: patch.drums,
             sample_voices: WavetableSynth::init_sample_voices(
@@ -75,7 +77,7 @@ impl WavetableSynth {
             active_note: [0; AMOUNT_OF_VOICES],
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
-            delay: Delay::new(patch.delay_config),
+            delay: Delay::new(patch.delay_config, sample_rate),
             patches,
             current_patch: patch_selected,
         }
@@ -106,7 +108,7 @@ impl WavetableSynth {
         }
 
         self.overdrive.reload(patch.overdrive_config);
-        self.delay.reload(patch.delay_config);
+        self.delay.reload(patch.delay_config, self.sample_rate);
         self.bitcrunch.reload(patch.bitcrunch_config);
     }
 
