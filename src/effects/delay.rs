@@ -57,8 +57,10 @@ impl Effect for Delay {
             // Once the buffer has enough audio to represent the requested delay, mix in the
             // delayed sample and feed it back when configured.
             if self.buffer.len() > delay_time {
-                let sample_with_delay =
-                    sample + math::percentage(self.buffer.pop_front().unwrap(), mix_percentage);
+                let sample_with_delay = sample.saturating_add(math::percentage(
+                    self.buffer.pop_front().unwrap(),
+                    mix_percentage,
+                ));
                 if feedback {
                     // Feedback re-inserts part of the processed signal back into the buffer.
                     self.buffer

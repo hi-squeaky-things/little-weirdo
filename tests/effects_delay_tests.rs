@@ -76,3 +76,34 @@ fn delay_time_is_converted_from_milliseconds_using_sample_rate() {
     assert_eq!(effect.clock(3000), 3000);
     assert_eq!(effect.clock(4000), 4500);
 }
+
+#[test]
+fn delay_saturates_signal_mix_instead_of_overflowing() {
+    let mut positive_effect = Delay::new(
+        DelayConfiguration {
+            enabled: true,
+            delay_time: 1,
+            mix_percentage: 100,
+            feedback: false,
+            feedback_percentage: 0,
+        },
+        1000,
+    );
+    assert_eq!(positive_effect.clock(i16::MAX), i16::MAX);
+    assert_eq!(positive_effect.clock(i16::MAX), i16::MAX);
+    assert_eq!(positive_effect.clock(i16::MAX), i16::MAX);
+
+    let mut negative_effect = Delay::new(
+        DelayConfiguration {
+            enabled: true,
+            delay_time: 1,
+            mix_percentage: 100,
+            feedback: false,
+            feedback_percentage: 0,
+        },
+        1000,
+    );
+    assert_eq!(negative_effect.clock(i16::MIN), i16::MIN);
+    assert_eq!(negative_effect.clock(i16::MIN), i16::MIN);
+    assert_eq!(negative_effect.clock(i16::MIN), i16::MIN);
+}

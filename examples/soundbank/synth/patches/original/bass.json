@@ -243,10 +243,10 @@
         "enabled": true
     },
     "delay_config": {
-        "enabled": false,
-        "delay_time": 5000,
-        "mix_percentage": 70,
-        "feedback": false,
+        "enabled": true,
+        "delay_time": 100,
+        "mix_percentage": 100,
+        "feedback": true,
         "feedback_percentage": 70
     },
     "routering_config": {
