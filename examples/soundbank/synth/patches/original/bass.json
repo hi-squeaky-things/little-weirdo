@@ -243,7 +243,7 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": true,
+        "enabled": false,
         "delay_time": 250,
         "mix_percentage": 70,
         "delay_decrease_percentage": 0,
@@ -254,8 +254,8 @@
         "enabled": true,
         "base_delay_time_ms": 10,
         "depth_ms": 5,
-        "rate_hz": 1,
-        "mix_percentage": 30
+        "rate_hz": 100,
+        "mix_percentage": 20
     },
     "routering_config": {
         "voices_to_envelop": [
