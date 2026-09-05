@@ -244,11 +244,11 @@
     },
     "delay_config": {
         "enabled": true,
-        "delay_time": 500,
-        "mix_percentage": 80,
-        "delay_decrease_percentage": 10,
+        "delay_time": 250,
+        "mix_percentage": 90,
+        "delay_decrease_percentage": 1,
         "feedback": true,
-        "feedback_percentage": 50
+        "feedback_percentage": 60
     },
     "routering_config": {
         "voices_to_envelop": [

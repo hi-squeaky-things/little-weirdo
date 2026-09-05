@@ -25,6 +25,7 @@ pub struct Delay {
     base_delay_time: usize,
     delay_time: usize,
     delay_cycle_remaining: usize,
+    initial_cycle_completed: bool,
 }
 
 impl Delay {
@@ -37,6 +38,7 @@ impl Delay {
             base_delay_time: delay_time,
             delay_time,
             delay_cycle_remaining: 0,
+            initial_cycle_completed: false,
         }
     }
 
@@ -46,6 +48,7 @@ impl Delay {
         self.base_delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
         self.delay_time = self.base_delay_time;
         self.delay_cycle_remaining = 0;
+        self.initial_cycle_completed = false;
     }
 
     pub fn reset(&mut self) {
@@ -53,6 +56,7 @@ impl Delay {
             self.buffer.clear();
             self.delay_time = self.base_delay_time;
             self.delay_cycle_remaining = 0;
+            self.initial_cycle_completed = false;
         }
     }
 
@@ -63,6 +67,12 @@ impl Delay {
     fn advance_delay_cycle(&mut self) {
         let decrease_percentage = self.config.delay_decrease_percentage.min(100) as usize;
         if decrease_percentage == 0 || self.delay_time == 0 {
+            return;
+        }
+
+        if !self.initial_cycle_completed {
+            self.initial_cycle_completed = true;
+            self.delay_cycle_remaining = self.delay_time;
             return;
         }
 

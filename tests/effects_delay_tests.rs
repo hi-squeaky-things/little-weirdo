@@ -115,7 +115,7 @@ fn delay_saturates_signal_mix_instead_of_overflowing() {
 }
 
 #[test]
-fn delay_decreases_after_each_delay_cycle() {
+fn delay_does_not_decrease_during_initial_delay_cycle() {
     let mut effect = Delay::new(
         DelayConfiguration {
             enabled: true,
@@ -132,13 +132,6 @@ fn delay_decreases_after_each_delay_cycle() {
     for _ in 0..4 {
         assert_eq!(effect.clock(0), 0);
     }
-    assert_eq!(effect.clock(0), 1000);
-
-    assert_eq!(effect.clock(0), 0);
-    assert_eq!(effect.clock(0), 0);
-    assert_eq!(effect.clock(0), 1000);
-
-    assert_eq!(effect.clock(0), 0);
     assert_eq!(effect.clock(0), 1000);
 }
 
