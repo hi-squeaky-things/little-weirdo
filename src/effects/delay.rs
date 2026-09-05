@@ -11,6 +11,8 @@ use alloc::collections::VecDeque;
 pub struct DelayConfiguration {
     pub enabled: bool,
     pub delay_time: u16,
+    #[serde(default)]
+    pub delay_decrease_percentage: u8,
     pub mix_percentage: u8,
     pub feedback: bool,
     pub feedback_percentage: u8,
@@ -21,6 +23,7 @@ pub struct Delay {
     pub config: DelayConfiguration,
     buffer: VecDeque<i16>,
     delay_time: usize,
+    delay_cycle_remaining: usize,
 }
 
 impl Delay {
@@ -31,6 +34,7 @@ impl Delay {
             // Reserve enough room for the delay buffer to grow without frequent reallocations.
             buffer: VecDeque::with_capacity(delay_time * 2),
             delay_time,
+            delay_cycle_remaining: 0,
         }
     }
 
@@ -38,10 +42,29 @@ impl Delay {
     pub fn reload(&mut self, config: DelayConfiguration, sample_rate: u16) {
         self.config = config;
         self.delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
+        self.delay_cycle_remaining = 0;
     }
 
     fn delay_time_in_samples(delay_time: u16, sample_rate: u16) -> usize {
         delay_time as usize * sample_rate as usize / 1000
+    }
+
+    fn advance_delay_cycle(&mut self) {
+        let decrease_percentage = self.config.delay_decrease_percentage.min(100) as usize;
+        if decrease_percentage == 0 || self.delay_time == 0 {
+            return;
+        }
+
+        if self.delay_cycle_remaining > 1 {
+            self.delay_cycle_remaining -= 1;
+            return;
+        }
+
+        self.delay_time = self.delay_time * (100 - decrease_percentage) / 100;
+        self.delay_cycle_remaining = self.delay_time;
+        while self.buffer.len() > self.delay_time {
+            self.buffer.pop_front();
+        }
     }
 }
 
@@ -69,6 +92,7 @@ impl Effect for Delay {
                     // Without feedback, the delay taps only the incoming signal.
                     self.buffer.push_back(sample);
                 }
+                self.advance_delay_cycle();
                 return sample_with_delay;
             } else {
                 // Fill the buffer until the delay time is reached.

@@ -9,6 +9,7 @@ fn delay_applies_mixed_signal_when_delay_time_is_reached() {
         DelayConfiguration {
             enabled: true,
             delay_time: 1,
+            delay_decrease_percentage: 0,
             mix_percentage: 50,
             feedback: false,
             feedback_percentage: 0,
@@ -28,6 +29,7 @@ fn delay_is_bypassed_when_disabled() {
         DelayConfiguration {
             enabled: false,
             delay_time: 1,
+            delay_decrease_percentage: 0,
             mix_percentage: 50,
             feedback: false,
             feedback_percentage: 0,
@@ -46,6 +48,7 @@ fn delay_feedback_reinserts_processed_signal() {
         DelayConfiguration {
             enabled: true,
             delay_time: 1,
+            delay_decrease_percentage: 0,
             mix_percentage: 50,
             feedback: true,
             feedback_percentage: 50,
@@ -64,6 +67,7 @@ fn delay_time_is_converted_from_milliseconds_using_sample_rate() {
         DelayConfiguration {
             enabled: true,
             delay_time: 1,
+            delay_decrease_percentage: 0,
             mix_percentage: 50,
             feedback: false,
             feedback_percentage: 0,
@@ -83,6 +87,7 @@ fn delay_saturates_signal_mix_instead_of_overflowing() {
         DelayConfiguration {
             enabled: true,
             delay_time: 1,
+            delay_decrease_percentage: 0,
             mix_percentage: 100,
             feedback: false,
             feedback_percentage: 0,
@@ -97,6 +102,7 @@ fn delay_saturates_signal_mix_instead_of_overflowing() {
         DelayConfiguration {
             enabled: true,
             delay_time: 1,
+            delay_decrease_percentage: 0,
             mix_percentage: 100,
             feedback: false,
             feedback_percentage: 0,
@@ -106,4 +112,32 @@ fn delay_saturates_signal_mix_instead_of_overflowing() {
     assert_eq!(negative_effect.clock(i16::MIN), i16::MIN);
     assert_eq!(negative_effect.clock(i16::MIN), i16::MIN);
     assert_eq!(negative_effect.clock(i16::MIN), i16::MIN);
+}
+
+#[test]
+fn delay_decreases_after_each_delay_cycle() {
+    let mut effect = Delay::new(
+        DelayConfiguration {
+            enabled: true,
+            delay_time: 4,
+            delay_decrease_percentage: 50,
+            mix_percentage: 100,
+            feedback: true,
+            feedback_percentage: 100,
+        },
+        1000,
+    );
+
+    assert_eq!(effect.clock(1000), 1000);
+    for _ in 0..4 {
+        assert_eq!(effect.clock(0), 0);
+    }
+    assert_eq!(effect.clock(0), 1000);
+
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 1000);
+
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 1000);
 }

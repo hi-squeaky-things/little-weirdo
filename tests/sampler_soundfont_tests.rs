@@ -33,6 +33,7 @@ fn test_sampler_with_zones() {
         delay_config: DelayConfiguration {
             enabled: false,
             delay_time: 500,
+            delay_decrease_percentage: 0,
             mix_percentage: 50,
             feedback: false,
             feedback_percentage: 50,
@@ -107,6 +108,7 @@ fn test_zone_selection() {
         delay_config: DelayConfiguration {
             enabled: false,
             delay_time: 500,
+            delay_decrease_percentage: 0,
             mix_percentage: 50,
             feedback: false,
             feedback_percentage: 50,
