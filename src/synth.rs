@@ -13,7 +13,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{self, bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive},
+    effects::{self, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive},
     math,
     synth::data::patches::{BoxedPatches, Patches},
 };
@@ -58,6 +58,8 @@ pub struct Synth {
 
     /// Delay effect
     delay: Delay,
+    /// Flanger effect
+    flanger: Flanger,
     /// Mixer for combining audio signals
     mixer: Mixer,
     /// Velocity of the currently playing note
@@ -100,6 +102,7 @@ impl Synth {
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
             delay: Delay::new(patch.delay_config, sample_rate),
+            flanger: Flanger::new(patch.flanger_config, sample_rate),
             router: Router::new(patch.routering_config),
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
@@ -179,6 +182,7 @@ impl Synth {
         self.filter.reload(patch.filter_config);
         self.overdrive.reload(patch.overdrive_config);
         self.delay.reload(patch.delay_config, self.sample_rate);
+        self.flanger.reload(patch.flanger_config, self.sample_rate);
         self.bitcrunch.reload(patch.bitcrunch_config);
 
         //mix
@@ -271,6 +275,7 @@ impl Synth {
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
         sound_mixing[0] = self.delay.clock(sound_mixing[0]);
+        sound_mixing[0] = self.flanger.clock(sound_mixing[0]);
 
         // Apply filter to mixed signal
         sound_mixing[0] = self.filter.clock(sound_mixing[0]);
@@ -297,6 +302,7 @@ impl Synth {
         let id = self.add_note(note);
         if id != 255 {
             self.delay.reset();
+            self.flanger.reset();
             // If we have only one voice, play both voices with a detune
             for i in 0..voices_per_note {
                 let voice_index = id * voices_per_note + i;

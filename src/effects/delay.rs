@@ -81,9 +81,8 @@ impl Delay {
             return;
         }
 
-        self.current_feedback_percentage = (self.current_feedback_percentage as usize
-            * (100 - decrease_percentage)
-            / 100) as u8;
+        self.current_feedback_percentage =
+            (self.current_feedback_percentage as usize * (100 - decrease_percentage) / 100) as u8;
         self.delay_cycle_remaining = self.delay_time;
     }
 }

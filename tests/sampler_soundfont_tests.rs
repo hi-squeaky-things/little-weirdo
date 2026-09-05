@@ -1,13 +1,14 @@
 use little_weirdo::wavetable::{
     self,
-    sample_voice::{BoxedSample, BoxedSamples},
     data::patches::{BoxedSamplerPatch, BoxedSamplerPatches, Patches},
     patch::Patch,
+    sample_voice::{BoxedSample, BoxedSamples},
 };
 use little_weirdo::{
     effects::{
         bitcrunch::BitcrunchConfiguration,
         delay::DelayConfiguration,
+        flanger::FlangerConfiguration,
         overdrive::{KindOfOverdrive, OverdriveConfiguration},
     },
     synth::envelope::EnvelopConfiguration,
@@ -38,6 +39,7 @@ fn test_sampler_with_zones() {
             feedback: false,
             feedback_percentage: 50,
         },
+        flanger_config: FlangerConfiguration::default(),
         env_config: EnvelopConfiguration {
             attack_time: 0,
             decay_time: 1000,
@@ -113,6 +115,7 @@ fn test_zone_selection() {
             feedback: false,
             feedback_percentage: 50,
         },
+        flanger_config: FlangerConfiguration::default(),
         env_config: EnvelopConfiguration {
             attack_time: 0,
             decay_time: 1000,

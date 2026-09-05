@@ -2,7 +2,7 @@
 extern crate alloc;
 use alloc::string::String;
 
-use crate::effects::delay::DelayConfiguration;
+use crate::effects::{delay::DelayConfiguration, flanger::FlangerConfiguration};
 
 use super::effects::bitcrunch::BitcrunchConfiguration;
 use super::{
@@ -57,4 +57,6 @@ pub struct Patch {
     pub delay_config: DelayConfiguration,
     pub routering_config: RoutingConfiguration,
     pub synth_config: SynthConfiguration,
+    #[serde(default)]
+    pub flanger_config: FlangerConfiguration,
 }

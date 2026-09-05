@@ -2,7 +2,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{bitcrunch::Bitcrunch, delay::Delay, overdrive::Overdrive, Effect},
+    effects::{bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive, Effect},
     math,
     synth::{
         envelope::{self, EnvelopConfiguration},
@@ -11,9 +11,9 @@ use crate::{
     wavetable::sample_voice::SampleVoice,
 };
 
-pub mod sample_voice;
 pub mod data;
 pub mod patch;
+pub mod sample_voice;
 use data::patches::{BoxedSamplerPatches, Patches};
 
 /// Number of voices available in the samplers
@@ -35,6 +35,7 @@ pub struct WavetableSynth {
     overdrive: Overdrive,
     bitcrunch: Bitcrunch,
     delay: Delay,
+    flanger: Flanger,
     pub patches: Arc<BoxedSamplerPatches>,
     pub current_patch: u8,
 }
@@ -78,6 +79,7 @@ impl WavetableSynth {
             overdrive: Overdrive::new(patch.overdrive_config),
             bitcrunch: Bitcrunch::new(patch.bitcrunch_config),
             delay: Delay::new(patch.delay_config, sample_rate),
+            flanger: Flanger::new(patch.flanger_config, sample_rate),
             patches,
             current_patch: patch_selected,
         }
@@ -109,6 +111,7 @@ impl WavetableSynth {
 
         self.overdrive.reload(patch.overdrive_config);
         self.delay.reload(patch.delay_config, self.sample_rate);
+        self.flanger.reload(patch.flanger_config, self.sample_rate);
         self.bitcrunch.reload(patch.bitcrunch_config);
     }
 
@@ -135,19 +138,18 @@ impl WavetableSynth {
         one_shot: bool,
         base_key: u8,
     ) -> [SampleVoice; AMOUNT_OF_VOICES] {
-        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] =
-            array_init::array_init(|i: usize| {
-                SampleVoice::new(
-                    sample_rate,
-                    if drums { i as u8 } else { sample_map },
-                    Arc::clone(&samples),
-                    drums,
-                    loop_start,
-                    loop_end,
-                    one_shot,
-                    base_key,
-                )
-            });
+        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] = array_init::array_init(|i: usize| {
+            SampleVoice::new(
+                sample_rate,
+                if drums { i as u8 } else { sample_map },
+                Arc::clone(&samples),
+                drums,
+                loop_start,
+                loop_end,
+                one_shot,
+                base_key,
+            )
+        });
         voice_samplers
     }
 
@@ -178,6 +180,7 @@ impl WavetableSynth {
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
         sound_mixing[0] = self.delay.clock(sound_mixing[0]);
+        sound_mixing[0] = self.flanger.clock(sound_mixing[0]);
 
         [sound_mixing[0], sound_mixing[0]]
     }
@@ -200,6 +203,7 @@ impl WavetableSynth {
         let id = self.add_note(note);
         if id != 255 {
             self.delay.reset();
+            self.flanger.reset();
             let (sample_id, base_key, loop_start, loop_end, one_shot, drums) = {
                 let patch = self.patches.get_patches_reference(self.current_patch);
                 let (sample_id, base_key, loop_start, loop_end, one_shot) =

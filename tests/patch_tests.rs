@@ -17,6 +17,33 @@ fn test_patch_deserialization_json() {
     assert!(!patch.envelops.is_empty());
     assert!(!patch.lfos.is_empty());
     assert_eq!(patch.voices[0].noise, NoiseKind::None);
+    assert!(patch.flanger_config.enabled);
+    assert_eq!(patch.flanger_config.base_delay_time_ms, 4);
+    assert_eq!(patch.flanger_config.depth_ms, 2);
+    assert_eq!(patch.flanger_config.rate_hz, 2);
+    assert_eq!(patch.flanger_config.mix_percentage, 30);
+}
+
+#[test]
+fn test_patch_deserialization_json_accepts_flanger_configuration() {
+    let mut value: serde_json::Value = serde_json::from_slice(include_bytes!(
+        "../examples/soundbank/synth/patches/original/bass.json"
+    ))
+    .unwrap();
+    value["flanger_config"] = serde_json::json!({
+        "enabled": true,
+        "base_delay_time_ms": 2,
+        "depth_ms": 1,
+        "rate_hz": 3,
+        "mix_percentage": 40
+    });
+
+    let patch: Patch = serde_json::from_value(value).unwrap();
+    assert!(patch.flanger_config.enabled);
+    assert_eq!(patch.flanger_config.base_delay_time_ms, 2);
+    assert_eq!(patch.flanger_config.depth_ms, 1);
+    assert_eq!(patch.flanger_config.rate_hz, 3);
+    assert_eq!(patch.flanger_config.mix_percentage, 40);
 }
 
 #[test]
@@ -41,6 +68,7 @@ fn test_patch_deserialization_postcard() {
     assert!(!patch.voices.is_empty());
     assert!(!patch.envelops.is_empty());
     assert!(!patch.lfos.is_empty());
+    assert!(!patch.flanger_config.enabled);
 }
 
 #[test]

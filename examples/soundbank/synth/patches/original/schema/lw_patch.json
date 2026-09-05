@@ -224,6 +224,91 @@
       ],
       "description": "Bitcrush effect configuration for reducing audio bit depth (8 bit chip tunes!)"
     },
+    "delay_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the delay effect is enabled"
+        },
+        "delay_time": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Delay time in milliseconds"
+        },
+        "delay_decrease_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage by which feedback decreases during each delay cycle"
+        },
+        "mix_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Delayed signal mix percentage"
+        },
+        "feedback": {
+          "type": "boolean",
+          "description": "Whether processed signal is fed back into the delay"
+        },
+        "feedback_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Feedback signal percentage"
+        }
+      },
+      "required": [
+        "enabled",
+        "delay_time",
+        "mix_percentage",
+        "feedback"
+      ],
+      "description": "Delay and echo effect configuration"
+    },
+    "flanger_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the flanger effect is enabled"
+        },
+        "base_delay_time_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "Base flanger delay time in milliseconds"
+        },
+        "depth_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "Flanger delay modulation depth in milliseconds"
+        },
+        "rate_hz": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Flanger modulation rate in Hz; zero disables modulation"
+        },
+        "mix_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Flanger wet signal mix percentage"
+        }
+      },
+      "required": [
+        "enabled",
+        "base_delay_time_ms",
+        "depth_ms",
+        "rate_hz",
+        "mix_percentage"
+      ],
+      "description": "Modulated delay effect configuration"
+    },
     "routering_config": {
       "type": "object",
       "properties": {
@@ -324,6 +409,7 @@
     "mixer_config",
     "overdrive_config",
     "bitcrunch_config",
+    "delay_config",
     "routering_config",
     "synth_config"
   ]

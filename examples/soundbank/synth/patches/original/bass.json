@@ -250,6 +250,13 @@
         "feedback": true,
         "feedback_percentage": 100
     },
+    "flanger_config": {
+        "enabled": true,
+        "base_delay_time_ms": 10,
+        "depth_ms": 5,
+        "rate_hz": 1,
+        "mix_percentage": 30
+    },
     "routering_config": {
         "voices_to_envelop": [
             0,

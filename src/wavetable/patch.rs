@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     effects::{
         bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration,
-        overdrive::OverdriveConfiguration,
+        flanger::FlangerConfiguration, overdrive::OverdriveConfiguration,
     },
     synth::envelope::EnvelopConfiguration,
 };
@@ -28,6 +28,9 @@ pub struct Patch {
     /// SoundFont-like zones: different samples for different note ranges
     #[serde(default)]
     pub zones: Vec<Zone>,
+
+    #[serde(default)]
+    pub flanger_config: FlangerConfiguration,
 }
 
 /// SoundFont-like zone definition

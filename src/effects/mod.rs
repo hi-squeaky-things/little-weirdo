@@ -1,6 +1,7 @@
 pub mod bitcrunch;
 pub mod delay;
 pub mod filter;
+pub mod flanger;
 pub mod overdrive;
 
 pub trait Effect {

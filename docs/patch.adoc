@@ -52,6 +52,10 @@ Controls output levels:
 
 - Overdrive: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), and enable flag
 - Bitcrunch: 8-bit style bit reduction effect
+- Delay: Configurable delay time, mix, and optional feedback
+- Flanger: Modulated delay with `enabled`, `base_delay_time_ms`, `depth_ms`, `rate_hz`, and `mix_percentage`
+
+Flanger delay and depth values are expressed in milliseconds, `rate_hz` is the modulation frequency, and `mix_percentage` ranges from 0 to 100. The processing order is overdrive, bitcrunch, delay, flanger, then filter. Omitting `flanger_config` keeps the effect disabled for compatibility with existing JSON patches.
 
 === Routing Configuration
 
