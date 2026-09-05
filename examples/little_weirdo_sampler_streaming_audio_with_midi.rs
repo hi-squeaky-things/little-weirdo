@@ -3,8 +3,8 @@ use cpal::{Device, Sample, StreamConfig};
 
 use little_weirdo::wavetable;
 
-use little_weirdo::wavetable::sample_voice::{BoxedSample, BoxedSamples};
 use little_weirdo::wavetable::data::patches::{BoxedSamplerPatch, BoxedSamplerPatches};
+use little_weirdo::wavetable::sample_voice::{BoxedSample, BoxedSamples};
 use midi_control::{self, MidiMessage};
 use midir;
 use std::fs::read_dir;

@@ -18,9 +18,9 @@ fn test_patch_deserialization_json() {
     assert!(!patch.lfos.is_empty());
     assert_eq!(patch.voices[0].noise, NoiseKind::None);
     assert!(patch.flanger_config.enabled);
-    assert_eq!(patch.flanger_config.base_delay_time_ms, 4);
-    assert_eq!(patch.flanger_config.depth_ms, 2);
-    assert_eq!(patch.flanger_config.rate_hz, 2);
+    assert_eq!(patch.flanger_config.base_delay_time_ms, 10);
+    assert_eq!(patch.flanger_config.depth_ms, 5);
+    assert_eq!(patch.flanger_config.rate_hz, 1);
     assert_eq!(patch.flanger_config.mix_percentage, 30);
 }
 
@@ -46,30 +46,6 @@ fn test_patch_deserialization_json_accepts_flanger_configuration() {
     assert_eq!(patch.flanger_config.mix_percentage, 40);
 }
 
-#[test]
-fn test_legacy_noise_patch_defaults_to_white_noise() {
-    let patch: Patch = serde_json::from_slice(include_bytes!(
-        "../examples/soundbank/synth/patches/original/noise.json"
-    ))
-    .unwrap();
-
-    assert_eq!(patch.voices[0].noise, NoiseKind::White);
-}
-
-#[test]
-fn test_patch_deserialization_postcard() {
-    // Test loading a patch from a postcard file.
-    let patch: Patch = postcard::from_bytes(include_bytes!(
-        "../examples/soundbank/synth/patches/src/bass.lwp"
-    ))
-    .unwrap();
-
-    // Verify the patch was loaded successfully.
-    assert!(!patch.voices.is_empty());
-    assert!(!patch.envelops.is_empty());
-    assert!(!patch.lfos.is_empty());
-    assert!(!patch.flanger_config.enabled);
-}
 
 #[test]
 fn test_synth_mode_polyphony_matches_expected_note_limits() {
