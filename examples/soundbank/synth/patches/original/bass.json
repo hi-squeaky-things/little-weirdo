@@ -219,12 +219,12 @@
         "cutoff_frequency": 5000,
         "resonance": 0,
         "kind_of_filter": "Low",
-        "enabled": true
+        "enabled": false
     },
     "mixer_config": {
         "gain_voices": [
-            50,
-            50,
+            80,
+            0,
             0,
             0,
             0,
@@ -232,7 +232,7 @@
             0,
             0
         ],
-        "gain_main": 80
+        "gain_main": 100
     },
     "overdrive_config": {
         "threshold": 2000,
@@ -240,15 +240,15 @@
         "enabled": false
     },
     "bitcrunch_config": {
-        "enabled": true
+        "enabled": false
     },
     "delay_config": {
         "enabled": true,
-        "delay_time": 1000,
-        "mix_percentage": 70,
+        "delay_time": 500,
+        "mix_percentage": 80,
         "delay_decrease_percentage": 10,
         "feedback": true,
-        "feedback_percentage": 70
+        "feedback_percentage": 50
     },
     "routering_config": {
         "voices_to_envelop": [
@@ -292,7 +292,7 @@
             }
         ],
         "lfo_to_filter": false,
-        "lfo_to_freq": true,
+        "lfo_to_freq": false,
         "lfo_to_freq_amount": 5
     },
     "synth_config": {

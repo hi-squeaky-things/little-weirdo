@@ -296,6 +296,7 @@ impl Synth {
 
         let id = self.add_note(note);
         if id != 255 {
+            self.delay.reset();
             // If we have only one voice, play both voices with a detune
             for i in 0..voices_per_note {
                 let voice_index = id * voices_per_note + i;

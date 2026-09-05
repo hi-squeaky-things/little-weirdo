@@ -141,3 +141,31 @@ fn delay_decreases_after_each_delay_cycle() {
     assert_eq!(effect.clock(0), 0);
     assert_eq!(effect.clock(0), 1000);
 }
+
+#[test]
+fn delay_reset_restores_original_delay_when_decrease_is_enabled() {
+    let mut effect = Delay::new(
+        DelayConfiguration {
+            enabled: true,
+            delay_time: 4,
+            delay_decrease_percentage: 50,
+            mix_percentage: 100,
+            feedback: true,
+            feedback_percentage: 100,
+        },
+        1000,
+    );
+
+    assert_eq!(effect.clock(1000), 1000);
+    for _ in 0..4 {
+        effect.clock(0);
+    }
+    assert_eq!(effect.clock(0), 1000);
+
+    effect.reset();
+    assert_eq!(effect.clock(1000), 1000);
+    for _ in 0..4 {
+        assert_eq!(effect.clock(0), 0);
+    }
+    assert_eq!(effect.clock(0), 1000);
+}

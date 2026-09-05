@@ -22,6 +22,7 @@ pub struct DelayConfiguration {
 pub struct Delay {
     pub config: DelayConfiguration,
     buffer: VecDeque<i16>,
+    base_delay_time: usize,
     delay_time: usize,
     delay_cycle_remaining: usize,
 }
@@ -33,6 +34,7 @@ impl Delay {
             config,
             // Reserve enough room for the delay buffer to grow without frequent reallocations.
             buffer: VecDeque::with_capacity(delay_time * 2),
+            base_delay_time: delay_time,
             delay_time,
             delay_cycle_remaining: 0,
         }
@@ -41,8 +43,17 @@ impl Delay {
     // Update the effect settings while keeping the same instance alive.
     pub fn reload(&mut self, config: DelayConfiguration, sample_rate: u16) {
         self.config = config;
-        self.delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
+        self.base_delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
+        self.delay_time = self.base_delay_time;
         self.delay_cycle_remaining = 0;
+    }
+
+    pub fn reset(&mut self) {
+        if self.config.delay_decrease_percentage != 0 {
+            self.buffer.clear();
+            self.delay_time = self.base_delay_time;
+            self.delay_cycle_remaining = 0;
+        }
     }
 
     fn delay_time_in_samples(delay_time: u16, sample_rate: u16) -> usize {

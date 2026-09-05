@@ -199,6 +199,7 @@ impl WavetableSynth {
 
         let id = self.add_note(note);
         if id != 255 {
+            self.delay.reset();
             let (sample_id, base_key, loop_start, loop_end, one_shot, drums) = {
                 let patch = self.patches.get_patches_reference(self.current_patch);
                 let (sample_id, base_key, loop_start, loop_end, one_shot) =
