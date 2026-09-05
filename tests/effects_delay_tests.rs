@@ -136,6 +136,33 @@ fn delay_does_not_decrease_during_initial_delay_cycle() {
 }
 
 #[test]
+fn delay_keeps_delay_time_fixed_while_feedback_decreases() {
+    let mut effect = Delay::new(
+        DelayConfiguration {
+            enabled: true,
+            delay_time: 2,
+            delay_decrease_percentage: 50,
+            mix_percentage: 100,
+            feedback: true,
+            feedback_percentage: 100,
+        },
+        1000,
+    );
+
+    assert_eq!(effect.clock(1000), 1000);
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 1000);
+
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 1000);
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 0);
+    assert_eq!(effect.clock(0), 500);
+}
+
+#[test]
 fn delay_reset_restores_original_delay_when_decrease_is_enabled() {
     let mut effect = Delay::new(
         DelayConfiguration {

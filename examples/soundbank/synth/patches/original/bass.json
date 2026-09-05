@@ -245,10 +245,10 @@
     "delay_config": {
         "enabled": true,
         "delay_time": 250,
-        "mix_percentage": 90,
-        "delay_decrease_percentage": 1,
+        "mix_percentage": 70,
+        "delay_decrease_percentage": 0,
         "feedback": true,
-        "feedback_percentage": 60
+        "feedback_percentage": 100
     },
     "routering_config": {
         "voices_to_envelop": [

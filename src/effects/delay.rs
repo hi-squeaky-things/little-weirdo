@@ -22,10 +22,10 @@ pub struct DelayConfiguration {
 pub struct Delay {
     pub config: DelayConfiguration,
     buffer: VecDeque<i16>,
-    base_delay_time: usize,
     delay_time: usize,
     delay_cycle_remaining: usize,
     initial_cycle_completed: bool,
+    current_feedback_percentage: u8,
 }
 
 impl Delay {
@@ -35,28 +35,28 @@ impl Delay {
             config,
             // Reserve enough room for the delay buffer to grow without frequent reallocations.
             buffer: VecDeque::with_capacity(delay_time * 2),
-            base_delay_time: delay_time,
             delay_time,
             delay_cycle_remaining: 0,
             initial_cycle_completed: false,
+            current_feedback_percentage: config.feedback_percentage,
         }
     }
 
     // Update the effect settings while keeping the same instance alive.
     pub fn reload(&mut self, config: DelayConfiguration, sample_rate: u16) {
         self.config = config;
-        self.base_delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
-        self.delay_time = self.base_delay_time;
+        self.delay_time = Self::delay_time_in_samples(config.delay_time, sample_rate);
         self.delay_cycle_remaining = 0;
         self.initial_cycle_completed = false;
+        self.current_feedback_percentage = config.feedback_percentage;
     }
 
     pub fn reset(&mut self) {
         if self.config.delay_decrease_percentage != 0 {
-            self.buffer.clear();
-            self.delay_time = self.base_delay_time;
+            //self.buffer.clear();
             self.delay_cycle_remaining = 0;
             self.initial_cycle_completed = false;
+            self.current_feedback_percentage = self.config.feedback_percentage;
         }
     }
 
@@ -81,11 +81,10 @@ impl Delay {
             return;
         }
 
-        self.delay_time = self.delay_time * (100 - decrease_percentage) / 100;
+        self.current_feedback_percentage = (self.current_feedback_percentage as usize
+            * (100 - decrease_percentage)
+            / 100) as u8;
         self.delay_cycle_remaining = self.delay_time;
-        while self.buffer.len() > self.delay_time {
-            self.buffer.pop_front();
-        }
     }
 }
 
@@ -95,7 +94,7 @@ impl Effect for Delay {
         let delay_time = self.delay_time;
         let mix_percentage = self.config.mix_percentage as i16;
         let feedback = self.config.feedback;
-        let feedback_percentage = self.config.feedback_percentage as i16;
+        let feedback_percentage = self.current_feedback_percentage as i16;
 
         if self.config.enabled {
             // Once the buffer has enough audio to represent the requested delay, mix in the
