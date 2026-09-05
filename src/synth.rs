@@ -1,6 +1,7 @@
 pub mod data;
 pub mod envelope;
 pub mod mixer;
+pub mod noise;
 pub mod patch;
 pub mod router;
 pub mod waveform_oscillator;
@@ -125,10 +126,11 @@ impl Synth {
     ) -> [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] {
         let voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
-                waveform_oscillator::WaveformOscillator::new(
+                waveform_oscillator::WaveformOscillator::new_with_seed(
                     patch.voices[i],
                     sample_rate,
                     Arc::clone(&waveforms),
+                    23702372039u64.wrapping_add(i as u64),
                 )
             });
         voices

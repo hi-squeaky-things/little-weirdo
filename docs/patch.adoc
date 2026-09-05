@@ -9,7 +9,8 @@ lw_patch.json
 
 Each patch contains 8 voices, each with:
 
-- soundbank_index: Selects wavetable (0-9) or noise (255)
+- soundbank_index: Selects wavetable (0-9) or legacy white noise (255)
+- noise: Selects `None`, `White`, `Pink`, or `Brown`; `None` keeps wavetable behavior
 - glide: Enables pitch glide
 - glide_rate: Controls glide speed
 - detune: Semitone detuning

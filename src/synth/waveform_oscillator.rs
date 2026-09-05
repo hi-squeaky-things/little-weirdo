@@ -4,15 +4,21 @@ use crate::synth::data::waveforms::BoxedWaveforms;
 
 use super::data::waveforms::Waveforms;
 use super::math::percentage;
+use super::noise::{NoiseGenerator, NoiseKind};
 use super::Clockable;
-use rand::rngs::SmallRng;
-use rand::{RngExt, SeedableRng};
 
 use serde::Deserialize;
 use serde::Serialize;
 
 extern crate alloc;
 use alloc::sync::Arc;
+
+fn effective_noise_kind(config: WaveformOscillatorConfig) -> NoiseKind {
+    match config.noise {
+        NoiseKind::None if config.soundbank_index == 255 => NoiseKind::White,
+        kind => kind,
+    }
+}
 
 /// Configuration for low-frequency waveform oscillator
 #[derive(Copy, Clone, Serialize, Deserialize)]
@@ -40,6 +46,9 @@ pub struct WaveformOscillatorConfig {
     pub grains: bool,
     // List of grains used
     pub grains_seq: [u8; 8],
+    /// Noise source to use instead of the wavetable.
+    #[serde(default)]
+    pub noise: NoiseKind,
 }
 
 /// WaveformOscillator generates audio signals using waveform (sample) synthesis
@@ -57,8 +66,8 @@ pub struct WaveformOscillator {
     /// Flag indicating whether frequency has changed and needs processing
     freq_changed: bool,
 
-    /// Random number generator for noise generation
-    random: SmallRng,
+    /// Integer noise generator for noise voices
+    noise_generator: NoiseGenerator,
 
     /// Sample rate of the audio system (used for frequency calculations)
     sample_rate: u16,
@@ -139,17 +148,14 @@ impl Clockable for WaveformOscillator {
             }
 
             // Generate output
-            let output = match self.config.soundbank_index {
-                255 => {
-                    // Random noise
-                    self.random
-                        .random_range((i16::MIN + 1000)..(i16::MAX - 1000))
-                }
-                _ => {
+            let noise_kind = effective_noise_kind(self.config);
+            let output = match noise_kind {
+                NoiseKind::None => {
                     // Wavetable lookup
                     let index = self.lookup_table[self.phase as usize] as usize;
                     self.waveforms.get_waveform_reference(self.waveform_pointer)[index]
                 }
+                _ => self.noise_generator.sample(),
             };
 
             self.phase += 1;
@@ -176,6 +182,7 @@ impl WaveformOscillator {
             freq_detune: 0,
             grains: false,
             grains_seq: [0; 8],
+            noise: NoiseKind::None,
         };
         let mut osc = Self::new(new_config, sample_rate, waveforms);
         osc.speed = 4 * config.time;
@@ -187,12 +194,21 @@ impl WaveformOscillator {
         sample_rate: u16,
         waveforms: Arc<BoxedWaveforms>,
     ) -> Self {
+        Self::new_with_seed(config, sample_rate, waveforms, 23702372039u64)
+    }
+
+    pub fn new_with_seed(
+        config: WaveformOscillatorConfig,
+        sample_rate: u16,
+        waveforms: Arc<BoxedWaveforms>,
+        noise_seed: u64,
+    ) -> Self {
         let mut osc = Self {
             config,
             phase: 0,
             loop_end: sample_rate / 440 + 1,
             freq_changed: false,
-            random: SmallRng::seed_from_u64(23702372039u64),
+            noise_generator: NoiseGenerator::new(effective_noise_kind(config), noise_seed),
             sample_rate,
             lookup_table: [0u16; 3000],
             target_freq: 440,
@@ -237,6 +253,8 @@ impl WaveformOscillator {
         self.speed_count = 0;
         self.speed = 1;
         self.grain_selector = 0;
+        self.noise_generator
+            .set_kind(effective_noise_kind(self.config));
     }
 
     /// Reload configuration
@@ -260,6 +278,7 @@ impl WaveformOscillator {
             freq_detune: 0,
             grains: false,
             grains_seq: [0; 8],
+            noise: NoiseKind::None,
         };
         self.reset_state();
         self.waveform_pointer = config.soundbank_index;

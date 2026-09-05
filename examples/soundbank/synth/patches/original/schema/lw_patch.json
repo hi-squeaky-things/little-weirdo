@@ -25,7 +25,17 @@
               9,
               255
             ],
-            "description": "Index of the wavetable to use for this voice (0-9) / 255 = noise"
+            "description": "Index of the wavetable to use for this voice (0-9) / 255 = legacy white noise"
+          },
+          "noise": {
+            "type": "string",
+            "enum": [
+              "None",
+              "White",
+              "Pink",
+              "Brown"
+            ],
+            "description": "Noise source for this voice; omitted means None"
           },
           "glide": {
             "type": "boolean",

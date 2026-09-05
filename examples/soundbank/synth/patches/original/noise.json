@@ -4,6 +4,7 @@
     "voices": [
         {
             "soundbank_index": 255,
+            "noise": "Brown",
             "glide": true,
             "glide_rate": 10,
             "detune": 0,

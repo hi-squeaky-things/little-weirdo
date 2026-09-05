@@ -1,4 +1,7 @@
-use little_weirdo::synth::patch::{Patch, SynthMode};
+use little_weirdo::synth::{
+    noise::NoiseKind,
+    patch::{Patch, SynthMode},
+};
 use postcard;
 
 #[test]
@@ -13,6 +16,17 @@ fn test_patch_deserialization_json() {
     assert!(!patch.voices.is_empty());
     assert!(!patch.envelops.is_empty());
     assert!(!patch.lfos.is_empty());
+    assert_eq!(patch.voices[0].noise, NoiseKind::None);
+}
+
+#[test]
+fn test_legacy_noise_patch_defaults_to_white_noise() {
+    let patch: Patch = serde_json::from_slice(include_bytes!(
+        "../examples/soundbank/synth/patches/original/noise.json"
+    ))
+    .unwrap();
+
+    assert_eq!(patch.voices[0].noise, NoiseKind::White);
 }
 
 #[test]
