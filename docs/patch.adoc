@@ -9,7 +9,7 @@ lw_patch.json
 
 Each patch contains 8 voices, each with:
 
-- soundbank_index: Selects wavetable (0-9) or legacy white noise (255)
+- soundbank_index: Selects wavetable (0-254) or legacy white noise (255)
 - noise: Selects `None`, `White`, `Pink`, or `Brown`; `None` keeps wavetable behavior
 - glide: Enables pitch glide
 - glide_rate: Controls glide speed
@@ -20,16 +20,16 @@ Each patch contains 8 voices, each with:
 
 Eight ADSR envelopes control sound shaping:
 
-- attack_time: Attack time in samples
-- decay_time: Decay time in samples
-- release_time: Release time in samples
+- attack_time: Attack time in milliseconds
+- decay_time: Decay time in milliseconds
+- release_time: Release time in milliseconds
 - sustain_level: Sustain level percentage (0-100)
 
 === Low Frequency Oscillators (LFOs)
 
 Four LFOs provide modulation:
 
-- soundbank_index: Wavetable selection (0-9)
+- soundbank_index: Wavetable selection (0-254)
 - time: Modulation rate/frequency
 
 === Filter Configuration

@@ -254,8 +254,8 @@
         "enabled": true,
         "base_delay_time_ms": 10,
         "depth_ms": 5,
-        "rate_hz": 100,
-        "mix_percentage": 20
+        "rate_hz": 5,
+        "mix_percentage": 40
     },
     "routering_config": {
         "voices_to_envelop": [
