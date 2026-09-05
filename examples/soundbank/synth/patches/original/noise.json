@@ -4,7 +4,7 @@
     "voices": [
         {
             "soundbank_index": 255,
-            "noise": "Brown",
+            "noise": "Pink",
             "glide": true,
             "glide_rate": 10,
             "detune": 0,
@@ -22,7 +22,7 @@
             ]
         },
         {
-            "soundbank_index": 1,
+            "soundbank_index": 0,
             "glide": false,
             "glide_rate": 10,
             "detune": 0,
@@ -150,10 +150,10 @@
     ],
     "envelops": [
         {
-            "attack_time": 100,
-            "decay_time": 50,
-            "release_time": 10,
-            "sustain_level": 50
+            "attack_time": 500,
+            "decay_time": 300,
+            "release_time": 500,
+            "sustain_level": 90
         },
       {
             "attack_time": 10,
@@ -224,8 +224,8 @@
     },
     "mixer_config": {
         "gain_voices": [
-            70,
-            0,
+            30,
+            50,
             0,
             0,
             0,
@@ -233,7 +233,7 @@
             0,
             0
         ],
-        "gain_main": 80
+        "gain_main": 100
     },
     "overdrive_config": {
         "threshold": 5000,
@@ -253,7 +253,7 @@
     "routering_config": {
         "voices_to_envelop": [
             0,
-            1,
+            0,
             1,
             1,
             2,
