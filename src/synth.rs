@@ -209,6 +209,7 @@ impl Synth {
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
+        let mut voice_mix: i32 = 0;
 
         // Clock voices and envelopes once
         for i in 0..AMOUNT_OF_VOICES {
@@ -252,8 +253,9 @@ impl Synth {
                 generate_voices[i],
                 self.mixer.config.gain_voices[i],
             );
-            sound_mixing[0] += generate_voices[i];
+            voice_mix += generate_voices[i] as i32;
         }
+        sound_mixing[0] = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
 
         // Stereo output (mono to stereo)
         sound_mixing[1] = sound_mixing[0];

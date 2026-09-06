@@ -164,6 +164,7 @@ impl WavetableSynth {
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
+        let mut voice_mix: i32 = 0;
 
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = self.sample_voices[i].clock(None);
@@ -174,8 +175,9 @@ impl WavetableSynth {
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = math::percentage(generate_voices[i], generate_env[i]);
             generate_voices[i] = math::percentage(generate_voices[i], 25 as i16);
-            sound_mixing[0] += generate_voices[i];
+            voice_mix += generate_voices[i] as i32;
         }
+        sound_mixing[0] = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
 
         sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
         sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
