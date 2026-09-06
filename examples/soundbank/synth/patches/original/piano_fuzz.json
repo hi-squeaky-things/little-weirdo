@@ -245,10 +245,10 @@
         "avc_decay_time_ms": 1000
     },
     "overdrive_config": {
-        "threshold": 1000,
-        "kind": "Hard",
+        "threshold": 6000,
+        "kind": "Softer",
         "enabled": true,
-        "gain_percentage": 0
+        "gain_percentage": 30
     },
     "bitcrunch_config": {
         "enabled": false
