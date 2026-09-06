@@ -212,6 +212,13 @@
         "enabled": {
           "type": "boolean",
           "description": "Whether overdrive effect is enabled"
+        },
+        "gain_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0,
+          "description": "Makeup gain after overdrive (0% to 100%)"
         }
       },
       "required": [

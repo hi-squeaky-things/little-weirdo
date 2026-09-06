@@ -70,7 +70,8 @@ released. `gain_main` remains the master output control.
 
 ## Effects Configuration
 
-- **Overdrive**: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), and enable flag
+- **Overdrive**: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), enable flag, and makeup gain
+- **Overdrive `gain_percentage`**: Post-effect gain from 0% (unchanged) to 100% (2x amplitude)
 - **Bitcrunch**: 8-bit style bit reduction effect
 - **Delay**: Configurable delay time, mix, and optional feedback
 - **Flanger**: A modulated delay with these fields:

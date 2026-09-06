@@ -16,6 +16,8 @@ pub struct OverdriveConfiguration {
     pub threshold: i16,
     pub kind: KindOfOverdrive,
     pub enabled: bool,
+    #[serde(default)]
+    pub gain_percentage: u8,
 }
 
 // Effect instance holding the active configuration.
@@ -48,7 +50,7 @@ impl Effect for Overdrive {
         let sign = sample.signum();
         let magnitude = sample.abs() as i32;
 
-        match kind {
+        let processed_sample = match kind {
             // Hard clipping: flatten anything above the threshold to a fixed ceiling.
             KindOfOverdrive::Hard => sign * threshold as i32 as i16,
             // Soft clipping: compress the excess gradually before the threshold is reached.
@@ -61,6 +63,10 @@ impl Effect for Overdrive {
                 let value = ((magnitude - threshold as i32) / 8) + threshold as i32;
                 sign * value as i16
             }
-        }
+        };
+
+        let gain_multiplier = 100 + self.config.gain_percentage.min(100) as i32;
+        (processed_sample as i32 * gain_multiplier / 100)
+            .clamp(i16::MIN as i32, i16::MAX as i32) as i16
     }
 }

@@ -54,7 +54,7 @@ fn main() {
 
     // Load a synth patch from a JSON file
     let patch =
-        serde_json::from_slice(include_bytes!("soundbank/synth/patches/original/piano.json"))
+        serde_json::from_slice(include_bytes!("soundbank/synth/patches/original/piano_fuzz.json"))
             .unwrap();
 
     let patch_box = BoxedPatch::new(patch);

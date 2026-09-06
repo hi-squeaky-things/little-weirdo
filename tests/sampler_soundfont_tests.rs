@@ -29,6 +29,7 @@ fn test_sampler_with_zones() {
             threshold: 30000,
             kind: KindOfOverdrive::Hard,
             enabled: false,
+            gain_percentage: 0,
         },
         bitcrunch_config: BitcrunchConfiguration { enabled: false },
         delay_config: DelayConfiguration {
@@ -105,6 +106,7 @@ fn test_zone_selection() {
             threshold: 30000,
             kind: KindOfOverdrive::Hard,
             enabled: false,
+            gain_percentage: 0,
         },
         bitcrunch_config: BitcrunchConfiguration { enabled: false },
         delay_config: DelayConfiguration {

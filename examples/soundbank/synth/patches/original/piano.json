@@ -242,7 +242,7 @@
         ],
         "gain_main": 100,
         "avc_enabled":  true,
-        "avc_decay_time_ms": 1000
+        "avc_decay_time_ms": 250
     },
     "overdrive_config": {
         "threshold": 2000,
