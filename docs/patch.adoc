@@ -47,6 +47,14 @@ Controls output levels:
 
 - gain_voices: Per-voice gain (0-100)
 - gain_main: Main output gain (0-100)
+- avc_enabled: Automatically divide voice gain by the number of active notes
+- avc_decay_time_ms: Time in milliseconds used to move AVC toward its new gain
+
+When AVC is enabled, one active note is played at 100%, two active notes at 50%
+each, and so on. `gain_voices` remains the relative gain balance between
+oscillators. `avc_decay_time_ms` smooths changes when notes are added or
+released, while `gain_main` controls the final mixed output level. A value of
+zero applies AVC changes immediately.
 
 === Effects Configuration
 

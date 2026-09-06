@@ -240,7 +240,9 @@
             10,
             10
         ],
-        "gain_main": 50
+        "gain_main": 100,
+        "avc_enabled":  true,
+        "avc_decay_time_ms": 1000
     },
     "overdrive_config": {
         "threshold": 2000,
@@ -251,7 +253,7 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": true,
+        "enabled": false,
         "delay_time": 5000,
         "mix_percentage": 70,
         "feedback": true,

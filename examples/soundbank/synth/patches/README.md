@@ -61,6 +61,12 @@ Global filter settings:
 Controls output levels:
 - `gain_voices`: Per-voice gain (0-100)
 - `gain_main`: Main output gain (0-100)
+- `avc_enabled`: Automatically divides voice gain by the number of active notes
+- `avc_decay_time_ms`: Time in milliseconds used to move AVC toward its new gain
+
+With AVC enabled, one active note uses 100% gain, two active notes use 50%
+each, and so on. The decay time smooths changes when notes are added or
+released. `gain_main` remains the master output control.
 
 ## Effects Configuration
 

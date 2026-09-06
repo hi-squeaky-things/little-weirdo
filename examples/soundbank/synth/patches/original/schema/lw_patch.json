@@ -175,6 +175,16 @@
         "gain_main": {
           "type": "integer",
           "description": "Main output gain level (0-100)"
+        },
+        "avc_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically divide voice gain by active note count"
+        },
+        "avc_decay_time_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Time in milliseconds used to smooth AVC changes"
         }
       },
       "required": [

@@ -240,14 +240,18 @@ impl Synth {
         }
 
         // Run and route voices through envelopes and apply gain
+        let active_notes = self.active_note_count();
+        self.mixer.update_avc(active_notes, self.sample_rate);
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = math::percentage(
                 generate_voices[i],
                 generate_env[self.router.config.voices_to_envelop[i] as usize],
             );
             generate_voices[i] = math::percentage(generate_voices[i], self.velocity as i16);
-            generate_voices[i] =
-                math::percentage(generate_voices[i], self.mixer.config.gain_voices[i] as i16);
+            generate_voices[i] = self.mixer.apply_voice_gain(
+                generate_voices[i],
+                self.mixer.config.gain_voices[i],
+            );
             sound_mixing[0] += generate_voices[i];
         }
 
@@ -361,6 +365,10 @@ impl Synth {
             }
             None => 255,
         }
+    }
+
+    fn active_note_count(&self) -> usize {
+        self.active_note.iter().filter(|note| **note != 0).count()
     }
 
     ///
