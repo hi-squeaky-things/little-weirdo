@@ -13,7 +13,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let mut wt_on_heap = BoxedWaveforms::new();
 
     // Load 10 wavetables from files
-    for id in 0..10 {
+    for id in 0..55 {
         let filename = format!(
             "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
             id
@@ -27,16 +27,34 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let wt = Arc::new(wt_on_heap);
 
     // Load a synth patch from a JSON file.
-    let patch_data = fs::read("examples/soundbank/synth/patches/original/bass.json").unwrap();
+    let mut patches = little_weirdo::synth::data::patches::BoxedPatches::new();
+   
+    let patch_data = fs::read("benches/patches/clean_mono_1_osc_1_env_no_effects.json").unwrap();
     let patch = serde_json::from_slice(&patch_data).unwrap();
+    patches.add(little_weirdo::synth::data::patches::BoxedPatch::new(patch));
+
+      let patch_data = fs::read("benches/patches/clean_mono_1_osc_1_env_full_effects.json").unwrap();
+    let patch = serde_json::from_slice(&patch_data).unwrap();
+ patches.add(little_weirdo::synth::data::patches::BoxedPatch::new(patch));
+
+
+      let patch_data = fs::read("benches/patches/clean_mono_1_osc_1_env_full_effects_no_filter.json").unwrap();
+    let patch = serde_json::from_slice(&patch_data).unwrap();
+ patches.add(little_weirdo::synth::data::patches::BoxedPatch::new(patch));
 
     // Create a new synthesizer instance with specified parameters.
-    let mut patches = little_weirdo::synth::data::patches::BoxedPatches::new();
-    patches.add(little_weirdo::synth::data::patches::BoxedPatch::new(patch));
     let patches = Arc::new(patches);
     let mut synth: synth::Synth = synth::Synth::new(SAMPLE_RATE, 0, patches, Arc::clone(&wt));
     synth.note_on(60, 100);
-    c.bench_function("Little Weirdo Synth Clock and Output", |b| {
+    c.bench_function("Little Weirdo Synth Clock and Output Patch - Clean", |b| {
+        b.iter(|| synth.clock_and_output())
+    });
+    synth.load_patch(1);
+     c.bench_function("Little Weirdo Synth Clock and Output Patch - Clean - Full Effects", |b| {
+        b.iter(|| synth.clock_and_output())
+    });
+    synth.load_patch(2);
+     c.bench_function("Little Weirdo Synth Clock and Output Patch - Clean - Full Effects - No Filter", |b| {
         b.iter(|| synth.clock_and_output())
     });
 }
