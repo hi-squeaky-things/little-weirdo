@@ -157,49 +157,49 @@
     ],
     "envelops": [
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 10,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 100,
             "decay_time": 50,
             "release_time": 250,
             "sustain_level": 80
@@ -208,7 +208,7 @@
     "lfos": [
         {
             "soundbank_index": 0,
-            "time": 500
+            "time": 200
         },
         {
             "soundbank_index": 0,
@@ -231,17 +231,17 @@
     },
     "mixer_config": {
         "gain_voices": [
-            100,
-            100,
-            100,
-            100,
-            100,
-            100,
-            100,
-            100
+            20,
+            20,
+            20,
+            20,
+            20,
+            20,
+            20,
+            20
         ],
         "gain_main": 100,
-        "avc_enabled":  true,
+        "avc_enabled":  false,
         "avc_decay_time_ms": 1000,
         "balance": 60
     },
@@ -262,7 +262,7 @@
         "feedback_percentage": 70
     }, 
     "flanger_config": {
-        "enabled": true,
+        "enabled": false,
         "base_delay_time_ms": 4,
         "depth_ms": 2,
         "rate_hz": 1,
@@ -309,10 +309,10 @@
                 "enable": false
             }
         ],
-        "lfo_to_filter": false,
-        "lfo_to_freq": false,
-        "lfo_to_balance": true,
-        "lfo_to_freq_amount": 5
+        "lfo_to_filter": -1,
+        "lfo_to_freq": -1,
+        "lfo_to_freq_amount": 5,
+        "lfo_to_balance": 1
     },
     "synth_config": {
         "mode": "OctoPoly"

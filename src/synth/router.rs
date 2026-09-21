@@ -14,15 +14,15 @@ pub struct VoiceToLFORoute {
 pub struct RoutingConfiguration {
     pub voices_to_envelop: [u8; AMOUNT_OF_VOICES],
     pub lfo_to_voice: [VoiceToLFORoute; AMOUNT_OF_VOICES / 2],
-    pub lfo_to_filter: bool,
-    pub lfo_to_freq: bool,
+    pub lfo_to_filter: i8,
+    pub lfo_to_freq: i8,
     #[serde(default = "default_lfo_to_balance")]
-    pub lfo_to_balance: bool,
+    pub lfo_to_balance: i8,
     pub lfo_to_freq_amount: u16,
 }
 
-fn default_lfo_to_balance() -> bool {
-    false
+fn default_lfo_to_balance() -> i8 {
+    -1
 }
 
 

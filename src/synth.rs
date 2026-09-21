@@ -225,7 +225,8 @@ impl Synth {
             generate_lfos[i] = lfo_percentage as i16;
         }
 
-        // Route LFO modulation to voices
+        // Route LFO modulation (amplification) to voices
+        // TODO: refactor, is unclear how to use it
         for i in 0..AMOUNT_OF_VOICES / 2 {
             if self.router.config.lfo_to_voice[i].enable {
                 for j in 0..2 {
@@ -258,14 +259,14 @@ impl Synth {
         mono_sound = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
 
         // Apply filter effect
-        if self.router.config.lfo_to_freq {
+        if self.router.config.lfo_to_freq != -1 && self.router.config.lfo_to_freq < 4 {
             self.voices[0].manipulate_freq(
-                generate_lfos[0] as u8,
+                generate_lfos[self.router.config.lfo_to_freq as usize] as u8,
                 self.router.config.lfo_to_freq_amount,
             );
         }
-        if self.router.config.lfo_to_filter {
-            let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[0]);
+        if self.router.config.lfo_to_filter != -1 &&  self.router.config.lfo_to_filter < 4  {
+            let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[self.router.config.lfo_to_filter as usize]);
             if self.filter.config.cutoff_frequency != lfo_filter as u16 {
                 let mut config = self.filter.config;
                 config.cutoff_frequency = lfo_filter as u16;
@@ -288,8 +289,8 @@ impl Synth {
         let mut left_percentage = (100 - pan_percentage.max(0)).min(100);
         let mut right_percentage = (100 + pan_percentage.min(0)).max(0);
 
-        if self.router.config.lfo_to_balance {
-            pan_percentage = (generate_lfos[0] as i16 * 2 - 100) as i8;
+        if self.router.config.lfo_to_balance != -1  && self.router.config.lfo_to_balance < 4 {
+            pan_percentage = (generate_lfos[self.router.config.lfo_to_balance as usize] as i16 * 2 - 100) as i8;
             left_percentage = (100 - pan_percentage.max(0)).min(100);
             right_percentage = (100 + pan_percentage.min(0)).max(0);
         }
