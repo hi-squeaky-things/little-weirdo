@@ -7,6 +7,8 @@ use super::AMOUNT_OF_VOICES;
 pub struct MixerConfiguration {
     pub gain_voices: [u8; AMOUNT_OF_VOICES],
     pub gain_main: u8,
+    #[serde(default = "default_balance")]
+    pub balance: i8,
     #[serde(default = "default_avc_enabled")]
     pub avc_enabled: bool,
     #[serde(default = "default_avc_decay_time_ms")]
@@ -19,6 +21,11 @@ fn default_avc_enabled() -> bool {
 
 fn default_avc_decay_time_ms() -> u16 {
     50
+}
+
+// -100 = left, 0 = middle, 100 = right
+fn default_balance() -> i8 {
+    0
 }
 
 pub struct Mixer {

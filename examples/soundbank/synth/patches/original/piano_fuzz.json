@@ -8,7 +8,7 @@
             "glide_rate": 200,
             "detune": 0,
             "freq_detune": 0,
-             "grains": false,
+            "grains": false,
             "grains_seq": [
                 0,
                 255,
@@ -27,7 +27,7 @@
             "glide_rate": 200,
             "detune": 0,
             "freq_detune": 0,
-             "grains": false,
+            "grains": false,
             "grains_seq": [
                 0,
                 255,
@@ -208,19 +208,19 @@
     "lfos": [
         {
             "soundbank_index": 0,
+            "time": 500
+        },
+        {
+            "soundbank_index": 0,
             "time": 50
         },
         {
             "soundbank_index": 0,
-            "time": 200
+            "time": 50
         },
         {
             "soundbank_index": 0,
-            "time": 200
-        },
-        {
-            "soundbank_index": 0,
-            "time": 200
+            "time": 50
         }
     ],
     "filter_config": {
@@ -241,13 +241,14 @@
             100
         ],
         "gain_main": 100,
-         "avc_enabled":  true,
-        "avc_decay_time_ms": 1000
+        "avc_enabled":  true,
+        "avc_decay_time_ms": 1000,
+        "balance": 60
     },
     "overdrive_config": {
         "threshold": 6000,
         "kind": "Softer",
-        "enabled": true,
+        "enabled": false,
         "gain_percentage": 30
     },
     "bitcrunch_config": {
@@ -288,28 +289,29 @@
             },
             {
                 "voices": [
-                    1,
-                    255
+                    2,
+                    3
                 ],
                 "enable": false
             },
             {
                 "voices": [
-                    1,
-                    255
+                    4,
+                    5
                 ],
                 "enable": false
             },
             {
                 "voices": [
-                    1,
-                    255
+                    6,
+                    7
                 ],
                 "enable": false
             }
         ],
         "lfo_to_filter": false,
         "lfo_to_freq": false,
+        "lfo_to_balance": true,
         "lfo_to_freq_amount": 5
     },
     "synth_config": {

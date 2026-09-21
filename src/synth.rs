@@ -210,6 +210,7 @@ impl Synth {
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         let mut voice_mix: i32 = 0;
+        let mut mono_sound: i16 = 0;
 
         // Clock voices and envelopes once
         for i in 0..AMOUNT_OF_VOICES {
@@ -249,16 +250,12 @@ impl Synth {
                 generate_env[self.router.config.voices_to_envelop[i] as usize],
             );
             generate_voices[i] = math::percentage(generate_voices[i], self.velocity as i16);
-            generate_voices[i] = self.mixer.apply_voice_gain(
-                generate_voices[i],
-                self.mixer.config.gain_voices[i],
-            );
+            generate_voices[i] = self
+                .mixer
+                .apply_voice_gain(generate_voices[i], self.mixer.config.gain_voices[i]);
             voice_mix += generate_voices[i] as i32;
         }
-        sound_mixing[0] = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
-
-        // Stereo output (mono to stereo)
-        sound_mixing[1] = sound_mixing[0];
+        mono_sound = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
 
         // Apply filter effect
         if self.router.config.lfo_to_freq {
@@ -277,17 +274,30 @@ impl Synth {
         }
 
         // Apply final effects
-        sound_mixing[0] = self.overdrive.clock(sound_mixing[0]);
-        sound_mixing[0] = self.bitcrunch.clock(sound_mixing[0]);
-        sound_mixing[0] = self.delay.clock(sound_mixing[0]);
-        sound_mixing[0] = self.flanger.clock(sound_mixing[0]);
+        mono_sound = self.overdrive.clock(mono_sound);
+        mono_sound = self.bitcrunch.clock(mono_sound);
+        mono_sound = self.delay.clock(mono_sound);
+        mono_sound = self.flanger.clock(mono_sound);
 
         // Apply filter to mixed signal
-        sound_mixing[0] = self.filter.clock(sound_mixing[0]);
-    
-        sound_mixing[0] = math::percentage(sound_mixing[0], self.mixer.config.gain_main as i16);
-      
-        [sound_mixing[0], sound_mixing[0]]
+        mono_sound = self.filter.clock(mono_sound);
+        mono_sound = math::percentage(mono_sound, self.mixer.config.gain_main as i16);
+
+        // Apply panning
+        let mut pan_percentage = self.mixer.config.balance; // pan_value is already in percentage (-100 to 100)
+        let mut left_percentage = (100 - pan_percentage.max(0)).min(100);
+        let mut right_percentage = (100 + pan_percentage.min(0)).max(0);
+
+        if self.router.config.lfo_to_balance {
+            pan_percentage = (generate_lfos[0] as i16 * 2 - 100) as i8;
+            left_percentage = (100 - pan_percentage.max(0)).min(100);
+            right_percentage = (100 + pan_percentage.min(0)).max(0);
+        }
+
+        sound_mixing[0] = math::percentage(mono_sound, left_percentage as i16);
+        sound_mixing[1] = math::percentage(mono_sound, right_percentage as i16);
+
+        sound_mixing
     }
 
     /// Play a specific note on the synthesizer

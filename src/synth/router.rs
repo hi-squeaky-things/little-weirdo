@@ -16,8 +16,15 @@ pub struct RoutingConfiguration {
     pub lfo_to_voice: [VoiceToLFORoute; AMOUNT_OF_VOICES / 2],
     pub lfo_to_filter: bool,
     pub lfo_to_freq: bool,
+    #[serde(default = "default_lfo_to_balance")]
+    pub lfo_to_balance: bool,
     pub lfo_to_freq_amount: u16,
 }
+
+fn default_lfo_to_balance() -> bool {
+    false
+}
+
 
 pub struct Router {
     pub config: RoutingConfiguration,
