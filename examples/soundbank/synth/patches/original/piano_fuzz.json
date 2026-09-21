@@ -255,7 +255,7 @@
     },
     "delay_config": {
         "enabled": true,
-        "delay_time": 5000,
+        "delay_time": 200,
         "mix_percentage": 70,
         "feedback": true,
         "feedback_percentage": 70
