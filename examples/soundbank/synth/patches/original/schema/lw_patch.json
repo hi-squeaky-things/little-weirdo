@@ -339,41 +339,9 @@
         "lfo_to_voice": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "voices": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "items": {
-                  "type": "integer",
-                  "enum": [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8,
-                    9,
-                    255
-                  ],
-                  "description": "Voice indices to route LFO to (255 = all voices)"
-                }
-              },
-              "enable": {
-                "type": "boolean",
-                "description": "Enable this LFO-to-voice routing"
-              }
-            },
-            "required": [
-              "voices",
-              "enable"
-            ]
-          },
-          "description": "LFO to voice routing configuration"
+            "type": "integer",
+            "description": "Voice routing to envelope mapping"
+          }
         },
         "lfo_to_filter": {
           "type": "boolean",
