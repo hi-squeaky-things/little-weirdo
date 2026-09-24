@@ -385,7 +385,7 @@
         },
         "lfo_to_freq_amount": {
           "type": "integer",
-          "description": "The amount of frequency modulation applied to oscillators by LFO #0, measured in Hz"
+          "description": "The amount of frequency modulation applied to oscillators in percentage"
         }
       },
       "required": [

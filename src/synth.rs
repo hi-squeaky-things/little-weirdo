@@ -227,19 +227,17 @@ impl Synth {
 
         // Route LFO modulation (amplification) to voices
         // TODO: refactor, is unclear how to use it
-        for i in 0..AMOUNT_OF_VOICES / 2 {
-            if self.router.config.lfo_to_voice[i].enable {
-                for j in 0..2 {
-                    if self.router.config.lfo_to_voice[i].voices[j] != 255 {
-                        generate_voices[self.router.config.lfo_to_voice[i].voices[j] as usize] =
+        for i in 0..AMOUNT_OF_VOICES  {
+            if self.router.config.lfo_to_voice[i] != -1 {
+                let lfo_index =  self.router.config.lfo_to_voice[i].clamp(0, 3) as usize;
+                    generate_voices[i] =
                             math::percentage(
                                 generate_voices
-                                    [self.router.config.lfo_to_voice[i].voices[j] as usize],
-                                generate_lfos[i],
+                                    [i],
+                                generate_lfos[lfo_index],
                             );
-                    }
+                    
                 }
-            }
         }
 
         // Run and route voices through envelopes and apply gain
