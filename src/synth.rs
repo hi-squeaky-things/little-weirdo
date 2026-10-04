@@ -392,6 +392,16 @@ impl Synth {
         self.clock()
     }
 
+
+    pub fn change_all_voices( &mut self, voice_id: u8) 
+     {
+         for i in 0..AMOUNT_OF_VOICES {
+             let mut config = self.voices[i].config;
+             config.soundbank_index = voice_id;
+             self.voices[i].reload(config);
+         }
+    }
+
     /// Change the settings of all envelopes
     ///
     /// # Arguments

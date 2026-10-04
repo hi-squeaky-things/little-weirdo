@@ -8,14 +8,14 @@
             "glide_rate": 200,
             "detune": 0,
             "freq_detune": 0,
-            "grains": true,
+            "grains": false,
             "grains_seq": [
                 0,
-                0,
-                1,
-                1,
-                11,
-                11,
+                255,
+                255,
+                255,
+                255,
+                255,
                 255,
                 255
             ]
@@ -243,11 +243,18 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": true,
+        "enabled": false,
         "delay_time": 5000,
         "mix_percentage": 70,
         "feedback": true,
         "feedback_percentage": 70
+    },
+     "flanger_config": {
+        "enabled": true,
+        "base_delay_time_ms": 4,
+        "depth_ms": 2,
+        "rate_hz": 1,
+        "mix_percentage": 60
     },
     "routering_config": {
         "voices_to_envelop": [
@@ -261,14 +268,14 @@
             1
         ],
      "lfo_to_voice": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
         ],
         "lfo_to_filter": -1,
         "lfo_to_freq": -1,
