@@ -14,6 +14,7 @@ use alloc::sync::Arc;
 
 use crate::{
     effects::{self, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive},
+    effects::overdrive::{KindOfOverdrive, OverdriveConfiguration},
     math,
     synth::data::patches::{BoxedPatches, Patches},
 };
@@ -432,8 +433,106 @@ impl Synth {
                 config.release_time = val;
             }
 
-            self.envelops[i].reload(config);
+            self.envelops[i].update_configuration(config);
         }
+    }
+
+    pub fn overdrive_settings(&self) -> (bool, u8, u16) {
+        let kind = match self.overdrive.config.kind {
+            KindOfOverdrive::Hard => 0,
+            KindOfOverdrive::Soft => 1,
+            KindOfOverdrive::Softer => 2,
+        };
+        (
+            self.overdrive.config.enabled,
+            kind,
+            self.overdrive.config.threshold,
+        )
+    }
+
+    pub fn toggle_overdrive(&mut self) {
+        let mut config = self.overdrive.config;
+        config.enabled = !config.enabled;
+        self.overdrive.reload(config);
+    }
+
+    pub fn cycle_overdrive_kind(&mut self, clockwise: bool) {
+        let mut config = self.overdrive.config;
+        config.kind = match (config.kind, clockwise) {
+            (KindOfOverdrive::Hard, true) | (KindOfOverdrive::Softer, false) => KindOfOverdrive::Soft,
+            (KindOfOverdrive::Soft, true) => KindOfOverdrive::Softer,
+            (KindOfOverdrive::Soft, false) => KindOfOverdrive::Hard,
+            (KindOfOverdrive::Softer, true) => KindOfOverdrive::Hard,
+            (KindOfOverdrive::Hard, false) => KindOfOverdrive::Softer,
+        };
+        self.overdrive.reload(config);
+    }
+
+    pub fn adjust_overdrive_threshold(&mut self, clockwise: bool) {
+        const THRESHOLD_STEP: u16 = 250;
+        let mut config: OverdriveConfiguration = self.overdrive.config;
+        config.threshold = if clockwise {
+            config.threshold.saturating_add(THRESHOLD_STEP).min(i16::MAX as u16)
+        } else {
+            config.threshold.saturating_sub(THRESHOLD_STEP)
+        };
+        self.overdrive.reload(config);
+    }
+
+    pub fn delay_settings(&self) -> (bool, u16, u8, u8) {
+        (
+            self.delay.config.enabled,
+            self.delay.config.delay_time,
+            self.delay.config.mix_percentage,
+            if self.delay.config.feedback {
+                self.delay.config.feedback_percentage
+            } else {
+                0
+            },
+        )
+    }
+
+    pub fn toggle_delay(&mut self) {
+        let mut config = self.delay.config;
+        config.enabled = !config.enabled;
+        self.delay.reload(config, self.sample_rate);
+    }
+
+    pub fn adjust_delay_time(&mut self, clockwise: bool) {
+        const DELAY_TIME_STEP_MS: u16 = 10;
+        let mut config = self.delay.config;
+        config.delay_time = if clockwise {
+            config.delay_time.saturating_add(DELAY_TIME_STEP_MS).min(5000)
+        } else {
+            config.delay_time.saturating_sub(DELAY_TIME_STEP_MS).max(DELAY_TIME_STEP_MS)
+        };
+        self.delay.reload(config, self.sample_rate);
+    }
+
+    pub fn adjust_delay_mix(&mut self, clockwise: bool) {
+        let mut config = self.delay.config;
+        config.mix_percentage = if clockwise {
+            config.mix_percentage.saturating_add(1).min(100)
+        } else {
+            config.mix_percentage.saturating_sub(1)
+        };
+        self.delay.reload(config, self.sample_rate);
+    }
+
+    pub fn adjust_delay_feedback(&mut self, clockwise: bool) {
+        let mut config = self.delay.config;
+        let current_feedback = if config.feedback {
+            config.feedback_percentage
+        } else {
+            0
+        };
+        config.feedback_percentage = if clockwise {
+            current_feedback.saturating_add(1).min(100)
+        } else {
+            current_feedback.saturating_sub(1)
+        };
+        config.feedback = config.feedback_percentage != 0;
+        self.delay.reload(config, self.sample_rate);
     }
 
     /// Change the main volume of the synthesizer

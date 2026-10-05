@@ -168,6 +168,11 @@ impl EnvelopeGenerator {
         self.reset();
     }
 
+    /// Updates the envelope configuration without interrupting its current phase.
+    pub fn update_configuration(&mut self, envelop: EnvelopConfiguration) {
+        self.configuration = envelop;
+    }
+
     /// Transitions the envelope to a new state and resets tick counter
     fn transistion_state(&mut self, state: EnvelopeState) {
         self.state = state;

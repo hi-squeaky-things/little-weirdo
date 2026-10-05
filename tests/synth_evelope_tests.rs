@@ -44,3 +44,31 @@ fn envelope_attack_time_5000ms_reaches_full_level() {
 
     assert_eq!(last_value, 100);
 }
+
+#[test]
+fn updating_sustain_preserves_the_active_envelope() {
+    let mut env = EnvelopeGenerator::new(
+        EnvelopConfiguration {
+            attack_time: 1,
+            decay_time: 1,
+            release_time: 10,
+            sustain_level: 50,
+        },
+        1000,
+    );
+
+    env.open_gate();
+    for _ in 0..3 {
+        env.clock(None);
+    }
+    assert_eq!(env.clock(None), 50);
+
+    env.update_configuration(EnvelopConfiguration {
+        attack_time: 1,
+        decay_time: 1,
+        release_time: 10,
+        sustain_level: 75,
+    });
+
+    assert_eq!(env.clock(None), 75);
+}
