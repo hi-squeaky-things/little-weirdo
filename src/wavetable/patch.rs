@@ -7,8 +7,7 @@ use crate::{
     effects::{
         bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration,
         flanger::FlangerConfiguration, overdrive::OverdriveConfiguration,
-    },
-    synth::envelope::EnvelopConfiguration,
+    }, synth::envelope::EnvelopConfiguration, wavetable::sample_voice::SampleVoiceConfig,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -16,10 +15,7 @@ pub struct Patch {
     pub name: String,
     pub drums: bool,
     pub sample_map: u8,
-    pub loop_start: u32,
-    pub loop_end: u32,
-    pub one_shot: bool,
-    pub base_key: u8,
+    pub sample_config: SampleVoiceConfig,
     pub overdrive_config: OverdriveConfiguration,
     pub bitcrunch_config: BitcrunchConfiguration,
     pub delay_config: DelayConfiguration,

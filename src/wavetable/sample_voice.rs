@@ -1,7 +1,19 @@
 extern crate alloc;
 use alloc::{sync::Arc, vec::Vec};
+use serde::{Deserialize, Serialize};
 
 use crate::synth::{data::frequencies::MIDI2FREQ, Clockable};
+
+// Configuration for standard waveform oscillator
+#[derive(Copy, Clone, Deserialize, Serialize)]
+pub struct SampleVoiceConfig {
+    sample_id: u8,
+    is_drums: bool,
+    loop_start: u32,
+    loop_end: u32,
+    one_shot: bool,
+    base_key: u8,
+}
 
 // Holds multiple boxed audio samples.
 #[derive(Clone)]
@@ -39,8 +51,7 @@ pub struct BoxedSample {
 impl BoxedSample {
     /// Creates a new `BoxedSample` from raw audio data.
     pub fn new(data: Vec<u8>) -> Self {
-        let init = Self { data };
-        init
+        Self { data }
     }
 }
 
@@ -49,7 +60,9 @@ impl BoxedSample {
 pub struct SampleVoice {
     /// Reference to the underlying audio sample data.
     sampler: Arc<BoxedSamples>,
-
+    
+    loop_is_started: bool,
+  
     sample_id: u8,
     /// Current position in the audio sample data.
     counter: f32,
@@ -57,14 +70,7 @@ pub struct SampleVoice {
     increment: f32,
     open: bool,
     length: u32,
-    sample_rate: u16,
-    is_drums: bool,
-
-    loop_start: u32,
-    loop_end: u32,
-    loop_is_started: bool,
-    one_shot: bool,
-    base_key: u8,
+    config: SampleVoiceConfig
 }
 
 impl Clockable for SampleVoice {
@@ -78,18 +84,18 @@ impl Clockable for SampleVoice {
         }
         self.counter += self.increment;
         if self.counter as u32 >= self.length {
-            if !self.loop_is_started && !self.one_shot {
+            if !self.loop_is_started && !self.config.one_shot {
                 self.loop_is_started = true;
-                self.length = self.loop_end - self.loop_start;
+                self.length = self.config.loop_end - self.config.loop_start;
             }
-            if self.one_shot {
+            if self.config.one_shot {
                 self.open = false;
             }
 
             self.counter = 0.0;
 
-            if self.loop_is_started && !self.one_shot {
-                let pointer = self.loop_start as usize * 2;
+            if self.loop_is_started && !self.config.one_shot {
+                let pointer = self.config.loop_start as usize * 2;
                 let b1 = (self.sampler.data[self.sample_id as usize].data[pointer + 1] as i16) << 8;
                 let b2 = self.sampler.data[self.sample_id as usize].data[pointer] as i16;
                 return b1 | b2;
@@ -101,10 +107,10 @@ impl Clockable for SampleVoice {
 
         if self.loop_is_started {
             // Add loop start offset
-            pointer = (pointer + (self.loop_start as usize * 2)) as usize;
+            pointer += self.config.loop_start as usize * 2;
 
             // Check if we've reached the loop end
-            let loop_end_pos = (self.loop_end * 2) as usize;
+            let loop_end_pos = (self.config.loop_end * 2) as usize;
             if pointer >= loop_end_pos {
                 pointer = loop_end_pos - 2; // Position before loop end
             }
@@ -117,7 +123,7 @@ impl Clockable for SampleVoice {
         }
 
         // Ensure pointer is even (for 16-bit samples)
-        if pointer % 2 != 0 && pointer > 0 {
+        if !pointer.is_multiple_of(2) && pointer > 0 {
             pointer -= 1;
         }
 
@@ -147,43 +153,32 @@ impl SampleVoice {
     /// * `one_shot` - Whether playback stops after one pass instead of looping.
     /// * `base_key` - The MIDI note used as the sample's original pitch.
     pub fn new(
-        sample_rate: u16,
-        sample_id: u8,
+        config: SampleVoiceConfig,
         sampler: Arc<BoxedSamples>,
-        is_drums: bool,
-        loop_start: u32,
-        loop_end: u32,
-        one_shot: bool,
-        base_key: u8,
     ) -> Self {
         let mut audio_sampler = SampleVoice {
-            sample_rate,
+            config,
             sampler,
-            sample_id,
+            sample_id: config.sample_id,
             counter: 0.0,
             increment: 0.0,
             length: 0,
-            open: false,
-            is_drums,
             loop_is_started: false,
-            loop_start,
-            loop_end,
-            one_shot,
-            base_key,
-        };
+            open: false,
+           };
         audio_sampler.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
 
-        if audio_sampler.one_shot {
-            audio_sampler.length = (audio_sampler.sampler.data[audio_sampler.sample_id as usize]
+        if audio_sampler.config.one_shot {
+            audio_sampler.length = (audio_sampler.sampler.data[audio_sampler.config.sample_id as usize]
                 .data
                 .len()
                 / 2) as u32;
         } else {
-            audio_sampler.length = audio_sampler.loop_start as u32;
+            audio_sampler.length = audio_sampler.config.loop_start;
         }
 
-        if audio_sampler.loop_end == 0 {
-            audio_sampler.loop_end = audio_sampler.length;
+        if audio_sampler.config.loop_end == 0 {
+            audio_sampler.config.loop_end = audio_sampler.length;
         }
         audio_sampler
     }
@@ -195,7 +190,7 @@ impl SampleVoice {
     /// playback increment relative to `base_key` and the playback position is
     /// reset.
     pub fn set_note(&mut self, note: u8) {
-        if self.is_drums {
+        if self.config.is_drums {
             self.sample_id = note - 36;
             self.length = self.sampler.data[self.sample_id as usize].data.len() as u32;
         } else {
@@ -212,10 +207,10 @@ impl SampleVoice {
         self.counter = 0.0;
         self.open = true;
         self.loop_is_started = false;
-        if self.one_shot {
+        if self.config.one_shot {
             self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
         } else {
-            self.length = self.loop_start as u32;
+            self.length = self.config.loop_start;
         }
     }
 
@@ -239,7 +234,7 @@ impl SampleVoice {
     /// * `freq` - The target frequency in hertz.
     pub fn change_freq(&mut self, freq: u16) {
         self.counter = 0.0;
-        self.increment = freq as f32 / MIDI2FREQ[self.base_key as usize] as f32
+        self.increment = freq as f32 / MIDI2FREQ[self.config.base_key as usize] as f32
     }
 
     /// Stops playback and replaces the voice's sample configuration.
@@ -259,28 +254,18 @@ impl SampleVoice {
     /// * `base_key` - The MIDI note used as the replacement sample's original pitch.
     pub fn reload(
         &mut self,
-        is_drum: bool,
-        sample_id: u8,
-        loop_start: u32,
-        loop_end: u32,
-        one_shot: bool,
-        base_key: u8,
+       config: SampleVoiceConfig
     ) {
         self.open = false;
         self.counter = 0.0;
-        self.is_drums = is_drum;
-        self.sample_id = sample_id;
+        self.config = config;
         self.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
         self.loop_is_started = false;
-        self.loop_start = loop_start;
-        self.loop_end = loop_end;
-        self.one_shot = one_shot;
-        self.base_key = base_key;
 
-        if self.one_shot {
+        if self.config.one_shot {
             self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
         } else {
-            self.length = self.loop_start;
+            self.length = self.config.loop_start;
         }
     }
 }

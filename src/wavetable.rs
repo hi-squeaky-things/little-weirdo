@@ -2,13 +2,9 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive, Effect},
-    math,
-    synth::{
-        envelope::{self, EnvelopConfiguration},
-        Clockable,
-    },
-    wavetable::sample_voice::SampleVoice,
+    effects::{Effect, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive}, math, synth::{
+        Clockable, envelope::{self, EnvelopConfiguration},
+    }, wavetable::sample_voice::{SampleVoice, SampleVoiceConfig},
 };
 
 pub mod data;
@@ -65,14 +61,8 @@ impl WavetableSynth {
             sample_map: patch.sample_map,
             drums: patch.drums,
             sample_voices: WavetableSynth::init_sample_voices(
-                sample_rate,
                 Arc::clone(&samples),
-                patch.drums,
-                patch.sample_map,
-                patch.loop_start,
-                patch.loop_end,
-                patch.one_shot,
-                patch.base_key,
+                patch.sample_config,
             ),
             envelops: WavetableSynth::init_envs(patch.env_config, sample_rate),
             active_note: [0; AMOUNT_OF_VOICES],
@@ -92,19 +82,10 @@ impl WavetableSynth {
         self.sample_map = patch.sample_map;
 
         for i in 0..self.sample_voices.len() {
-            let sample_id = if patch.drums {
-                i as u8
-            } else {
-                patch.sample_map
-            };
+
 
             self.sample_voices[i].reload(
-                patch.drums,
-                sample_id,
-                patch.loop_start,
-                patch.loop_end,
-                patch.one_shot,
-                patch.base_key,
+                patch.sample_config
             );
             self.envelops[i].reload(patch.env_config);
         }
@@ -129,25 +110,13 @@ impl WavetableSynth {
 
     /// Initialize waveform oscillators with given parameters
     fn init_sample_voices(
-        sample_rate: u16,
         samples: Arc<sample_voice::BoxedSamples>,
-        drums: bool,
-        sample_map: u8,
-        loop_start: u32,
-        loop_end: u32,
-        one_shot: bool,
-        base_key: u8,
+        config: SampleVoiceConfig
     ) -> [SampleVoice; AMOUNT_OF_VOICES] {
-        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] = array_init::array_init(|i: usize| {
+        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] = array_init::array_init(|_i: usize| {
             SampleVoice::new(
-                sample_rate,
-                if drums { i as u8 } else { sample_map },
+                config,
                 Arc::clone(&samples),
-                drums,
-                loop_start,
-                loop_end,
-                one_shot,
-                base_key,
             )
         });
         voice_samplers
@@ -174,7 +143,7 @@ impl WavetableSynth {
         // Run and route voices through envelopes and apply gain
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = math::percentage(generate_voices[i], generate_env[i]);
-            generate_voices[i] = math::percentage(generate_voices[i], 25 as i16);
+            generate_voices[i] = math::percentage(generate_voices[i], 25);
             voice_mix += generate_voices[i] as i32;
         }
         sound_mixing[0] = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
@@ -205,22 +174,10 @@ impl WavetableSynth {
         if id != 255 {
             self.delay.reset();
             self.flanger.reset();
-            let (sample_id, base_key, loop_start, loop_end, one_shot, drums) = {
-                let patch = self.patches.get_patches_reference(self.current_patch);
-                let (sample_id, base_key, loop_start, loop_end, one_shot) =
-                    self.get_zone_params(note, patch);
-                (
-                    sample_id,
-                    base_key,
-                    loop_start,
-                    loop_end,
-                    one_shot,
-                    patch.drums,
-                )
-            };
+            let patch = self.patches.get_patches_reference(self.current_patch);
 
             self.sample_voices[id]
-                .reload(drums, sample_id, loop_start, loop_end, one_shot, base_key);
+                .reload(patch.sample_config);
 
             self.sample_voices[id].set_note(note);
             self.sample_voices[id].open_gate();
@@ -244,15 +201,11 @@ impl WavetableSynth {
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => position,
             None => match self.active_note.iter().position(|n| n == &0) {
-                Some(position) => {
-                    if position < AMOUNT_OF_VOICES {
-                        self.active_note[position] = note;
-                        position
-                    } else {
-                        255
-                    }
+                Some(position) if position < AMOUNT_OF_VOICES => {
+                    self.active_note[position] = note;
+                    position
                 }
-                None => 255,
+                _ => 255,
             },
         }
     }
@@ -293,32 +246,5 @@ impl WavetableSynth {
         false
     }
 
-    /// Get zone parameters based on the note
-    /// Returns (sample_id, base_key, loop_start, loop_end, one_shot)
-    pub fn get_zone_params(&self, note: u8, patch: &patch::Patch) -> (u8, u8, u32, u32, bool) {
-        // Check if zones are defined
-        if !patch.zones.is_empty() {
-            // Find the first zone that contains this note
-            for zone in &patch.zones {
-                if note >= zone.start_note && note <= zone.end_note {
-                    return (
-                        zone.sample_map,
-                        zone.base_key,
-                        zone.loop_start,
-                        zone.loop_end,
-                        zone.one_shot,
-                    );
-                }
-            }
-        }
-
-        // Fallback to default patch parameters
-        (
-            patch.sample_map,
-            patch.base_key,
-            patch.loop_start,
-            patch.loop_end,
-            patch.one_shot,
-        )
-    }
+  
 }

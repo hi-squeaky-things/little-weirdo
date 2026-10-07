@@ -13,8 +13,8 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{self, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive},
     effects::overdrive::{KindOfOverdrive, OverdriveConfiguration},
+    effects::{self, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive},
     math,
     synth::data::patches::{BoxedPatches, Patches},
 };
@@ -217,25 +217,21 @@ impl Synth {
         }
 
         // Process LFOs
-        for i in 0..AMOUNT_OF_VOICES / 2 {
-            let lfo: i32 = self.lfo[i].clock(None) as i32;
-            let lfo_percentage = ((lfo + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
+        for (i, lfo) in self.lfo.iter_mut().enumerate().take(AMOUNT_OF_VOICES / 2) {
+            let lfo_output = lfo.clock(None) as i32;
+            let lfo_percentage = ((lfo_output + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
             generate_lfos[i] = lfo_percentage as i16;
         }
 
         // Route LFO modulation (amplification) to voices
         // TODO: refactor, is unclear how to use it
-        for i in 0..AMOUNT_OF_VOICES  {
-            if self.router.config.lfo_to_voice[i] != -1 {
-                let lfo_index =  self.router.config.lfo_to_voice[i].clamp(0, 3) as usize;
-                    generate_voices[i] =
-                            math::percentage(
-                                generate_voices
-                                    [i],
-                                generate_lfos[lfo_index],
-                            );
-                    
-                }
+        for (i, lfo) in generate_lfos
+            .iter_mut()
+            .enumerate()
+            .take(AMOUNT_OF_VOICES / 2)
+        {
+            // do something with i and lfo
+            generate_voices[i] = math::percentage(generate_voices[i], *lfo);
         }
 
         // Run and route voices through envelopes and apply gain
@@ -261,8 +257,12 @@ impl Synth {
                 self.router.config.lfo_to_freq_amount,
             );
         }
-        if self.router.config.lfo_to_filter != -1 &&  self.router.config.lfo_to_filter < 4  {
-            let lfo_filter = 1_000 + math::percentage(10_000, generate_lfos[self.router.config.lfo_to_filter as usize]);
+        if self.router.config.lfo_to_filter != -1 && self.router.config.lfo_to_filter < 4 {
+            let lfo_filter = 1_000
+                + math::percentage(
+                    10_000,
+                    generate_lfos[self.router.config.lfo_to_filter as usize],
+                );
             if self.filter.config.cutoff_frequency != lfo_filter as u16 {
                 let mut config = self.filter.config;
                 config.cutoff_frequency = lfo_filter as u16;
@@ -285,8 +285,9 @@ impl Synth {
         let mut left_percentage = (100 - pan_percentage.max(0)).min(100);
         let mut right_percentage = (100 + pan_percentage.min(0)).max(0);
 
-        if self.router.config.lfo_to_balance != -1  && self.router.config.lfo_to_balance < 4 {
-            pan_percentage = (generate_lfos[self.router.config.lfo_to_balance as usize] as i16 * 2 - 100) as i8;
+        if self.router.config.lfo_to_balance != -1 && self.router.config.lfo_to_balance < 4 {
+            pan_percentage =
+                (generate_lfos[self.router.config.lfo_to_balance as usize] * 2 - 100) as i8;
             left_percentage = (100 - pan_percentage.max(0)).min(100);
             right_percentage = (100 + pan_percentage.min(0)).max(0);
         }
@@ -352,15 +353,11 @@ impl Synth {
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => position,
             None => match self.active_note.iter().position(|n| n == &0) {
-                Some(position) => {
-                    if position < amount_of_notes {
+                Some(position) if position < amount_of_notes  => {
                         self.active_note[position] = note;
                         position
-                    } else {
-                        255
-                    }
                 }
-                None => 255,
+                _ => 255,
             },
         }
     }
@@ -390,14 +387,12 @@ impl Synth {
         self.clock()
     }
 
-
-    pub fn change_all_voices( &mut self, voice_id: u8) 
-     {
-         for i in 0..AMOUNT_OF_VOICES {
-             let mut config = self.voices[i].config;
-             config.soundbank_index = voice_id;
-             self.voices[i].reload(config);
-         }
+    pub fn change_all_voices(&mut self, voice_id: u8) {
+        for i in 0..AMOUNT_OF_VOICES {
+            let mut config = self.voices[i].config;
+            config.soundbank_index = voice_id;
+            self.voices[i].reload(config);
+        }
     }
 
     /// Change the settings of all envelopes
@@ -456,7 +451,9 @@ impl Synth {
     pub fn cycle_overdrive_kind(&mut self, clockwise: bool) {
         let mut config = self.overdrive.config;
         config.kind = match (config.kind, clockwise) {
-            (KindOfOverdrive::Hard, true) | (KindOfOverdrive::Softer, false) => KindOfOverdrive::Soft,
+            (KindOfOverdrive::Hard, true) | (KindOfOverdrive::Softer, false) => {
+                KindOfOverdrive::Soft
+            }
             (KindOfOverdrive::Soft, true) => KindOfOverdrive::Softer,
             (KindOfOverdrive::Soft, false) => KindOfOverdrive::Hard,
             (KindOfOverdrive::Softer, true) => KindOfOverdrive::Hard,
@@ -469,7 +466,10 @@ impl Synth {
         const THRESHOLD_STEP: u16 = 250;
         let mut config: OverdriveConfiguration = self.overdrive.config;
         config.threshold = if clockwise {
-            config.threshold.saturating_add(THRESHOLD_STEP).min(i16::MAX as u16)
+            config
+                .threshold
+                .saturating_add(THRESHOLD_STEP)
+                .min(i16::MAX as u16)
         } else {
             config.threshold.saturating_sub(THRESHOLD_STEP)
         };
@@ -499,9 +499,15 @@ impl Synth {
         const DELAY_TIME_STEP_MS: u16 = 10;
         let mut config = self.delay.config;
         config.delay_time = if clockwise {
-            config.delay_time.saturating_add(DELAY_TIME_STEP_MS).min(5000)
+            config
+                .delay_time
+                .saturating_add(DELAY_TIME_STEP_MS)
+                .min(5000)
         } else {
-            config.delay_time.saturating_sub(DELAY_TIME_STEP_MS).max(DELAY_TIME_STEP_MS)
+            config
+                .delay_time
+                .saturating_sub(DELAY_TIME_STEP_MS)
+                .max(DELAY_TIME_STEP_MS)
         };
         self.delay.reload(config, self.sample_rate);
     }
