@@ -217,23 +217,21 @@ impl Synth {
         }
 
         // Process LFOs
+        
         for (i, lfo) in self.lfo.iter_mut().enumerate().take(AMOUNT_OF_VOICES / 2) {
             let lfo_output = lfo.clock(None) as i32;
             let lfo_percentage = ((lfo_output + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
             generate_lfos[i] = lfo_percentage as i16;
         }
 
-        // Route LFO modulation (amplification) to voices
-        // TODO: refactor, is unclear how to use it
-        for (i, lfo) in generate_lfos
-            .iter_mut()
-            .enumerate()
-            .take(AMOUNT_OF_VOICES / 2)
-        {
-            // do something with i and lfo
-            generate_voices[i] = math::percentage(generate_voices[i], *lfo);
+        for i in 0..AMOUNT_OF_VOICES {
+            let lfo_to_manipulate_voice =  self.router.config.lfo_to_voice[i];
+            if lfo_to_manipulate_voice != -1 {
+                generate_voices[i] = math::percentage(generate_voices[i], generate_lfos[lfo_to_manipulate_voice as usize]);
+            }
         }
 
+       
         // Run and route voices through envelopes and apply gain
         let active_notes = self.active_note_count();
         self.mixer.update_avc(active_notes, self.sample_rate);
@@ -249,6 +247,7 @@ impl Synth {
             voice_mix += generate_voices[i] as i32;
         }
         mono_sound = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
+
 
         // Apply filter effect
         if self.router.config.lfo_to_freq != -1 && self.router.config.lfo_to_freq < 4 {

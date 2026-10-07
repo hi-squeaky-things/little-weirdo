@@ -20,8 +20,6 @@ pub const AMOUNT_OF_OUTPUT_CHANNELS: usize = 2;
 /// Main synthesizer struct that handles audio generation
 pub struct WavetableSynth {
     sample_rate: u16,
-    pub drums: bool,
-    pub sample_map: u8,
     sample_voices: [SampleVoice; AMOUNT_OF_VOICES],
     /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
@@ -58,8 +56,6 @@ impl WavetableSynth {
         let patch = patches.get_patches_reference(patch_selected);
         Self {
             sample_rate,
-            sample_map: patch.sample_map,
-            drums: patch.drums,
             sample_voices: WavetableSynth::init_sample_voices(
                 Arc::clone(&samples),
                 patch.sample_config,
@@ -78,9 +74,7 @@ impl WavetableSynth {
     pub fn load_patch(&mut self, patch_selected: u8) {
         let patch = self.patches.get_patches_reference(patch_selected);
         self.current_patch = patch_selected;
-        self.drums = patch.drums;
-        self.sample_map = patch.sample_map;
-
+      
         for i in 0..self.sample_voices.len() {
 
 
@@ -234,14 +228,8 @@ impl WavetableSynth {
     /// Check if the note is within the valid range (C0 to C8)
     /// Returns true if the note is outside the valid range
     fn range_safeguard(&mut self, note: u8) -> bool {
-        if self.drums {
-            if !(36..36 + 10).contains(&note) {
+        if !(24..=108).contains(&note) {
                 return true;
-            }
-        } else {
-            if !(24..=108).contains(&note) {
-                return true;
-            }
         }
         false
     }
