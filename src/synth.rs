@@ -211,7 +211,7 @@ impl Synth {
         let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         let mut voice_mix: i32 = 0;
-        let mut mono_sound: i16 = 0;
+        let mut mono_sound: i16;
 
         // Clock voices and envelopes once
         for i in 0..AMOUNT_OF_VOICES {
