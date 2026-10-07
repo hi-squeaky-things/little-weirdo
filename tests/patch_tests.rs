@@ -21,8 +21,8 @@ fn test_patch_deserialization_json() {
     assert!(patch.flanger_config.enabled);
     assert_eq!(patch.flanger_config.base_delay_time_ms, 10);
     assert_eq!(patch.flanger_config.depth_ms, 5);
-    assert_eq!(patch.flanger_config.rate_hz, 1);
-    assert_eq!(patch.flanger_config.mix_percentage, 30);
+    assert_eq!(patch.flanger_config.rate_hz, 5);
+    assert_eq!(patch.flanger_config.mix_percentage, 40);
     assert!(patch.mixer_config.avc_enabled);
     assert_eq!(patch.mixer_config.avc_decay_time_ms, 50);
 }
@@ -75,6 +75,7 @@ fn test_mixer_avc_divides_voice_gain_by_active_notes() {
         gain_main: 100,
         avc_enabled: true,
         avc_decay_time_ms: 0,
+        balance: 100
     });
 
     let mut mixer = mixer;
@@ -96,6 +97,7 @@ fn test_mixer_can_disable_avc() {
         gain_main: 100,
         avc_enabled: false,
         avc_decay_time_ms: 0,
+        balance: 100
     });
 
     let mut mixer = mixer;
@@ -110,6 +112,7 @@ fn test_mixer_avc_changes_over_configured_decay_time() {
         gain_main: 100,
         avc_enabled: true,
         avc_decay_time_ms: 10,
+        balance: 100
     });
 
     mixer.update_avc(2, 1_000);

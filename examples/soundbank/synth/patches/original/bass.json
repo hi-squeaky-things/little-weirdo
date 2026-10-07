@@ -3,7 +3,7 @@
     "name": "bass",
     "voices": [
         {
-            "soundbank_index": -1,
+            "soundbank_index": 0,
             "glide": false,
             "glide_rate": 200,
             "detune": 0,
