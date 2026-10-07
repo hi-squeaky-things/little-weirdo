@@ -280,7 +280,7 @@ impl SampleVoice {
         if self.one_shot {
             self.length = (self.sampler.data[self.sample_id as usize].data.len() / 2) as u32;
         } else {
-            self.length = self.loop_start as u32;
+            self.length = self.loop_start;
         }
     }
 }

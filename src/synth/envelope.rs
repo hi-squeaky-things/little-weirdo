@@ -102,7 +102,7 @@ impl Clockable for EnvelopeGenerator {
                         .max(1);
                     output = 100
                         - math::percentage(
-                            100 - self.configuration.sustain_level as i16,
+                            100 - self.configuration.sustain_level,
                             (self.cumulative_time_tick / step) as i16,
                         ) as u32;
                 }
@@ -122,7 +122,7 @@ impl Clockable for EnvelopeGenerator {
                     //TODO: Weird fix. need better investigation, probably some rounding issue.
                     if self.cumulative_time_tick / step < 101 {
                         output = math::percentage(
-                            self.release_level as i16,
+                            self.release_level,
                             (100 - self.cumulative_time_tick / step) as i16,
                         ) as u32;
                     } else {
@@ -250,7 +250,7 @@ impl EnvelopeGenerator {
                 adjusted_attack_time =
                     percentage(self.configuration.attack_time, percentage_remaining).max(1) as u32;
                 self.amount_of_time_ticks_needed_for_one_percent_increase =
-                    ((adjusted_attack_time as u32 * self.amount_of_time_ticks_for_1ms as u32)
+                    ((adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32)
                         / percentage_remaining as u32)
                         .max(1);
             } else {
@@ -258,10 +258,10 @@ impl EnvelopeGenerator {
             }
         } else {
             self.amount_of_time_ticks_needed_for_one_percent_increase =
-                ((adjusted_attack_time as u32 * self.amount_of_time_ticks_for_1ms as u32) / 100)
+                ((adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32) / 100)
                     .max(1);
         }
         self.cumulative_time_ticks_for_one_phase =
-            adjusted_attack_time as u32 * self.amount_of_time_ticks_for_1ms as u32;
+            adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32;
     }
 }

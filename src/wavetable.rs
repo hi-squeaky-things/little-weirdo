@@ -195,7 +195,6 @@ impl WavetableSynth {
     ///
     /// TODO: Implement velocity
     ///
-
     pub fn note_on(&mut self, note: u8, _velocity: u8) {
         // Cap note range between C0 and C8
         if self.range_safeguard(note) {

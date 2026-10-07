@@ -25,10 +25,7 @@ use self::{data::frequencies::MIDI2FREQ, effects::filter::Filter, mixer::Mixer, 
 pub trait Clockable {
     /// Process a sample, returning either the provided sample or a default value
     fn clock(&mut self, sample: Option<i16>) -> i16 {
-        match sample {
-            Some(s) => s, // Use the provided sample
-            None => 0,    // Default value if no sample is provided
-        }
+        sample.unwrap_or_default()
     }
 }
 
@@ -69,7 +66,7 @@ pub struct Synth {
     active_note: [u8; AMOUNT_OF_VOICES],
     /// Current operating mode of the synthesizer
     mode: SynthMode,
-    ///
+    /// Reference to all the patches on the heap
     patches: Arc<BoxedPatches>,
 }
 
