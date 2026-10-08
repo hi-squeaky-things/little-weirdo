@@ -13,6 +13,8 @@ use serde::Serialize;
 extern crate alloc;
 use alloc::sync::Arc;
 
+const PHASE_SCALE: u64 = 1 << 32;
+
 fn effective_noise_kind(config: WaveformOscillatorConfig) -> NoiseKind {
     match config.noise {
         NoiseKind::None if config.soundbank_index == 255 => NoiseKind::White,
@@ -57,11 +59,11 @@ pub struct WaveformOscillator {
     /// Configuration settings for this oscillator instance
     pub config: WaveformOscillatorConfig,
 
-    /// Current phase position in the waveform (0 to loop_end)
-    phase: u16,
+    /// Fractional position within the waveform cycle, represented as Q0.32.
+    phase: u32,
 
-    /// End point of the waveform loop (determines period length)
-    loop_end: u16,
+    /// Phase advance per processed sample, represented as Q0.32.
+    phase_increment: u64,
 
     /// Flag indicating whether frequency has changed and needs processing
     freq_changed: bool,
@@ -71,9 +73,6 @@ pub struct WaveformOscillator {
 
     /// Sample rate of the audio system (used for frequency calculations)
     sample_rate: u16,
-
-    /// Lookup table for converting phase to waveform indices
-    lookup_table: [u16; 3000],
 
     /// Target frequency for glide operations
     target_freq: u16,
@@ -111,14 +110,27 @@ impl Clockable for WaveformOscillator {
         if self.speed == self.speed_count {
             self.speed_count = 0;
 
-            // Reset phase when reaching end
-            if self.phase == self.loop_end {
-                self.phase = 0;
+            // Generate output
+            let noise_kind = effective_noise_kind(self.config);
+            let output = match noise_kind {
+                NoiseKind::None => {
+                    let waveform = self.waveforms.get_waveform_reference(self.waveform_pointer);
+                    let index = ((self.phase as u64 * waveform.len() as u64) >> 32) as usize;
+                    waveform[index]
+                }
+                _ => self.noise_generator.sample(),
+            };
+
+            let next_phase = self.phase as u64 + self.phase_increment;
+            let completed_cycles = next_phase >> 32;
+            self.phase = next_phase as u32;
+
+            if completed_cycles > 0 {
                 if self.config.grains {
-                    self.grain_selector = (self.grain_selector + 1) & 0x7; // Fast modulo 8
+                    self.grain_selector =
+                        (self.grain_selector as u64 + completed_cycles) as u8 & 0x7;
                     self.waveform_pointer = self.config.grains_seq[self.grain_selector as usize];
 
-                    // end of grains
                     if self.waveform_pointer == 255 {
                         self.grain_selector = 0;
                         self.waveform_pointer =
@@ -126,7 +138,6 @@ impl Clockable for WaveformOscillator {
                     }
                 }
 
-                // Handle frequency changes
                 if self.freq_changed {
                     if self.current_freq != self.target_freq {
                         let diff = self.target_freq as i16 - self.current_freq as i16;
@@ -142,23 +153,11 @@ impl Clockable for WaveformOscillator {
                         self.freq_changed = false;
                     }
 
-                    self.loop_end = self.sample_rate / self.current_freq;
-                    self.calculate_lookup_table();
+                    self.phase_increment =
+                        Self::phase_increment(self.sample_rate, self.current_freq);
                 }
             }
 
-            // Generate output
-            let noise_kind = effective_noise_kind(self.config);
-            let output = match noise_kind {
-                NoiseKind::None => {
-                    // Wavetable lookup
-                    let index = self.lookup_table[self.phase as usize] as usize;
-                    self.waveforms.get_waveform_reference(self.waveform_pointer)[index]
-                }
-                _ => self.noise_generator.sample(),
-            };
-
-            self.phase += 1;
             self.last_output = output;
         }
 
@@ -206,11 +205,10 @@ impl WaveformOscillator {
         let mut osc = Self {
             config,
             phase: 0,
-            loop_end: sample_rate / 440 + 1,
+            phase_increment: Self::phase_increment(sample_rate, 440),
             freq_changed: false,
             noise_generator: NoiseGenerator::new(effective_noise_kind(config), noise_seed),
             sample_rate,
-            lookup_table: [0u16; 3000],
             target_freq: 440,
             original_freq: 440,
             current_freq: 440,
@@ -225,25 +223,21 @@ impl WaveformOscillator {
         if config.grains {
             osc.waveform_pointer = config.grains_seq[osc.grain_selector as usize];
         }
-        osc.calculate_lookup_table();
         osc
     }
 
-    fn calculate_lookup_table(&mut self) {
-        let sample_rate_expanded: u32 = self.sample_rate as u32 * 10_000;
-        let one_loop: u32 = sample_rate_expanded / self.current_freq as u32;
-        let one_step_loop: u32 = one_loop / 600;
-        let steps: u16 = self.sample_rate / self.current_freq;
-
-        for i in 0..steps {
-            // Direct calculation: (i * 10_000) / one_step_loop
-            self.lookup_table[i as usize] = ((i as u32 * 10_000) / one_step_loop) as u16;
+    fn phase_increment(sample_rate: u16, frequency: u16) -> u64 {
+        if sample_rate == 0 || frequency == 0 {
+            return 0;
         }
+
+        ((frequency as u64 * PHASE_SCALE) + sample_rate as u64 / 2) / sample_rate as u64
     }
 
     /// Reset internal state to default values
     fn reset_state(&mut self) {
         self.phase = 0;
+        self.phase_increment = Self::phase_increment(self.sample_rate, 440);
         self.freq_changed = false;
         self.target_freq = 440;
         self.original_freq = 440;
@@ -266,7 +260,6 @@ impl WaveformOscillator {
         if self.config.grains {
             self.waveform_pointer = config.grains_seq[self.grain_selector as usize];
         }
-        self.calculate_lookup_table();
     }
 
     pub fn reload_lfo(&mut self, config: WaveformLFOConfig) {
@@ -284,7 +277,6 @@ impl WaveformOscillator {
         self.waveform_pointer = config.soundbank_index;
         self.speed = 4 * config.time;
         self.config = new_config;
-        self.calculate_lookup_table();
     }
 
     /// Manipulate frequency with percentage
@@ -312,5 +304,42 @@ impl WaveformOscillator {
             self.original_freq = frequency;
             self.freq_changed = true;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::synth::data::waveforms::{BoxedWaveform, BoxedWaveforms};
+
+    #[test]
+    fn phase_accumulator_tracks_note_frequency_without_integer_period_rounding() {
+        let mut waveforms = BoxedWaveforms::new();
+        waveforms.add(BoxedWaveform::new(&[0; 1200]));
+
+        let config = WaveformOscillatorConfig {
+            soundbank_index: 0,
+            glide: false,
+            glide_rate: 0,
+            detune: 0,
+            freq_detune: 0,
+            grains: false,
+            grains_seq: [0; 8],
+            noise: NoiseKind::None,
+        };
+        let mut oscillator = WaveformOscillator::new(config, 44_100, Arc::new(waveforms));
+        oscillator.current_freq = 659;
+        oscillator.phase_increment = WaveformOscillator::phase_increment(44_100, 659);
+
+        let mut completed_cycles = 0;
+        for _ in 0..44_100 {
+            let previous_phase = oscillator.phase;
+            oscillator.clock(None);
+            if oscillator.phase < previous_phase {
+                completed_cycles += 1;
+            }
+        }
+
+        assert!((658..=660).contains(&completed_cycles));
     }
 }
