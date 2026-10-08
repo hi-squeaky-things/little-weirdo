@@ -14,6 +14,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 const PHASE_SCALE: u64 = 1 << 32;
+const FREQUENCY_SCALE: u16 = 5;
 
 fn effective_noise_kind(config: WaveformOscillatorConfig) -> NoiseKind {
     match config.noise {
@@ -81,7 +82,7 @@ pub struct WaveformOscillator {
     original_freq: u16,
 
     /// Step size for frequency glide calculations
-    freq_step: i16,
+    freq_step: i32,
 
     /// Current actual frequency being used for playback
     current_freq: u16,
@@ -140,14 +141,14 @@ impl Clockable for WaveformOscillator {
 
                 if self.freq_changed {
                     if self.current_freq != self.target_freq {
-                        let diff = self.target_freq as i16 - self.current_freq as i16;
+                        let diff = self.target_freq as i32 - self.current_freq as i32;
                         let step_size = self.freq_step;
 
                         if diff.abs() < step_size.abs() {
                             self.current_freq = self.target_freq;
                             self.freq_changed = false;
                         } else {
-                            self.current_freq = (self.current_freq as i16 + step_size) as u16;
+                            self.current_freq = (self.current_freq as i32 + step_size) as u16;
                         }
                     } else {
                         self.freq_changed = false;
@@ -205,13 +206,13 @@ impl WaveformOscillator {
         let mut osc = Self {
             config,
             phase: 0,
-            phase_increment: Self::phase_increment(sample_rate, 440),
+            phase_increment: Self::phase_increment(sample_rate, 440 * FREQUENCY_SCALE),
             freq_changed: false,
             noise_generator: NoiseGenerator::new(effective_noise_kind(config), noise_seed),
             sample_rate,
-            target_freq: 440,
-            original_freq: 440,
-            current_freq: 440,
+            target_freq: 440 * FREQUENCY_SCALE,
+            original_freq: 440 * FREQUENCY_SCALE,
+            current_freq: 440 * FREQUENCY_SCALE,
             freq_step: 0,
             last_output: 0,
             speed_count: 0,
@@ -231,17 +232,18 @@ impl WaveformOscillator {
             return 0;
         }
 
-        ((frequency as u64 * PHASE_SCALE) + sample_rate as u64 / 2) / sample_rate as u64
+        let scaled_sample_rate = sample_rate as u64 * FREQUENCY_SCALE as u64;
+        ((frequency as u64 * PHASE_SCALE) + scaled_sample_rate / 2) / scaled_sample_rate
     }
 
     /// Reset internal state to default values
     fn reset_state(&mut self) {
         self.phase = 0;
-        self.phase_increment = Self::phase_increment(self.sample_rate, 440);
+        self.phase_increment = Self::phase_increment(self.sample_rate, 440 * FREQUENCY_SCALE);
         self.freq_changed = false;
-        self.target_freq = 440;
-        self.original_freq = 440;
-        self.current_freq = 440;
+        self.target_freq = 440 * FREQUENCY_SCALE;
+        self.original_freq = 440 * FREQUENCY_SCALE;
+        self.current_freq = 440 * FREQUENCY_SCALE;
         self.freq_step = 0;
         self.last_output = 0;
         self.speed_count = 0;
@@ -281,18 +283,22 @@ impl WaveformOscillator {
 
     /// Manipulate frequency with percentage
     pub fn manipulate_freq(&mut self, perc: u8, amount: u16) {
-        self.current_freq = self.original_freq + percentage(amount as i16, perc as i16) as u16;
+        let modulation = percentage(amount as i16, perc as i16) as i32 * FREQUENCY_SCALE as i32;
+        self.current_freq = (self.original_freq as i32 + modulation) as u16;
         self.freq_changed = true;
     }
 
-    /// Change frequency with optional glide
+    /// Change frequency in fifths of a hertz, with optional glide.
     pub fn change_freq(&mut self, frequency: u16) {
+        let frequency = (frequency as i32
+            + self.config.freq_detune as i32 * (FREQUENCY_SCALE as i32 - 1))
+            as u16;
         if self.current_freq != frequency {
             self.target_freq = frequency;
 
             if self.config.glide {
-                let diff = frequency as i16 - self.current_freq as i16;
-                self.freq_step = diff / self.config.glide_rate as i16;
+                let diff = frequency as i32 - self.current_freq as i32;
+                self.freq_step = diff / self.config.glide_rate as i32;
                 // Ensure non-zero step
                 if self.freq_step == 0 {
                     self.freq_step = diff / 2;
@@ -310,6 +316,7 @@ impl WaveformOscillator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::synth::data::frequencies::MIDI2FREQ;
     use crate::synth::data::waveforms::{BoxedWaveform, BoxedWaveforms};
 
     #[test]
@@ -328,8 +335,10 @@ mod tests {
             noise: NoiseKind::None,
         };
         let mut oscillator = WaveformOscillator::new(config, 44_100, Arc::new(waveforms));
-        oscillator.current_freq = 659;
-        oscillator.phase_increment = WaveformOscillator::phase_increment(44_100, 659);
+        let frequency = MIDI2FREQ[76];
+        assert_eq!(frequency, 3296);
+        oscillator.current_freq = frequency;
+        oscillator.phase_increment = WaveformOscillator::phase_increment(44_100, frequency);
 
         let mut completed_cycles = 0;
         for _ in 0..44_100 {
