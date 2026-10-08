@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::synth::{data::frequencies::MIDI2FREQ, Clockable};
 
+const SAMPLE_POSITION_SCALE: u64 = 1 << 32;
+
 // Configuration for standard waveform oscillator
 #[derive(Copy, Clone, Deserialize, Serialize)]
 pub struct SampleVoiceConfig {
@@ -60,17 +62,17 @@ impl BoxedSample {
 pub struct SampleVoice {
     /// Reference to the underlying audio sample data.
     sampler: Arc<BoxedSamples>,
-    
+
     loop_is_started: bool,
-  
+
     sample_id: u8,
     /// Current position in the audio sample data.
-    counter: f32,
+    counter: u64,
     /// Speed increment for advancing through the sample data.
-    increment: f32,
+    increment: u64,
     open: bool,
     length: u32,
-    config: SampleVoiceConfig
+    config: SampleVoiceConfig,
 }
 
 impl Clockable for SampleVoice {
@@ -83,7 +85,7 @@ impl Clockable for SampleVoice {
             return 0;
         }
         self.counter += self.increment;
-        if self.counter as u32 >= self.length {
+        if (self.counter / SAMPLE_POSITION_SCALE) as u32 >= self.length {
             if !self.loop_is_started && !self.config.one_shot {
                 self.loop_is_started = true;
                 self.length = self.config.loop_end - self.config.loop_start;
@@ -92,7 +94,7 @@ impl Clockable for SampleVoice {
                 self.open = false;
             }
 
-            self.counter = 0.0;
+            self.counter = 0;
 
             if self.loop_is_started && !self.config.one_shot {
                 let pointer = self.config.loop_start as usize * 2;
@@ -103,7 +105,7 @@ impl Clockable for SampleVoice {
             return 0;
         }
         // Calculate initial pointer position (samples are 16-bit, so multiply by 2)
-        let mut pointer = (self.counter * 2.0) as usize;
+        let mut pointer = (self.counter / SAMPLE_POSITION_SCALE) as usize * 2;
 
         if self.loop_is_started {
             // Add loop start offset
@@ -152,24 +154,20 @@ impl SampleVoice {
     ///   to use the derived initial length.
     /// * `one_shot` - Whether playback stops after one pass instead of looping.
     /// * `base_key` - The MIDI note used as the sample's original pitch.
-    pub fn new(
-        config: SampleVoiceConfig,
-        sampler: Arc<BoxedSamples>,
-    ) -> Self {
+    pub fn new(config: SampleVoiceConfig, sampler: Arc<BoxedSamples>) -> Self {
         let mut audio_sampler = SampleVoice {
             config,
             sampler,
             sample_id: config.sample_id,
-            counter: 0.0,
-            increment: 0.0,
+            counter: 0,
+            increment: SAMPLE_POSITION_SCALE,
             length: 0,
             loop_is_started: false,
             open: false,
-           };
-        audio_sampler.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
-
+        };
         if audio_sampler.config.one_shot {
-            audio_sampler.length = (audio_sampler.sampler.data[audio_sampler.config.sample_id as usize]
+            audio_sampler.length = (audio_sampler.sampler.data
+                [audio_sampler.config.sample_id as usize]
                 .data
                 .len()
                 / 2) as u32;
@@ -204,7 +202,7 @@ impl SampleVoice {
     /// recalculated so a one-shot uses the full sample and a looping voice
     /// plays its pre-loop section before entering the loop.
     pub fn open_gate(&mut self) {
-        self.counter = 0.0;
+        self.counter = 0;
         self.open = true;
         self.loop_is_started = false;
         if self.config.one_shot {
@@ -225,16 +223,18 @@ impl SampleVoice {
 
     /// Changes the playback frequency by adjusting speed and increment values.
     ///
-    /// The increment is calculated as `freq / base_frequency`, where the base
-    /// frequency is the frequency of `base_key`. The playback position is reset
-    /// before the new frequency takes effect.
+    /// The increment is calculated as `freq / base_frequency`, where both
+    /// frequencies use the MIDI table's fifths-of-a-hertz units. The playback
+    /// position is reset before the new frequency takes effect.
     ///
     /// # Arguments
     ///
-    /// * `freq` - The target frequency in hertz.
+    /// * `freq` - The target frequency in fifths of a hertz.
     pub fn change_freq(&mut self, freq: u16) {
-        self.counter = 0.0;
-        self.increment = freq as f32 / MIDI2FREQ[self.config.base_key as usize] as f32
+        self.counter = 0;
+        let base_frequency = MIDI2FREQ[self.config.base_key as usize] as u64;
+        self.increment =
+            (freq as u64 * SAMPLE_POSITION_SCALE + base_frequency / 2) / base_frequency;
     }
 
     /// Stops playback and replaces the voice's sample configuration.
@@ -252,14 +252,11 @@ impl SampleVoice {
     /// * `loop_end` - The sample position where looping ends.
     /// * `one_shot` - Whether playback stops after one pass.
     /// * `base_key` - The MIDI note used as the replacement sample's original pitch.
-    pub fn reload(
-        &mut self,
-       config: SampleVoiceConfig
-    ) {
+    pub fn reload(&mut self, config: SampleVoiceConfig) {
         self.open = false;
-        self.counter = 0.0;
+        self.counter = 0;
         self.config = config;
-        self.increment = 1.0; // sample_rate as f32 / (base_freq * 100.0);
+        self.increment = SAMPLE_POSITION_SCALE;
         self.loop_is_started = false;
 
         if self.config.one_shot {
@@ -267,5 +264,32 @@ impl SampleVoice {
         } else {
             self.length = self.config.loop_start;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloc::vec;
+
+    #[test]
+    fn sample_voice_plays_at_the_pitch_ratio_from_midi_frequencies() {
+        let mut samples = BoxedSamples::new();
+        samples.add(BoxedSample::new(vec![1, 0, 2, 0, 3, 0, 4, 0]));
+        let config = SampleVoiceConfig {
+            sample_id: 0,
+            is_drums: false,
+            loop_start: 4,
+            loop_end: 0,
+            one_shot: true,
+            base_key: 69,
+        };
+        let mut voice = SampleVoice::new(config, Arc::new(samples));
+
+        voice.set_note(81);
+
+        assert_eq!(voice.increment, 2 * SAMPLE_POSITION_SCALE);
+        voice.open_gate();
+        assert_eq!(voice.clock(None), 3);
     }
 }
