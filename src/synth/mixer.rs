@@ -59,10 +59,8 @@ impl Mixer {
             return;
         }
 
-        let decay_samples = (self.config.avc_decay_time_ms as u32
-            * sample_rate.max(1) as u32
-            / 1_000)
-            .max(1);
+        let decay_samples =
+            (self.config.avc_decay_time_ms as u32 * sample_rate.max(1) as u32 / 1_000).max(1);
         let step = (100_000 / decay_samples).max(1);
 
         if self.avc_gain < target_gain {
@@ -75,5 +73,4 @@ impl Mixer {
     pub fn apply_voice_gain(&self, sample: i16, voice_gain: u8) -> i16 {
         (sample as i64 * voice_gain as i64 * self.avc_gain as i64 / 10_000_000) as i16
     }
-
 }

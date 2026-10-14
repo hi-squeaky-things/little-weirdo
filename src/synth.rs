@@ -211,43 +211,50 @@ impl Synth {
         let mut mono_sound: i16;
 
         // Clock voices and envelopes once
-        for i in 0..AMOUNT_OF_VOICES {
-            generate_voices[i] = self.voices[i].clock(None);
-            generate_env[i] = self.envelops[i].clock(None);
+        for (((voice, envelope), voice_output), env_output) in self
+            .voices
+            .iter_mut()
+            .zip(self.envelops.iter_mut())
+            .zip(generate_voices.iter_mut())
+            .zip(generate_env.iter_mut())
+        {
+            *voice_output = voice.clock(None);
+            *env_output = envelope.clock(None);
         }
 
         // Process LFOs
-        
+
         for (i, lfo) in self.lfo.iter_mut().enumerate().take(AMOUNT_OF_VOICES / 2) {
             let lfo_output = lfo.clock(None) as i32;
             let lfo_percentage = ((lfo_output + i16::MAX as i32) as u32 * 100) / u16::MAX as u32;
             generate_lfos[i] = lfo_percentage as i16;
         }
 
-        for i in 0..AMOUNT_OF_VOICES {
-            let lfo_to_manipulate_voice =  self.router.config.lfo_to_voice[i];
+        for (i, voice_output) in generate_voices.iter_mut().enumerate() {
+            let lfo_to_manipulate_voice = self.router.config.lfo_to_voice[i];
             if lfo_to_manipulate_voice != -1 {
-                generate_voices[i] = math::percentage(generate_voices[i], generate_lfos[lfo_to_manipulate_voice as usize]);
+                *voice_output = math::percentage(
+                    *voice_output,
+                    generate_lfos[lfo_to_manipulate_voice as usize],
+                );
             }
         }
 
-       
         // Run and route voices through envelopes and apply gain
         let active_notes = self.active_note_count();
         self.mixer.update_avc(active_notes, self.sample_rate);
-        for i in 0..AMOUNT_OF_VOICES {
-            generate_voices[i] = math::percentage(
-                generate_voices[i],
+        for (i, voice_output) in generate_voices.iter_mut().enumerate() {
+            *voice_output = math::percentage(
+                *voice_output,
                 generate_env[self.router.config.voices_to_envelop[i] as usize],
             );
-            generate_voices[i] = math::percentage(generate_voices[i], self.velocity as i16);
-            generate_voices[i] = self
+            *voice_output = math::percentage(*voice_output, self.velocity as i16);
+            *voice_output = self
                 .mixer
-                .apply_voice_gain(generate_voices[i], self.mixer.config.gain_voices[i]);
-            voice_mix += generate_voices[i] as i32;
+                .apply_voice_gain(*voice_output, self.mixer.config.gain_voices[i]);
+            voice_mix += *voice_output as i32;
         }
         mono_sound = voice_mix.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
-
 
         // Apply filter effect
         if self.router.config.lfo_to_freq != -1 && self.router.config.lfo_to_freq < 4 {
@@ -352,9 +359,9 @@ impl Synth {
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => position,
             None => match self.active_note.iter().position(|n| n == &0) {
-                Some(position) if position < amount_of_notes  => {
-                        self.active_note[position] = note;
-                        position
+                Some(position) if position < amount_of_notes => {
+                    self.active_note[position] = note;
+                    position
                 }
                 _ => 255,
             },

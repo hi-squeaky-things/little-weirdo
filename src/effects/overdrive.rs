@@ -66,7 +66,7 @@ impl Effect for Overdrive {
         };
 
         let gain_multiplier = 100 + self.config.gain_percentage.min(100) as i32;
-        (processed_sample as i32 * gain_multiplier / 100)
-            .clamp(i16::MIN as i32, i16::MAX as i32) as i16
+        (processed_sample as i32 * gain_multiplier / 100).clamp(i16::MIN as i32, i16::MAX as i32)
+            as i16
     }
 }

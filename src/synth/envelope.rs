@@ -249,17 +249,16 @@ impl EnvelopeGenerator {
                 self.retrigger_level = self.current_output_level_percentage;
                 adjusted_attack_time =
                     percentage(self.configuration.attack_time, percentage_remaining).max(1) as u32;
-                self.amount_of_time_ticks_needed_for_one_percent_increase =
-                    ((adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32)
-                        / percentage_remaining as u32)
-                        .max(1);
+                self.amount_of_time_ticks_needed_for_one_percent_increase = ((adjusted_attack_time
+                    * self.amount_of_time_ticks_for_1ms as u32)
+                    / percentage_remaining as u32)
+                    .max(1);
             } else {
                 self.decay();
             }
         } else {
             self.amount_of_time_ticks_needed_for_one_percent_increase =
-                ((adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32) / 100)
-                    .max(1);
+                ((adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32) / 100).max(1);
         }
         self.cumulative_time_ticks_for_one_phase =
             adjusted_attack_time * self.amount_of_time_ticks_for_1ms as u32;

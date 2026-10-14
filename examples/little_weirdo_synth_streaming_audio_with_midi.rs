@@ -53,9 +53,10 @@ fn main() {
     let wt = Arc::new(wt_on_heap);
 
     // Load a synth patch from a JSON file
-    let patch =
-        serde_json::from_slice(include_bytes!("soundbank/synth/patches/original/supersaw_4_oscillators.json"))
-            .unwrap();
+    let patch = serde_json::from_slice(include_bytes!(
+        "soundbank/synth/patches/original/supersaw_4_oscillators.json"
+    ))
+    .unwrap();
 
     let patch_box = BoxedPatch::new(patch);
     let mut patches = BoxedPatches::new();

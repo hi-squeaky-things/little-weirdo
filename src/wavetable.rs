@@ -2,9 +2,13 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::{Effect, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive}, math, synth::{
-        Clockable, envelope::{self, EnvelopConfiguration},
-    }, wavetable::sample_voice::{SampleVoice, SampleVoiceConfig},
+    effects::{bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive, Effect},
+    math,
+    synth::{
+        envelope::{self, EnvelopConfiguration},
+        Clockable,
+    },
+    wavetable::sample_voice::{SampleVoice, SampleVoiceConfig},
 };
 
 pub mod data;
@@ -74,13 +78,9 @@ impl WavetableSynth {
     pub fn load_patch(&mut self, patch_selected: u8) {
         let patch = self.patches.get_patches_reference(patch_selected);
         self.current_patch = patch_selected;
-      
+
         for i in 0..self.sample_voices.len() {
-
-
-            self.sample_voices[i].reload(
-                patch.sample_config
-            );
+            self.sample_voices[i].reload(patch.sample_config);
             self.envelops[i].reload(patch.env_config);
         }
 
@@ -105,14 +105,10 @@ impl WavetableSynth {
     /// Initialize waveform oscillators with given parameters
     fn init_sample_voices(
         samples: Arc<sample_voice::BoxedSamples>,
-        config: SampleVoiceConfig
+        config: SampleVoiceConfig,
     ) -> [SampleVoice; AMOUNT_OF_VOICES] {
-        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] = array_init::array_init(|_i: usize| {
-            SampleVoice::new(
-                config,
-                Arc::clone(&samples),
-            )
-        });
+        let voice_samplers: [SampleVoice; AMOUNT_OF_VOICES] =
+            array_init::array_init(|_i: usize| SampleVoice::new(config, Arc::clone(&samples)));
         voice_samplers
     }
 
@@ -170,8 +166,7 @@ impl WavetableSynth {
             self.flanger.reset();
             let patch = self.patches.get_patches_reference(self.current_patch);
 
-            self.sample_voices[id]
-                .reload(patch.sample_config);
+            self.sample_voices[id].reload(patch.sample_config);
 
             self.sample_voices[id].set_note(note);
             self.sample_voices[id].open_gate();
@@ -229,10 +224,8 @@ impl WavetableSynth {
     /// Returns true if the note is outside the valid range
     fn range_safeguard(&mut self, note: u8) -> bool {
         if !(24..=108).contains(&note) {
-                return true;
+            return true;
         }
         false
     }
-
-  
 }

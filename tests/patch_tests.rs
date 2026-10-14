@@ -49,7 +49,6 @@ fn test_patch_deserialization_json_accepts_flanger_configuration() {
     assert_eq!(patch.flanger_config.mix_percentage, 40);
 }
 
-
 #[test]
 fn test_synth_mode_polyphony_matches_expected_note_limits() {
     assert_eq!(SynthMode::Mono as usize, 1);
@@ -75,7 +74,7 @@ fn test_mixer_avc_divides_voice_gain_by_active_notes() {
         gain_main: 100,
         avc_enabled: true,
         avc_decay_time_ms: 0,
-        balance: 100
+        balance: 100,
     });
 
     let mut mixer = mixer;
@@ -97,7 +96,7 @@ fn test_mixer_can_disable_avc() {
         gain_main: 100,
         avc_enabled: false,
         avc_decay_time_ms: 0,
-        balance: 100
+        balance: 100,
     });
 
     let mut mixer = mixer;
@@ -112,7 +111,7 @@ fn test_mixer_avc_changes_over_configured_decay_time() {
         gain_main: 100,
         avc_enabled: true,
         avc_decay_time_ms: 10,
-        balance: 100
+        balance: 100,
     });
 
     mixer.update_avc(2, 1_000);

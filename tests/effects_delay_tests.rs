@@ -161,4 +161,3 @@ fn delay_keeps_delay_time_fixed_while_feedback_decreases() {
     assert_eq!(effect.clock(0), 0);
     assert_eq!(effect.clock(0), 500);
 }
-

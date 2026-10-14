@@ -1,13 +1,15 @@
 //! Patch to config the sounds
 extern crate alloc;
-use alloc::{string::String};
+use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     effects::{
         bitcrunch::BitcrunchConfiguration, delay::DelayConfiguration,
         flanger::FlangerConfiguration, overdrive::OverdriveConfiguration,
-    }, synth::envelope::EnvelopConfiguration, wavetable::sample_voice::SampleVoiceConfig,
+    },
+    synth::envelope::EnvelopConfiguration,
+    wavetable::sample_voice::SampleVoiceConfig,
 };
 
 #[derive(Clone, Serialize, Deserialize)]

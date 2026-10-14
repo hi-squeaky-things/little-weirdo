@@ -25,7 +25,6 @@ fn default_lfo_to_balance() -> i8 {
     -1
 }
 
-
 pub struct Router {
     pub config: RoutingConfiguration,
 }
