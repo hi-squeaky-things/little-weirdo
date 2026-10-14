@@ -510,17 +510,12 @@ impl Synth {
 
     /// Change the settings of all envelopes
     ///
-    /// # Arguments
-    /// * `attack` - Optional attack time (0-255), defaults to current value
-    /// * `decay` - Optional decay time (0-255), defaults to current value
-    /// * `sustain` - Optional sustain level (0-255), defaults to current value
-    /// * `release` - Optional release time (0-255), defaults to current value
     pub fn change_all_envelopes(
         &mut self,
-        attack: Option<i16>,
-        decay: Option<i16>,
+        attack: Option<i32>,
+        decay: Option<i32>,
         sustain: Option<i16>,
-        release: Option<i16>,
+        release: Option<i32>,
     ) {
         for i in 0..AMOUNT_OF_VOICES {
             let mut config = self.envelops[i].configuration;
@@ -675,8 +670,8 @@ impl Synth {
             for pair_offset in (0..voices_per_note).step_by(2) {
                 let carrier_index = note_index * voices_per_note + pair_offset;
                 let modulator_index = carrier_index + 1;
-                let freq = MIDI2FREQ
-                    [(note as i8 + self.voices[carrier_index].config.detune) as usize];
+                let freq =
+                    MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
                 let tuned_frequency = (freq as i32
                     + self.voices[carrier_index].config.freq_detune as i32)
                     .clamp(0, u16::MAX as i32) as u16;

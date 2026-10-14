@@ -6,8 +6,6 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::synth::math::percentage;
-
 use super::{math, Clockable};
 
 /// Represents the different states an envelope can be in
@@ -29,11 +27,11 @@ pub enum EnvelopeState {
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct EnvelopConfiguration {
     /// Time for the attack phase in milliseconds
-    pub attack_time: i16,
+    pub attack_time: i32,
     /// Time for the decay phase in milliseconds  
-    pub decay_time: i16,
+    pub decay_time: i32,
     /// Time for the release phase in milliseconds
-    pub release_time: i16,
+    pub release_time: i32,
     /// Sustain level percentage (0-100)
     pub sustain_level: i16,
 }
@@ -171,6 +169,7 @@ impl EnvelopeGenerator {
     /// Updates the envelope configuration without interrupting its current phase.
     pub fn update_configuration(&mut self, envelop: EnvelopConfiguration) {
         self.configuration = envelop;
+        self.reset();
     }
 
     /// Transitions the envelope to a new state and resets tick counter
@@ -248,7 +247,8 @@ impl EnvelopeGenerator {
             if percentage_remaining > 0 {
                 self.retrigger_level = self.current_output_level_percentage;
                 adjusted_attack_time =
-                    percentage(self.configuration.attack_time, percentage_remaining).max(1) as u32;
+                    (self.configuration.attack_time * percentage_remaining as i32 / 100).max(1)
+                        as u32;
                 self.amount_of_time_ticks_needed_for_one_percent_increase = ((adjusted_attack_time
                     * self.amount_of_time_ticks_for_1ms as u32)
                     / percentage_remaining as u32)
