@@ -83,6 +83,14 @@ released. `gain_main` remains the master output control.
 
 The final effect order is overdrive, bitcrunch, delay, flanger, then filter. The flanger defaults to disabled when omitted from an existing patch.
 
+## FM example
+
+`original/fm_basic.json` is a minimal two-operator FM preset. It uses wavetable
+23 for the modulator, a 5:1 modulator ratio, and 500 Hz modulation depth.
+Since the synth reuses oscillator slots in FM mode, the preset uses
+OctoPoly mode (up to four notes, one carrier/modulator pair per note). Its
+Postcard version is `src/fm_basic.lwp`.
+
 ## Routing Configuration
 
 Manages signal flow:

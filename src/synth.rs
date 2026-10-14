@@ -7,7 +7,7 @@ pub mod router;
 pub mod waveform_oscillator;
 use data::waveforms::BoxedWaveforms;
 use effects::Effect;
-use patch::SynthMode;
+use patch::{FmConfiguration, SynthMode};
 use router::Router;
 extern crate alloc;
 use alloc::sync::Arc;
@@ -39,6 +39,7 @@ pub struct Synth {
     sample_rate: u16,
     /// Array of waveform oscillators for generating sounds
     voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES],
+    fm_config: FmConfiguration,
     /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
     /// Array of Low-Frequency Oscillators for modulation
@@ -93,6 +94,7 @@ impl Synth {
         Self {
             sample_rate,
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&waveforms)),
+            fm_config: patch.fm_config,
             envelops: Synth::init_envs(sample_rate, patch),
             lfo: Synth::init_lfos(sample_rate, patch, Arc::clone(&waveforms)),
             filter: Filter::new(patch.filter_config),
@@ -129,14 +131,50 @@ impl Synth {
     ) -> [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] {
         let voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
+                let config = if patch.fm_config.enabled && i % 2 == 1 {
+                    Self::fm_modulator_config(patch.fm_config)
+                } else {
+                    patch.voices[i]
+                };
                 waveform_oscillator::WaveformOscillator::new_with_seed(
-                    patch.voices[i],
+                    config,
                     sample_rate,
                     Arc::clone(&waveforms),
                     23702372039u64.wrapping_add(i as u64),
                 )
             });
         voices
+    }
+
+    fn fm_modulator_config(
+        config: FmConfiguration,
+    ) -> waveform_oscillator::WaveformOscillatorConfig {
+        waveform_oscillator::WaveformOscillatorConfig {
+            soundbank_index: config.modulator_waveform,
+            glide: false,
+            glide_rate: 0,
+            detune: 0,
+            freq_detune: 0,
+            grains: false,
+            grains_seq: [0; 8],
+            noise: noise::NoiseKind::None,
+        }
+    }
+
+    fn voices_per_note(&self) -> usize {
+        if self.fm_config.enabled {
+            2
+        } else {
+            self.mode.voices_per_note()
+        }
+    }
+
+    fn max_active_notes(&self) -> usize {
+        if self.fm_config.enabled {
+            self.mode.max_active_notes().min(AMOUNT_OF_VOICES / 2)
+        } else {
+            self.mode.max_active_notes()
+        }
     }
 
     /// Initialize Low-Frequency Oscillators with given parameters
@@ -165,9 +203,15 @@ impl Synth {
     pub fn load_patch(&mut self, patch_selected: u8) {
         let patch = self.patches.get_patches_reference(patch_selected);
         self.mode = patch.synth_config.mode;
+        self.fm_config = patch.fm_config;
 
         for i in 0..self.voices.len() {
-            self.voices[i].reload(patch.voices[i]);
+            let config = if patch.fm_config.enabled && i % 2 == 1 {
+                Self::fm_modulator_config(patch.fm_config)
+            } else {
+                patch.voices[i]
+            };
+            self.voices[i].reload(config);
             self.envelops[i].reload(patch.envelops[i]);
         }
         for i in 0..self.lfo.len() {
@@ -210,15 +254,22 @@ impl Synth {
         let mut voice_mix: i32 = 0;
         let mut mono_sound: i16;
 
-        // Clock voices and envelopes once
-        for (((voice, envelope), voice_output), env_output) in self
-            .voices
-            .iter_mut()
-            .zip(self.envelops.iter_mut())
-            .zip(generate_voices.iter_mut())
-            .zip(generate_env.iter_mut())
-        {
-            *voice_output = voice.clock(None);
+        // FM uses adjacent oscillator slots as carrier/modulator pairs.
+        if self.fm_config.enabled {
+            for carrier_index in (0..AMOUNT_OF_VOICES).step_by(2) {
+                let modulator = self.voices[carrier_index + 1].clock(None) as i64;
+                let offset = (modulator * self.fm_config.modulation_depth_hz as i64 * 5
+                    / i16::MAX as i64) as i32;
+                generate_voices[carrier_index] =
+                    self.voices[carrier_index].clock_with_frequency_offset(offset);
+                generate_voices[carrier_index + 1] = 0;
+            }
+        } else {
+            for (i, voice) in self.voices.iter_mut().enumerate() {
+                generate_voices[i] = voice.clock(None);
+            }
+        }
+        for (envelope, env_output) in self.envelops.iter_mut().zip(generate_env.iter_mut()) {
             *env_output = envelope.clock(None);
         }
 
@@ -231,6 +282,9 @@ impl Synth {
         }
 
         for (i, voice_output) in generate_voices.iter_mut().enumerate() {
+            if self.fm_config.enabled && i % 2 == 1 {
+                continue;
+            }
             let lfo_to_manipulate_voice = self.router.config.lfo_to_voice[i];
             if lfo_to_manipulate_voice != -1 {
                 *voice_output = math::percentage(
@@ -244,9 +298,16 @@ impl Synth {
         let active_notes = self.active_note_count();
         self.mixer.update_avc(active_notes, self.sample_rate);
         for (i, voice_output) in generate_voices.iter_mut().enumerate() {
+            if self.fm_config.enabled && i % 2 == 1 {
+                continue;
+            }
             *voice_output = math::percentage(
                 *voice_output,
-                generate_env[self.router.config.voices_to_envelop[i] as usize],
+                if self.fm_config.enabled {
+                    generate_env[i]
+                } else {
+                    generate_env[self.router.config.voices_to_envelop[i] as usize]
+                },
             );
             *voice_output = math::percentage(*voice_output, self.velocity as i16);
             *voice_output = self
@@ -318,36 +379,61 @@ impl Synth {
         // TODO: Velocity is not used in a proper way, need fixing. Each voice need a velocity, not a general one.
         self.velocity = (velocity as u32 * 1_000 / 1_270) as u8;
 
-        let voices_per_note = self.mode.voices_per_note();
+        let voices_per_note = self.voices_per_note();
 
         let id = self.add_note(note);
         if id != 255 {
             self.delay.reset();
             self.flanger.reset();
             // If we have only one voice, play both voices with a detune
-            for i in 0..voices_per_note {
-                let voice_index = id * voices_per_note + i;
-                let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
-                let freq: u16 =
-                    MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
-                // Update the frequency of the voices
-                self.voices[voice_index].change_freq(
-                    (freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16,
-                );
-                // Open the gate for the envelope that this voice is routed to.
-                self.envelops[env_index].open_gate();
+            if self.fm_config.enabled {
+                for i in (0..voices_per_note).step_by(2) {
+                    let carrier_index = id * voices_per_note + i;
+                    let modulator_index = carrier_index + 1;
+                    let freq =
+                        MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
+                    let tuned_frequency = (freq as i32
+                        + self.voices[carrier_index].config.freq_detune as i32)
+                        .clamp(0, u16::MAX as i32) as u16;
+                    self.voices[carrier_index].change_freq(tuned_frequency);
+
+                    let modulator_frequency = (tuned_frequency as u32
+                        * self.fm_config.modulator_ratio.max(1) as u32)
+                        .min(u16::MAX as u32) as u16;
+                    self.voices[modulator_index].change_freq(modulator_frequency);
+
+                    self.envelops[carrier_index].open_gate();
+                }
+            } else {
+                for i in 0..voices_per_note {
+                    let voice_index = id * voices_per_note + i;
+                    let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
+                    let freq: u16 =
+                        MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
+                    self.voices[voice_index].change_freq(
+                        (freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16,
+                    );
+                    self.envelops[env_index].open_gate();
+                }
             }
         }
     }
 
     pub fn note_off(&mut self, note: u8) {
-        let voices_per_note = self.mode.voices_per_note();
+        let voices_per_note = self.voices_per_note();
         let id = self.remove_note(note);
         if id != 255 {
-            for i in 0..voices_per_note {
-                let voice_index = id * voices_per_note + i;
-                let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
-                self.envelops[env_index].close_gate();
+            if self.fm_config.enabled {
+                for i in (0..voices_per_note).step_by(2) {
+                    let carrier_index = id * voices_per_note + i;
+                    self.envelops[carrier_index].close_gate();
+                }
+            } else {
+                for i in 0..voices_per_note {
+                    let voice_index = id * voices_per_note + i;
+                    let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
+                    self.envelops[env_index].close_gate();
+                }
             }
         }
     }
@@ -355,7 +441,7 @@ impl Synth {
     /// Add a note to the active notes list
     /// Returns the index of the note in the active notes array, or 255 if no space
     fn add_note(&mut self, note: u8) -> usize {
-        let amount_of_notes: usize = self.mode.max_active_notes();
+        let amount_of_notes = self.max_active_notes();
         match self.active_note.iter().position(|n| n == &note) {
             Some(position) => position,
             None => match self.active_note.iter().position(|n| n == &0) {
@@ -395,6 +481,9 @@ impl Synth {
 
     pub fn change_all_voices(&mut self, voice_id: u8) {
         for i in 0..AMOUNT_OF_VOICES {
+            if self.fm_config.enabled && i % 2 == 1 {
+                continue;
+            }
             let mut config = self.voices[i].config;
             config.soundbank_index = voice_id;
             self.voices[i].reload(config);

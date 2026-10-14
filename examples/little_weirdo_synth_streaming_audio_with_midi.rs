@@ -54,7 +54,7 @@ fn main() {
 
     // Load a synth patch from a JSON file
     let patch = serde_json::from_slice(include_bytes!(
-        "soundbank/synth/patches/original/supersaw_4_oscillators.json"
+        "soundbank/synth/patches/original/fm_basic.json"
     ))
     .unwrap();
 

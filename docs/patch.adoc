@@ -39,6 +39,26 @@ frequency range. Oscillator pitch is represented in fifths of a hertz, from
 0.2 Hz through 13,107 Hz; the usable upper limit is also constrained by the
 configured sample rate.
 
+=== FM Configuration
+
+Optional `fm_config` reuses adjacent slots in the existing eight-oscillator
+voice array as carrier/modulator pairs. The modulator is not mixed directly
+into the output; it frequency-modulates its carrier at audio rate. This
+preserves the oscillator count, with one pair assigned per note. FM supports
+up to four notes; the configured synth mode can impose a lower note limit
+(Mono: 1, BiPoly: 2, QuadPoly: 4, OctoPoly: 4). Omitted settings use defaults,
+and FM is disabled unless `enabled` is true:
+
+- `enabled`: Enable FM for all voices (default `false`)
+- `modulator_waveform`: Wavetable index for the modulator (default `0`, the sine table)
+- `modulator_ratio`: Integer multiplier of the note frequency for the modulator (default `1`; zero is treated as `1`)
+- `modulation_depth_hz`: Peak carrier frequency deviation in Hz (default `100`)
+
+Each carrier uses its corresponding voice envelope and mixer settings; FM
+carrier envelopes are kept per note so unused pairs remain silent. The paired
+modulator uses the configured modulator waveform. It does not yet provide
+independent operator envelopes or multi-operator algorithms.
+
 === Filter Configuration
 
 Global filter settings:

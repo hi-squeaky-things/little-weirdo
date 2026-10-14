@@ -129,6 +129,43 @@
       "maxItems": 4,
       "description": "Low Frequency Oscillator configurations (4 LFOs total)"
     },
+    "fm_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "modulator_waveform": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254,
+          "default": 0,
+          "description": "Wavetable index used by each FM modulator"
+        },
+        "modulator_ratio": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255,
+          "default": 1,
+          "description": "Integer multiplier from note frequency to modulator frequency"
+        },
+        "modulation_depth_hz": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 13107,
+          "default": 100,
+          "description": "Peak carrier frequency deviation in hertz"
+        }
+      },
+      "required": [
+        "enabled",
+        "modulator_waveform",
+        "modulator_ratio",
+        "modulation_depth_hz"
+      ],
+      "description": "Optional two-operator wavetable FM configuration"
+    },
     "filter_config": {
       "type": "object",
       "properties": {

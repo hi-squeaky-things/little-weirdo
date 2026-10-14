@@ -281,6 +281,21 @@ impl WaveformOscillator {
         self.freq_changed = true;
     }
 
+    /// Clock this oscillator with a signed frequency offset in fifths of a hertz.
+    ///
+    /// Unlike `change_freq`, the offset is applied to the phase increment every
+    /// sample and does not change the oscillator's note or glide target.
+    pub fn clock_with_frequency_offset(&mut self, offset: i32) -> i16 {
+        let frequency = (self.current_freq as i32 + offset).clamp(0, u16::MAX as i32) as u16;
+        self.phase_increment = Self::phase_increment(self.sample_rate, frequency);
+
+        let output = self.clock(None);
+
+        let frequency = (self.current_freq as i32 + offset).clamp(0, u16::MAX as i32) as u16;
+        self.phase_increment = Self::phase_increment(self.sample_rate, frequency);
+        output
+    }
+
     /// Change frequency in fifths of a hertz, with optional glide.
     pub fn change_freq(&mut self, frequency: u16) {
         let frequency = (frequency as i32
@@ -431,6 +446,30 @@ mod tests {
         }
 
         assert!((13_106..=13_108).contains(&completed_cycles));
+    }
+
+    #[test]
+    fn frequency_offset_changes_phase_advance_without_changing_note_frequency() {
+        let config = WaveformOscillatorConfig {
+            soundbank_index: 0,
+            glide: false,
+            glide_rate: 0,
+            detune: 0,
+            freq_detune: 0,
+            grains: false,
+            grains_seq: [0; 8],
+            noise: NoiseKind::None,
+        };
+        let mut unmodulated = WaveformOscillator::new(config, 44_100, test_waveforms());
+        let mut modulated = WaveformOscillator::new(config, 44_100, test_waveforms());
+        unmodulated.current_freq = 2_200;
+        modulated.current_freq = 2_200;
+
+        unmodulated.clock_with_frequency_offset(0);
+        modulated.clock_with_frequency_offset(1_000);
+
+        assert!(modulated.phase > unmodulated.phase);
+        assert_eq!(modulated.current_freq, 2_200);
     }
 
     #[test]

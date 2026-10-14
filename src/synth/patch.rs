@@ -16,6 +16,41 @@ use super::{
 use serde::Deserialize;
 use serde::Serialize;
 
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+pub struct FmConfiguration {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_modulator_waveform")]
+    pub modulator_waveform: u8,
+    #[serde(default = "default_modulator_ratio")]
+    pub modulator_ratio: u8,
+    #[serde(default = "default_modulation_depth_hz")]
+    pub modulation_depth_hz: u16,
+}
+
+impl Default for FmConfiguration {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            modulator_waveform: default_modulator_waveform(),
+            modulator_ratio: default_modulator_ratio(),
+            modulation_depth_hz: default_modulation_depth_hz(),
+        }
+    }
+}
+
+fn default_modulator_waveform() -> u8 {
+    0
+}
+
+fn default_modulator_ratio() -> u8 {
+    1
+}
+
+fn default_modulation_depth_hz() -> u16 {
+    100
+}
+
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub enum SynthMode {
     Mono = 1,
@@ -59,4 +94,6 @@ pub struct Patch {
     pub synth_config: SynthConfiguration,
     #[serde(default)]
     pub flanger_config: FlangerConfiguration,
+    #[serde(default)]
+    pub fm_config: FmConfiguration,
 }
