@@ -31,6 +31,10 @@ impl BoxedWaveforms {
     pub fn add(&mut self, wt: BoxedWaveform) {
         self.data.push(wt);
     }
+
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
 }
 
 // Struct representing a single wavetable containing audio samples

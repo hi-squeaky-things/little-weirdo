@@ -50,6 +50,7 @@ up to four notes; the configured synth mode can impose a lower note limit
 and FM is disabled unless `enabled` is true:
 
 - `enabled`: Enable FM for all voices (default `false`)
+- `carrier_waveform`: Wavetable index for each carrier (default `0`)
 - `modulator_waveform`: Wavetable index for the modulator (default `0`, the sine table)
 - `modulator_ratio`: Integer multiplier of the note frequency for the modulator (default `1`; zero is treated as `1`)
 - `modulation_depth_hz`: Peak carrier frequency deviation in Hz (default `100`)

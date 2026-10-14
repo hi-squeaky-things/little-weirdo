@@ -69,6 +69,7 @@ pub struct Synth {
     mode: SynthMode,
     /// Reference to all the patches on the heap
     patches: Arc<BoxedPatches>,
+    waveform_count: usize,
 }
 
 ///
@@ -108,6 +109,7 @@ impl Synth {
             active_note: [0; AMOUNT_OF_VOICES],
             mode: patch.synth_config.mode,
             patches,
+            waveform_count: waveforms.len(),
         }
     }
 
@@ -131,8 +133,12 @@ impl Synth {
     ) -> [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] {
         let voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES] =
             array_init::array_init(|i: usize| {
-                let config = if patch.fm_config.enabled && i % 2 == 1 {
-                    Self::fm_modulator_config(patch.fm_config)
+                let config = if patch.fm_config.enabled {
+                    if i % 2 == 1 {
+                        Self::fm_modulator_config(patch.fm_config)
+                    } else {
+                        Self::fm_carrier_config(patch.fm_config, patch.voices[i])
+                    }
                 } else {
                     patch.voices[i]
                 };
@@ -144,6 +150,14 @@ impl Synth {
                 )
             });
         voices
+    }
+
+    fn fm_carrier_config(
+        config: FmConfiguration,
+        mut carrier: waveform_oscillator::WaveformOscillatorConfig,
+    ) -> waveform_oscillator::WaveformOscillatorConfig {
+        carrier.soundbank_index = config.carrier_waveform;
+        carrier
     }
 
     fn fm_modulator_config(
@@ -206,8 +220,12 @@ impl Synth {
         self.fm_config = patch.fm_config;
 
         for i in 0..self.voices.len() {
-            let config = if patch.fm_config.enabled && i % 2 == 1 {
-                Self::fm_modulator_config(patch.fm_config)
+            let config = if patch.fm_config.enabled {
+                if i % 2 == 1 {
+                    Self::fm_modulator_config(patch.fm_config)
+                } else {
+                    Self::fm_carrier_config(patch.fm_config, patch.voices[i])
+                }
             } else {
                 patch.voices[i]
             };
@@ -582,6 +600,104 @@ impl Synth {
                 0
             },
         )
+    }
+
+    pub fn fm_settings(&self) -> (bool, u8, u8, u16) {
+        (
+            self.fm_config.enabled,
+            self.fm_config.modulator_waveform,
+            self.fm_config.modulator_ratio,
+            self.fm_config.modulation_depth_hz,
+        )
+    }
+
+    pub fn adjust_fm_modulator_waveform(&mut self, clockwise: bool) {
+        if !self.fm_config.enabled || self.waveform_count == 0 {
+            return;
+        }
+
+        let waveform_count = self.waveform_count.min(u8::MAX as usize + 1);
+        let current = self.fm_config.modulator_waveform as usize % waveform_count;
+        self.fm_config.modulator_waveform = if clockwise {
+            ((current + 1) % waveform_count) as u8
+        } else {
+            ((current + waveform_count - 1) % waveform_count) as u8
+        };
+
+        for index in (1..self.voices.len()).step_by(2) {
+            self.voices[index].change_waveform(self.fm_config.modulator_waveform);
+        }
+    }
+
+    pub fn fm_carrier_waveform(&self) -> u8 {
+        self.fm_config.carrier_waveform
+    }
+
+    pub fn adjust_fm_carrier_waveform(&mut self, clockwise: bool) {
+        if !self.fm_config.enabled || self.waveform_count == 0 {
+            return;
+        }
+
+        let waveform_count = self.waveform_count.min(u8::MAX as usize + 1);
+        let current = self.fm_config.carrier_waveform as usize % waveform_count;
+        self.fm_config.carrier_waveform = if clockwise {
+            ((current + 1) % waveform_count) as u8
+        } else {
+            ((current + waveform_count - 1) % waveform_count) as u8
+        };
+
+        for index in (0..self.voices.len()).step_by(2) {
+            self.voices[index].change_waveform(self.fm_config.carrier_waveform);
+        }
+    }
+
+    pub fn adjust_fm_modulator_ratio(&mut self, clockwise: bool) {
+        if !self.fm_config.enabled {
+            return;
+        }
+
+        self.fm_config.modulator_ratio = if clockwise {
+            self.fm_config.modulator_ratio.max(1).saturating_add(1)
+        } else {
+            self.fm_config
+                .modulator_ratio
+                .max(1)
+                .saturating_sub(1)
+                .max(1)
+        };
+
+        let voices_per_note = self.voices_per_note();
+        let max_active_notes = self.max_active_notes();
+        for (note_index, &note) in self.active_note.iter().take(max_active_notes).enumerate() {
+            if note == 0 {
+                continue;
+            }
+            for pair_offset in (0..voices_per_note).step_by(2) {
+                let carrier_index = note_index * voices_per_note + pair_offset;
+                let modulator_index = carrier_index + 1;
+                let freq = MIDI2FREQ
+                    [(note as i8 + self.voices[carrier_index].config.detune) as usize];
+                let tuned_frequency = (freq as i32
+                    + self.voices[carrier_index].config.freq_detune as i32)
+                    .clamp(0, u16::MAX as i32) as u16;
+                let modulator_frequency = (tuned_frequency as u32
+                    * self.fm_config.modulator_ratio.max(1) as u32)
+                    .min(u16::MAX as u32) as u16;
+                self.voices[modulator_index].change_freq(modulator_frequency);
+            }
+        }
+    }
+
+    pub fn adjust_fm_modulation_depth(&mut self, clockwise: bool) {
+        if !self.fm_config.enabled {
+            return;
+        }
+
+        self.fm_config.modulation_depth_hz = if clockwise {
+            self.fm_config.modulation_depth_hz.saturating_add(10)
+        } else {
+            self.fm_config.modulation_depth_hz.saturating_sub(10)
+        };
     }
 
     pub fn toggle_delay(&mut self) {

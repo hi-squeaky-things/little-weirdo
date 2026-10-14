@@ -136,6 +136,13 @@
           "type": "boolean",
           "default": false
         },
+        "carrier_waveform": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254,
+          "default": 0,
+          "description": "Wavetable index used by each FM carrier"
+        },
         "modulator_waveform": {
           "type": "integer",
           "minimum": 0,

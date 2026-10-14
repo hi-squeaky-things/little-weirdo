@@ -66,7 +66,7 @@ fn main() {
 
     // Initialize the synthesizer with sample rate, patch, and wavetables
     let mut synth: synth::Synth =
-        synth::Synth::new(44100, 0, Arc::clone(&patches_heap), Arc::clone(&wt));
+        synth::Synth::new(48000, 0, Arc::clone(&patches_heap), Arc::clone(&wt));
 
     // Create a channel specifically for MIDI messages from the input device
     let (midi_tx, midi_rx) = mpsc::channel::<midi_control::MidiMessage>();

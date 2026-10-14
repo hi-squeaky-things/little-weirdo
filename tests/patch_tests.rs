@@ -31,6 +31,7 @@ fn test_patch_deserialization_json() {
     assert!(patch.mixer_config.avc_enabled);
     assert_eq!(patch.mixer_config.avc_decay_time_ms, 50);
     assert!(!patch.fm_config.enabled);
+    assert_eq!(patch.fm_config.carrier_waveform, 0);
     assert_eq!(patch.fm_config.modulator_waveform, 0);
     assert_eq!(patch.fm_config.modulator_ratio, 1);
     assert_eq!(patch.fm_config.modulation_depth_hz, 100);
@@ -43,6 +44,7 @@ fn test_fm_patch_postcard_roundtrip() {
     ))
     .unwrap();
     patch.fm_config.enabled = true;
+    patch.fm_config.carrier_waveform = 3;
     patch.fm_config.modulator_ratio = 2;
     patch.fm_config.modulation_depth_hz = 350;
 
@@ -51,6 +53,7 @@ fn test_fm_patch_postcard_roundtrip() {
     let decoded: Patch = postcard::from_bytes(encoded).unwrap();
 
     assert!(decoded.fm_config.enabled);
+    assert_eq!(decoded.fm_config.carrier_waveform, 3);
     assert_eq!(decoded.fm_config.modulator_ratio, 2);
     assert_eq!(decoded.fm_config.modulation_depth_hz, 350);
 }
@@ -69,11 +72,25 @@ fn fm_example_patch_is_available_as_json_and_postcard() {
     for patch in [&json_patch, &postcard_patch] {
         assert_eq!(patch.name, "fm_basic");
         assert!(patch.fm_config.enabled);
-        assert_eq!(patch.fm_config.modulator_waveform, 23);
-        assert_eq!(patch.fm_config.modulator_ratio, 5);
-        assert_eq!(patch.fm_config.modulation_depth_hz, 500);
+        assert_eq!(patch.fm_config.carrier_waveform, 0);
+        assert_eq!(patch.fm_config.modulator_waveform, 0);
+        assert_eq!(patch.fm_config.modulator_ratio, 3);
+        assert_eq!(patch.fm_config.modulation_depth_hz, 200);
         assert_eq!(patch.synth_config.mode, SynthMode::OctoPoly);
     }
+}
+
+#[test]
+fn fm_carrier_waveform_is_serialized_in_postcard_asset() {
+    let patch: Patch = postcard::from_bytes(include_bytes!(
+        "../examples/soundbank/synth/patches/src/fm_basic.lwp"
+    ))
+    .unwrap();
+
+    assert_eq!(patch.fm_config.carrier_waveform, 0);
+    assert_eq!(patch.fm_config.modulator_waveform, 0);
+    assert_eq!(patch.fm_config.modulator_ratio, 3);
+    assert_eq!(patch.fm_config.modulation_depth_hz, 200);
 }
 
 #[test]
@@ -91,6 +108,7 @@ fn test_patch_deserialization_json_accepts_fm_configuration() {
 
     let patch: Patch = serde_json::from_value(value).unwrap();
     assert!(patch.fm_config.enabled);
+    assert_eq!(patch.fm_config.carrier_waveform, 0);
     assert_eq!(patch.fm_config.modulator_waveform, 0);
     assert_eq!(patch.fm_config.modulator_ratio, 2);
     assert_eq!(patch.fm_config.modulation_depth_hz, 350);
@@ -137,6 +155,62 @@ fn fm_patch_modulates_the_carrier_in_the_synth() {
     let differs = (0..1_000).any(|_| fm_synth.clock_and_output() != dry_synth.clock_and_output());
 
     assert!(differs);
+}
+
+#[test]
+fn fm_carrier_waveform_is_used_and_can_be_changed_at_runtime() {
+    let mut patch: Patch = serde_json::from_slice(include_bytes!(
+        "../examples/soundbank/synth/patches/original/bass.json"
+    ))
+    .unwrap();
+    patch.fm_config.enabled = true;
+    patch.fm_config.carrier_waveform = 0;
+    patch.fm_config.modulator_waveform = 0;
+    patch.fm_config.modulator_ratio = 2;
+    patch.fm_config.modulation_depth_hz = 0;
+    patch.mixer_config.gain_voices = [100, 0, 0, 0, 0, 0, 0, 0];
+    patch.mixer_config.gain_main = 100;
+    patch.routering_config.voices_to_envelop = [0; AMOUNT_OF_VOICES];
+    patch.filter_config.enabled = false;
+    patch.overdrive_config.enabled = false;
+    patch.bitcrunch_config.enabled = false;
+    patch.delay_config.enabled = false;
+    patch.flanger_config.enabled = false;
+
+    let mut alternate_carrier_patch = patch.clone();
+    alternate_carrier_patch.fm_config.carrier_waveform = 1;
+    let waveforms = {
+        let mut waveforms = BoxedWaveforms::new();
+        for bytes in [
+            include_bytes!("../examples/soundbank/synth/waveforms/src/000_sample.raw").as_slice(),
+            include_bytes!("../examples/soundbank/synth/waveforms/src/001_sample.raw").as_slice(),
+            include_bytes!("../examples/soundbank/synth/waveforms/src/002_sample.raw").as_slice(),
+            include_bytes!("../examples/soundbank/synth/waveforms/src/003_sample.raw").as_slice(),
+            include_bytes!("../examples/soundbank/synth/waveforms/src/004_sample.raw").as_slice(),
+        ] {
+            waveforms.add(BoxedWaveform::new(bytes));
+        }
+        Arc::new(waveforms)
+    };
+    let mut patches = BoxedPatches::new();
+    patches.add(BoxedPatch::new(patch));
+    let mut synth = Synth::new(44_100, 0, Arc::new(patches), Arc::clone(&waveforms));
+    let mut alternate_patches = BoxedPatches::new();
+    alternate_patches.add(BoxedPatch::new(alternate_carrier_patch));
+    let mut alternate_synth = Synth::new(44_100, 0, Arc::new(alternate_patches), waveforms);
+
+    assert_eq!(synth.fm_carrier_waveform(), 0);
+    synth.note_on(60, 127);
+    alternate_synth.note_on(60, 127);
+    let output_differs =
+        (0..1_000).any(|_| synth.clock_and_output() != alternate_synth.clock_and_output());
+
+    assert!(output_differs);
+
+    synth.adjust_fm_carrier_waveform(true);
+    assert_eq!(synth.fm_carrier_waveform(), 1);
+    synth.adjust_fm_carrier_waveform(false);
+    assert_eq!(synth.fm_carrier_waveform(), 0);
 }
 
 #[test]

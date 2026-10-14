@@ -256,6 +256,11 @@ impl WaveformOscillator {
         }
     }
 
+    pub fn change_waveform(&mut self, soundbank_index: u8) {
+        self.config.soundbank_index = soundbank_index;
+        self.waveform_pointer = soundbank_index;
+    }
+
     pub fn reload_lfo(&mut self, config: WaveformLFOConfig) {
         let new_config = WaveformOscillatorConfig {
             soundbank_index: config.soundbank_index,

@@ -26,17 +26,24 @@ pub struct FmConfiguration {
     pub modulator_ratio: u8,
     #[serde(default = "default_modulation_depth_hz")]
     pub modulation_depth_hz: u16,
+    #[serde(default = "default_carrier_waveform")]
+    pub carrier_waveform: u8,
 }
 
 impl Default for FmConfiguration {
     fn default() -> Self {
         Self {
             enabled: false,
+            carrier_waveform: default_carrier_waveform(),
             modulator_waveform: default_modulator_waveform(),
             modulator_ratio: default_modulator_ratio(),
             modulation_depth_hz: default_modulation_depth_hz(),
         }
     }
+}
+
+fn default_carrier_waveform() -> u8 {
+    0
 }
 
 fn default_modulator_waveform() -> u8 {
