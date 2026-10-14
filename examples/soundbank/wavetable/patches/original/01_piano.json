@@ -7,6 +7,14 @@
     "loop_end": 0,
     "one_shot": true,
      "base_key": 48,
+    "sample_config": {
+        "sample_id": 12,
+        "is_drums": false,
+        "loop_start": 0,
+        "loop_end": 0,
+        "one_shot": true,
+        "base_key": 48
+    },
     "overdrive_config": {
         "threshold": 1000,
         "kind": "Softer",
