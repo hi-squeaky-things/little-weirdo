@@ -30,7 +30,14 @@ Eight ADSR envelopes control sound shaping:
 Four LFOs provide modulation:
 
 - soundbank_index: Wavetable selection (0-254)
-- time: Modulation rate/frequency
+- time: Oscillation period in hundredths of a second (for example, 100 is 1 second and 500 is 5 seconds; 0 disables the LFO)
+
+LFOs use the same per-sample waveform oscillator as audible voices. Their
+legacy `time` setting is converted to a phase increment, allowing slow
+multi-second modulation periods without reducing the oscillator's audio-rate
+frequency range. Oscillator pitch is represented in fifths of a hertz, from
+0.2 Hz through 13,107 Hz; the usable upper limit is also constrained by the
+configured sample rate.
 
 === Filter Configuration
 
@@ -91,4 +98,3 @@ mode: 'Mono', 'BiPoly', 'QuadPoly', or 'OctoPoly'
 * **OctoPoly** (`mode: 4`): Eight voices can be active at any time. You can use only use 1 oscillator per voice. 
 
 The mode affects how many voices are allocated and how the voices are configured. The voices are distributed across the available voice slots in a round-robin fashion.
-

@@ -116,7 +116,8 @@
           },
           "time": {
             "type": "integer",
-            "description": "LFO timing parameter (frequency or rate)"
+            "minimum": 0,
+            "description": "LFO period in hundredths of a second; 0 disables the LFO"
           }
         },
         "required": [
