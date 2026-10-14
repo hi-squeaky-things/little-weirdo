@@ -8,3 +8,6 @@ pub mod patches;
 
 /// Datastructure for waveforms
 pub mod waveforms;
+
+/// MIDI notes to timing lookup table
+pub mod timing;

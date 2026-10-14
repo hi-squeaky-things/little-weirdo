@@ -76,14 +76,14 @@
     }
   ],
   "envelops": [
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70},
-    {"attack_time": 10, "decay_time": 120, "release_time": 150, "sustain_level": 70}
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90}
   ],
   "lfos": [
     {"soundbank_index": 0, "time": 0},
@@ -93,7 +93,7 @@
   ],
   "fm_config": {
     "enabled": true,
-    "carrier_waveform": 20,
+    "carrier_waveform": 0,
     "modulator_waveform": 0,
     "modulator_ratio": 3,
     "modulation_depth_hz": 200

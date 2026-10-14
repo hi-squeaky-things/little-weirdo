@@ -157,51 +157,51 @@
     ],
     "envelops": [
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 10,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         }
     ],
@@ -241,7 +241,7 @@
             10
         ],
         "gain_main": 100,
-        "avc_enabled":  true,
+        "avc_enabled":  false,
         "avc_decay_time_ms": 250
     },
     "overdrive_config": {

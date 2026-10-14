@@ -39,6 +39,9 @@ pub struct Synth {
     sample_rate: u16,
     /// Array of waveform oscillators for generating sounds
     voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES],
+        /// Per-voice velocity tracking to prevent release cutoffs
+    voice_velocities: [u8; AMOUNT_OF_VOICES],
+
     fm_config: FmConfiguration,
     /// Array of envelope generators for shaping sound
     envelops: [envelope::EnvelopeGenerator; AMOUNT_OF_VOICES],
@@ -107,6 +110,7 @@ impl Synth {
             router: Router::new(patch.routering_config),
             velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
+            voice_velocities: [0; AMOUNT_OF_VOICES],
             mode: patch.synth_config.mode,
             patches,
             waveform_count: waveforms.len(),
@@ -251,6 +255,7 @@ impl Synth {
 
     pub fn all_note_off(&mut self) {
         self.active_note = [0; AMOUNT_OF_VOICES];
+        self.voice_velocities = [0; AMOUNT_OF_VOICES];
         for i in 0..AMOUNT_OF_VOICES {
             self.envelops[i].reset();
         }
@@ -313,8 +318,6 @@ impl Synth {
         }
 
         // Run and route voices through envelopes and apply gain
-        let active_notes = self.active_note_count();
-        self.mixer.update_avc(active_notes, self.sample_rate);
         for (i, voice_output) in generate_voices.iter_mut().enumerate() {
             if self.fm_config.enabled && i % 2 == 1 {
                 continue;
@@ -327,7 +330,8 @@ impl Synth {
                     generate_env[self.router.config.voices_to_envelop[i] as usize]
                 },
             );
-            *voice_output = math::percentage(*voice_output, self.velocity as i16);
+            // Use per-voice velocity instead of global self.velocity
+            *voice_output = math::percentage(*voice_output, self.voice_velocities[i] as i16);
             *voice_output = self
                 .mixer
                 .apply_voice_gain(*voice_output, self.mixer.config.gain_voices[i]);
@@ -393,44 +397,42 @@ impl Synth {
         if self.range_safeguard(note) {
             return;
         };
-        // Update the mixer velocity for this voice
-        // TODO: Velocity is not used in a proper way, need fixing. Each voice need a velocity, not a general one.
-        self.velocity = (velocity as u32 * 1_000 / 1_270) as u8;
-
+        
         let voices_per_note = self.voices_per_note();
-
         let id = self.add_note(note);
         if id != 255 {
             self.delay.reset();
             self.flanger.reset();
-            // If we have only one voice, play both voices with a detune
+            
+            // Calculate normalized velocity once (0-100%)
+            let norm_velocity = (velocity as u32 * 1_000 / 1_270) as u8;
+
             if self.fm_config.enabled {
                 for i in (0..voices_per_note).step_by(2) {
                     let carrier_index = id * voices_per_note + i;
                     let modulator_index = carrier_index + 1;
-                    let freq =
-                        MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
-                    let tuned_frequency = (freq as i32
-                        + self.voices[carrier_index].config.freq_detune as i32)
-                        .clamp(0, u16::MAX as i32) as u16;
+                    
+                    self.voice_velocities[carrier_index] = norm_velocity;
+                    self.voice_velocities[modulator_index] = 0; // Modulators don't carry amplitude
+                    
+                    let freq = MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
+                    let tuned_frequency = (freq as i32 + self.voices[carrier_index].config.freq_detune as i32).clamp(0, u16::MAX as i32) as u16;
                     self.voices[carrier_index].change_freq(tuned_frequency);
-
-                    let modulator_frequency = (tuned_frequency as u32
-                        * self.fm_config.modulator_ratio.max(1) as u32)
-                        .min(u16::MAX as u32) as u16;
+                    
+                    let modulator_frequency = (tuned_frequency as u32 * self.fm_config.modulator_ratio.max(1) as u32).min(u16::MAX as u32) as u16;
                     self.voices[modulator_index].change_freq(modulator_frequency);
-
+                    
                     self.envelops[carrier_index].open_gate();
                 }
             } else {
                 for i in 0..voices_per_note {
                     let voice_index = id * voices_per_note + i;
                     let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
-                    let freq: u16 =
-                        MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
-                    self.voices[voice_index].change_freq(
-                        (freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16,
-                    );
+                    
+                    self.voice_velocities[voice_index] = norm_velocity;
+                    
+                    let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
+                    self.voices[voice_index].change_freq((freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16);
                     self.envelops[env_index].open_gate();
                 }
             }
@@ -441,18 +443,19 @@ impl Synth {
         let voices_per_note = self.voices_per_note();
         let id = self.remove_note(note);
         if id != 255 {
-            if self.fm_config.enabled {
+        /*     if self.fm_config.enabled {
                 for i in (0..voices_per_note).step_by(2) {
                     let carrier_index = id * voices_per_note + i;
                     self.envelops[carrier_index].close_gate();
                 }
             } else {
+           */
                 for i in 0..voices_per_note {
                     let voice_index = id * voices_per_note + i;
                     let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
                     self.envelops[env_index].close_gate();
                 }
-            }
+            //}
         }
     }
 
@@ -512,10 +515,10 @@ impl Synth {
     ///
     pub fn change_all_envelopes(
         &mut self,
-        attack: Option<i32>,
-        decay: Option<i32>,
+        attack: Option<u16>,
+        decay: Option<u16>,
         sustain: Option<i16>,
-        release: Option<i32>,
+        release: Option<u16>,
     ) {
         for i in 0..AMOUNT_OF_VOICES {
             let mut config = self.envelops[i].configuration;
