@@ -5,7 +5,10 @@
 //! this separate interface.
 
 use super::{data::frequencies::MIDI2FREQ, Synth, AMOUNT_OF_VOICES};
-use crate::effects::overdrive::{KindOfOverdrive, OverdriveConfiguration};
+use crate::effects::{
+    filter::KindOfFilter,
+    overdrive::{KindOfOverdrive, OverdriveConfiguration},
+};
 
 /// A live-control interface borrowing a synthesizer mutably.
 ///
@@ -119,6 +122,119 @@ impl<'a> SynthControl<'a> {
                 0
             },
         )
+    }
+
+    pub fn flanger_settings(&self) -> (bool, u16, u16, u16, u8) {
+        (
+            self.synth.flanger.config.enabled,
+            self.synth.flanger.config.base_delay_time_ms,
+            self.synth.flanger.config.depth_ms,
+            self.synth.flanger.config.rate_hz,
+            self.synth.flanger.config.mix_percentage,
+        )
+    }
+
+    pub fn filter_settings(&self) -> (bool, u16, u16, u8) {
+        let kind = match self.synth.filter.config.kind_of_filter {
+            KindOfFilter::Low => 0,
+            KindOfFilter::High => 1,
+            KindOfFilter::Band => 2,
+            KindOfFilter::Notch => 3,
+        };
+        (
+            self.synth.filter.config.enabled,
+            self.synth.filter.config.cutoff_frequency,
+            self.synth.filter.config.resonance,
+            kind,
+        )
+    }
+
+    pub fn toggle_filter(&mut self) {
+        let mut config = self.synth.filter.config;
+        config.enabled = !config.enabled;
+        self.synth.filter.reload(config);
+    }
+
+    pub fn adjust_filter_cutoff(&mut self, clockwise: bool) {
+        let mut config = self.synth.filter.config;
+        config.cutoff_frequency = if clockwise {
+            config.cutoff_frequency.saturating_add(500)
+        } else {
+            config.cutoff_frequency.saturating_sub(500)
+        };
+        self.synth.filter.reload(config);
+    }
+
+    pub fn adjust_filter_resonance(&mut self, clockwise: bool) {
+        let mut config = self.synth.filter.config;
+        config.resonance = if clockwise {
+            config.resonance.saturating_add(500)
+        } else {
+            config.resonance.saturating_sub(500)
+        };
+        self.synth.filter.reload(config);
+    }
+
+    pub fn cycle_filter_kind(&mut self, clockwise: bool) {
+        let mut config = self.synth.filter.config;
+        let kind = match (config.kind_of_filter, clockwise) {
+            (KindOfFilter::Low, true) => KindOfFilter::High,
+            (KindOfFilter::Low, false) => KindOfFilter::Notch,
+            (KindOfFilter::High, true) => KindOfFilter::Band,
+            (KindOfFilter::High, false) => KindOfFilter::Low,
+            (KindOfFilter::Band, true) => KindOfFilter::Notch,
+            (KindOfFilter::Band, false) => KindOfFilter::High,
+            (KindOfFilter::Notch, true) => KindOfFilter::Low,
+            (KindOfFilter::Notch, false) => KindOfFilter::Band,
+        };
+        config.kind_of_filter = kind;
+        self.synth.filter.reload(config);
+    }
+
+    pub fn toggle_flanger(&mut self) {
+        let mut config = self.synth.flanger.config;
+        config.enabled = !config.enabled;
+        self.synth.flanger.reload(config, self.synth.sample_rate);
+    }
+
+    pub fn adjust_flanger_base_delay(&mut self, clockwise: bool) {
+        let mut config = self.synth.flanger.config;
+        config.base_delay_time_ms = if clockwise {
+            config.base_delay_time_ms.saturating_add(1).min(2000)
+        } else {
+            config.base_delay_time_ms.saturating_sub(1)
+        };
+        self.synth.flanger.reload(config, self.synth.sample_rate);
+    }
+
+    pub fn adjust_flanger_depth(&mut self, clockwise: bool) {
+        let mut config = self.synth.flanger.config;
+        config.depth_ms = if clockwise {
+            config.depth_ms.saturating_add(1).min(2000)
+        } else {
+            config.depth_ms.saturating_sub(1)
+        };
+        self.synth.flanger.reload(config, self.synth.sample_rate);
+    }
+
+    pub fn adjust_flanger_rate(&mut self, clockwise: bool) {
+        let mut config = self.synth.flanger.config;
+        config.rate_hz = if clockwise {
+            config.rate_hz.saturating_add(1).min(100)
+        } else {
+            config.rate_hz.saturating_sub(1)
+        };
+        self.synth.flanger.reload(config, self.synth.sample_rate);
+    }
+
+    pub fn adjust_flanger_mix(&mut self, clockwise: bool) {
+        let mut config = self.synth.flanger.config;
+        config.mix_percentage = if clockwise {
+            config.mix_percentage.saturating_add(1).min(100)
+        } else {
+            config.mix_percentage.saturating_sub(1)
+        };
+        self.synth.flanger.reload(config, self.synth.sample_rate);
     }
 
     pub fn fm_settings(&self) -> (bool, u8, u8, u16) {
