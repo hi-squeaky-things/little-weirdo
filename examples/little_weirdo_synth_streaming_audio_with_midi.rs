@@ -11,7 +11,7 @@ use crossterm::{
 use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
 use little_weirdo::synth::{
     self,
-    data::waveforms::{BoxedWaveform, BoxedWaveforms},
+    data::waveforms::{BoxedWaveform, BoxedWaveforms, Waveforms},
 };
 use midi_control::MidiMessage;
 use ratatui::{
@@ -19,16 +19,56 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Axis, Block, Borders, Chart, Dataset, GraphType, List, ListItem, Paragraph, Tabs},
     Terminal,
 };
 use std::{
     collections::HashSet,
     fs,
     io::{self, Stdout},
-    sync::{mpsc, Arc},
+    sync::{
+        atomic::{AtomicU32, AtomicUsize, Ordering},
+        mpsc, Arc,
+    },
     time::Duration,
 };
+
+const LIVE_SAMPLE_COUNT: usize = 256;
+
+struct LiveAudio {
+    samples: [AtomicU32; LIVE_SAMPLE_COUNT],
+    write_index: AtomicUsize,
+}
+
+impl LiveAudio {
+    fn new() -> Self {
+        Self {
+            samples: std::array::from_fn(|_| AtomicU32::new(0.0f32.to_bits())),
+            write_index: AtomicUsize::new(0),
+        }
+    }
+
+    fn push(&self, sample: f32) {
+        let index = self.write_index.load(Ordering::Relaxed);
+        self.samples[index % LIVE_SAMPLE_COUNT].store(sample.to_bits(), Ordering::Relaxed);
+        self.write_index
+            .store(index.wrapping_add(1), Ordering::Release);
+    }
+
+    fn snapshot(&self) -> Vec<(f64, f64)> {
+        let end = self.write_index.load(Ordering::Acquire);
+        let count = end.min(LIVE_SAMPLE_COUNT);
+        let mut snapshot = vec![(0.0, 0.0); LIVE_SAMPLE_COUNT];
+        for offset in 0..count {
+            let index = end.wrapping_sub(count).wrapping_add(offset);
+            let sample =
+                f32::from_bits(self.samples[index % LIVE_SAMPLE_COUNT].load(Ordering::Relaxed));
+            let x = (LIVE_SAMPLE_COUNT - count + offset) as f64;
+            snapshot[LIVE_SAMPLE_COUNT - count + offset] = (x, sample as f64);
+        }
+        snapshot
+    }
+}
 
 #[derive(Clone, Copy)]
 enum FmParameter {
@@ -75,6 +115,7 @@ enum Menu {
     Fm,
     Effects,
     Envelope,
+    Live,
 }
 
 enum AudioCommand {
@@ -95,6 +136,8 @@ struct FmPanel {
     selected: usize,
     menu: Menu,
     waveform_count: u8,
+    waveform_plots: Vec<Vec<(f64, f64)>>,
+    live_audio: Arc<LiveAudio>,
     midi_status: String,
     delay_enabled: bool,
     delay_time_ms: u16,
@@ -133,6 +176,18 @@ fn main() -> anyhow::Result<()> {
         waveforms.add(BoxedWaveform::new(&contents));
     }
     let waveforms = Arc::new(waveforms);
+    let waveform_plots = (0..waveform_count)
+        .map(|index| {
+            waveforms
+                .get_waveform_reference(index)
+                .iter()
+                .enumerate()
+                .map(|(sample_index, sample)| {
+                    (sample_index as f64, *sample as f64 / i16::MAX as f64)
+                })
+                .collect()
+        })
+        .collect();
 
     let patch: synth::patch::Patch = serde_json::from_slice(include_bytes!(
         "soundbank/synth/patches/original/fm_basic.json"
@@ -161,6 +216,8 @@ fn main() -> anyhow::Result<()> {
     };
     let (audio_tx, audio_rx) = mpsc::channel::<AudioCommand>();
     let (midi_status, midi_connection) = connect_midi(audio_tx.clone());
+    let live_audio = Arc::new(LiveAudio::new());
+    let callback_live_audio = Arc::clone(&live_audio);
 
     let channels = config.channels as usize;
     let stream = device.build_output_stream(
@@ -173,6 +230,7 @@ fn main() -> anyhow::Result<()> {
                 let output = synth.clock_and_output();
                 let left = Sample::from_sample(output[0]);
                 let right = Sample::from_sample(output[1]);
+                callback_live_audio.push(left);
                 for (index, sample) in frame.iter_mut().enumerate() {
                     *sample = if index % 2 == 0 { left } else { right };
                 }
@@ -191,6 +249,8 @@ fn main() -> anyhow::Result<()> {
         selected: 0,
         menu: Menu::Fm,
         waveform_count,
+        waveform_plots,
+        live_audio,
         midi_status,
         delay_enabled: delay.0,
         delay_time_ms: delay.1,
@@ -290,7 +350,8 @@ fn event_loop(
                 panel.menu = match panel.menu {
                     Menu::Fm => Menu::Effects,
                     Menu::Effects => Menu::Envelope,
-                    Menu::Envelope => Menu::Fm,
+                    Menu::Envelope => Menu::Live,
+                    Menu::Live => Menu::Fm,
                 };
                 panel.selected = panel.selected.min(menu_item_count(panel.menu) - 1);
             }
@@ -352,6 +413,9 @@ fn adjust_selected(
     audio_tx: &mpsc::Sender<AudioCommand>,
     clockwise: bool,
 ) -> anyhow::Result<()> {
+    if panel.menu == Menu::Live {
+        return Ok(());
+    }
     if panel.menu == Menu::Effects {
         return adjust_effect_selected(panel, audio_tx, clockwise);
     }
@@ -396,6 +460,7 @@ fn menu_item_count(menu: Menu) -> usize {
         Menu::Fm => 4,
         Menu::Effects => 16,
         Menu::Envelope => 4,
+        Menu::Live => 1,
     }
 }
 
@@ -558,34 +623,40 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(3),
+            Constraint::Length(3),
             Constraint::Length(5),
             Constraint::Min(8),
             Constraint::Length(3),
         ])
         .split(area);
 
-    let title = Paragraph::new(Line::from(vec![
-        Span::styled(
-            "LITTLE WEIRDO",
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::raw("  /  "),
-        Span::styled(
-            match panel.menu {
-                Menu::Fm => "FM",
-                Menu::Effects => "EFFECTS",
-                Menu::Envelope => "ENVELOPE",
-            },
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::raw("  [Tab] switch menu"),
-    ]))
+    let title = Paragraph::new(Line::from(vec![Span::styled(
+        "Hi Squeaky Things - LttL Weirdo",
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
+    )]))
     .block(Block::default().borders(Borders::BOTTOM));
     frame.render_widget(title, layout[0]);
+
+    let selected_menu = match panel.menu {
+        Menu::Fm => 0,
+        Menu::Effects => 1,
+        Menu::Envelope => 2,
+        Menu::Live => 3,
+    };
+    let menus = Tabs::new(["FM", "EFFECTS", "ENVELOPE", "LIVE"])
+        .select(selected_menu)
+        .highlight_style(
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
+        .style(Style::default().fg(Color::DarkGray))
+        .divider("  ")
+        .block(Block::default().borders(Borders::BOTTOM));
+    frame.render_widget(menus, layout[1]);
 
     let keyboard_block = Block::default()
         .title(format!(
@@ -594,8 +665,8 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             4 + panel.keyboard_octave_shift
         ))
         .borders(Borders::ALL);
-    let keyboard_area = keyboard_block.inner(layout[1]);
-    frame.render_widget(keyboard_block, layout[1]);
+    let keyboard_area = keyboard_block.inner(layout[2]);
+    frame.render_widget(keyboard_block, layout[2]);
     let key_areas = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Ratio(1, 8); 8])
@@ -654,6 +725,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             format!("Sustain               {}%", panel.sustain_level),
             format!("Release               {} ms", panel.release_time_ms),
         ],
+        Menu::Live => Vec::new(),
     };
     let items = values
         .iter()
@@ -666,6 +738,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
                     Menu::Fm => " FM PARAMETERS ",
                     Menu::Effects => " EFFECTS ",
                     Menu::Envelope => " ENVELOPE ",
+                    Menu::Live => " LIVE AUDIO ",
                 })
                 .borders(Borders::ALL),
         )
@@ -678,7 +751,137 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
         .highlight_symbol(" > ");
     let mut state = ratatui::widgets::ListState::default();
     state.select(Some(panel.selected));
-    frame.render_stateful_widget(settings, layout[2], &mut state);
+    if panel.menu == Menu::Live {
+        let live_samples = panel.live_audio.snapshot();
+        let peak = live_samples
+            .iter()
+            .map(|(_, sample)| sample.abs())
+            .fold(0.0f64, f64::max);
+        let rms = (live_samples
+            .iter()
+            .map(|(_, sample)| sample * sample)
+            .sum::<f64>()
+            / LIVE_SAMPLE_COUNT as f64)
+            .sqrt();
+        let content = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(78), Constraint::Percentage(22)])
+            .split(layout[3]);
+        let chart = Chart::new(vec![Dataset::default()
+            .name("Output")
+            .graph_type(GraphType::Line)
+            .style(Style::default().fg(Color::LightCyan))
+            .data(&live_samples)])
+        .block(
+            Block::default()
+                .title(" LIVE AUDIO STREAM - RECENT SAMPLES ")
+                .borders(Borders::ALL),
+        )
+        .x_axis(
+            Axis::default()
+                .bounds([0.0, (LIVE_SAMPLE_COUNT - 1) as f64])
+                .labels(vec![Span::raw("OLD"), Span::raw("NOW")]),
+        )
+        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
+            Span::raw("-1"),
+            Span::raw("0"),
+            Span::raw("1"),
+        ]));
+        frame.render_widget(chart, content[0]);
+
+        let levels = Paragraph::new(format!("Peak\n{peak:.3}\n\nRMS\n{rms:.3}"))
+            .alignment(Alignment::Center)
+            .block(Block::default().title(" LEVEL ").borders(Borders::ALL));
+        frame.render_widget(levels, content[1]);
+    } else if panel.menu == Menu::Envelope {
+        let content = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(58), Constraint::Percentage(42)])
+            .split(layout[3]);
+        let attack = panel.attack_time_ms as f64;
+        let decay = panel.decay_time_ms as f64;
+        let sustain = panel.sustain_level as f64 / 100.0;
+        let release = panel.release_time_ms as f64;
+        let sustain_duration = (attack + decay + release).max(100.0);
+        let sustain_end = attack + decay + sustain_duration;
+        let release_end = sustain_end + release;
+        let envelope_points = vec![
+            (0.0, 0.0),
+            (attack, 1.0),
+            (attack + decay, sustain),
+            (sustain_end, sustain),
+            (release_end, 0.0),
+        ];
+        let envelope_chart = Chart::new(vec![Dataset::default()
+            .name("Amplitude")
+            .graph_type(GraphType::Line)
+            .style(Style::default().fg(Color::LightGreen))
+            .data(&envelope_points)])
+        .block(
+            Block::default()
+                .title(" ADSR ENVELOPE ")
+                .borders(Borders::ALL),
+        )
+        .x_axis(
+            Axis::default()
+                .bounds([0.0, release_end.max(1.0)])
+                .labels(vec![
+                    Span::raw("0 ms"),
+                    Span::raw(format!("{release_end:.0} ms")),
+                ]),
+        )
+        .y_axis(Axis::default().bounds([0.0, 1.0]).labels(vec![
+            Span::raw("0"),
+            Span::raw("0.5"),
+            Span::raw("1"),
+        ]));
+        frame.render_widget(envelope_chart, content[0]);
+        frame.render_stateful_widget(settings, content[1], &mut state);
+    } else if panel.menu == Menu::Fm && panel.selected < 2 {
+        let content = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
+            .split(layout[3]);
+        frame.render_stateful_widget(settings, content[0], &mut state);
+
+        let waveform_index = if panel.selected == 0 {
+            panel.carrier_waveform
+        } else {
+            panel.modulator_waveform
+        };
+        let waveform_name = if panel.selected == 0 {
+            "CARRIER"
+        } else {
+            "MODULATOR"
+        };
+        let samples = &panel.waveform_plots[waveform_index as usize];
+        let chart = Chart::new(vec![Dataset::default()
+            .name(format!("Waveform {:03}", waveform_index))
+            .graph_type(GraphType::Line)
+            .style(Style::default().fg(Color::LightCyan))
+            .data(samples)])
+        .block(
+            Block::default()
+                .title(format!(" {waveform_name} WAVEFORM "))
+                .borders(Borders::ALL),
+        )
+        .x_axis(
+            Axis::default()
+                .bounds([0.0, samples.len().saturating_sub(1) as f64])
+                .labels(vec![
+                    Span::raw("0"),
+                    Span::raw(format!("{}", samples.len() - 1)),
+                ]),
+        )
+        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
+            Span::raw("-1"),
+            Span::raw("0"),
+            Span::raw("1"),
+        ]));
+        frame.render_widget(chart, content[1]);
+    } else {
+        frame.render_stateful_widget(settings, layout[3], &mut state);
+    }
 
     let footer = Paragraph::new(vec![
         Line::from("1-8 play    +/- octave    ↑/↓ select    ←/→ edit    Tab menu    q quit"),
@@ -688,7 +891,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
         )),
     ])
     .block(Block::default().borders(Borders::TOP));
-    frame.render_widget(footer, layout[3]);
+    frame.render_widget(footer, layout[4]);
 }
 
 fn midi_note_name(note: u8) -> String {
@@ -813,7 +1016,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{computer_key_index, keyboard_note};
+    use super::{computer_key_index, keyboard_note, LiveAudio, LIVE_SAMPLE_COUNT};
     use crossterm::event::KeyCode;
 
     #[test]
@@ -831,5 +1034,23 @@ mod tests {
     fn octave_shifts_keep_the_keyboard_within_the_synth_note_range() {
         assert_eq!(keyboard_note(0, -2), 24);
         assert_eq!(keyboard_note(7, 4), 108);
+    }
+
+    #[test]
+    fn live_audio_snapshot_keeps_recent_samples_in_order() {
+        let live_audio = LiveAudio::new();
+        live_audio.push(-0.5);
+        live_audio.push(0.25);
+
+        let snapshot = live_audio.snapshot();
+        assert_eq!(snapshot.len(), LIVE_SAMPLE_COUNT);
+        assert_eq!(
+            snapshot[LIVE_SAMPLE_COUNT - 2],
+            ((LIVE_SAMPLE_COUNT - 2) as f64, -0.5)
+        );
+        assert_eq!(
+            snapshot[LIVE_SAMPLE_COUNT - 1],
+            ((LIVE_SAMPLE_COUNT - 1) as f64, 0.25)
+        );
     }
 }
