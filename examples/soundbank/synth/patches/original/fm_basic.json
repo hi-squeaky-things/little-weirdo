@@ -94,9 +94,9 @@
   "fm_config": {
     "enabled": true,
     "carrier_waveform": 0,
-    "modulator_waveform": 11,
-    "modulator_ratio": 2,
-    "modulation_depth_hz": 500
+    "modulator_waveform": 0,
+    "modulator_ratio": 3,
+    "modulation_depth_hz": 200
   },
   "filter_config": {
     "cutoff_frequency": 12000,
