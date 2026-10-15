@@ -119,7 +119,7 @@ struct FmPanel {
     keyboard_octave_shift: i8,
     held_keyboard_notes: HashSet<u8>,
 }
-s
+
 fn main() -> anyhow::Result<()> {
     let (device, config) = setup_device()?;
     let waveform_count = 55u8;
