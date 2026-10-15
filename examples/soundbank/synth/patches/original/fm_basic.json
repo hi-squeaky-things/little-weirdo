@@ -76,14 +76,14 @@
     }
   ],
   "envelops": [
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90},
-    {"attack_time": 1000, "decay_time": 5, "release_time": 10000, "sustain_level": 90}
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90},
+    {"attack_time": 1000, "decay_time": 5, "release_time": 1000, "sustain_level": 90}
   ],
   "lfos": [
     {"soundbank_index": 0, "time": 0},

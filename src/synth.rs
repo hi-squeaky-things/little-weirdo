@@ -1,3 +1,4 @@
+pub mod control;
 pub mod data;
 pub mod envelope;
 pub mod mixer;
@@ -13,7 +14,6 @@ extern crate alloc;
 use alloc::sync::Arc;
 
 use crate::{
-    effects::overdrive::{KindOfOverdrive, OverdriveConfiguration},
     effects::{self, bitcrunch::Bitcrunch, delay::Delay, flanger::Flanger, overdrive::Overdrive},
     math,
     synth::data::patches::{BoxedPatches, Patches},
@@ -79,6 +79,14 @@ pub struct Synth {
 /// Implementation of the LttL Weirdo Wavetable Synthesizer
 ///
 impl Synth {
+    /// Returns a control interface for changing live synthesizer parameters.
+    ///
+    /// This keeps note triggering and audio rendering separate from live
+    /// parameter control at call sites.
+    pub fn control(&mut self) -> control::SynthControl<'_> {
+        control::SynthControl::new(self)
+    }
+
     /// Creates a new instance of the LttL Weirdo Wavetable Synthesizer.
     ///
     /// # Arguments
@@ -506,275 +514,6 @@ impl Synth {
     ///
     pub fn clock_and_output(&mut self) -> [i16; 2] {
         self.clock()
-    }
-
-
-    /// TODO: Make the "external" control API as a seperate module and interface.
-
-    pub fn change_all_voices(&mut self, voice_id: u8) {
-        for i in 0..AMOUNT_OF_VOICES {
-            if self.fm_config.enabled && i % 2 == 1 {
-                continue;
-            }
-            let mut config = self.voices[i].config;
-            config.soundbank_index = voice_id;
-            self.voices[i].reload(config);
-        }
-    }
-
-    /// Change the settings of all envelopes
-    ///
-    pub fn change_all_envelopes(
-        &mut self,
-        attack: Option<u16>,
-        decay: Option<u16>,
-        sustain: Option<i16>,
-        release: Option<u16>,
-    ) {
-        for i in 0..AMOUNT_OF_VOICES {
-            let mut config = self.envelops[i].configuration;
-
-            if let Some(val) = attack {
-                config.attack_time = val;
-            }
-            if let Some(val) = decay {
-                config.decay_time = val;
-            }
-            if let Some(val) = sustain {
-                config.sustain_level = val;
-            }
-            if let Some(val) = release {
-                config.release_time = val;
-            }
-
-            self.envelops[i].update_configuration(config);
-        }
-    }
-
-    pub fn overdrive_settings(&self) -> (bool, u8, u16) {
-        let kind = match self.overdrive.config.kind {
-            KindOfOverdrive::Hard => 0,
-            KindOfOverdrive::Soft => 1,
-            KindOfOverdrive::Softer => 2,
-        };
-        (
-            self.overdrive.config.enabled,
-            kind,
-            self.overdrive.config.threshold,
-        )
-    }
-
-    pub fn toggle_overdrive(&mut self) {
-        let mut config = self.overdrive.config;
-        config.enabled = !config.enabled;
-        self.overdrive.reload(config);
-    }
-
-    pub fn cycle_overdrive_kind(&mut self, clockwise: bool) {
-        let mut config = self.overdrive.config;
-        config.kind = match (config.kind, clockwise) {
-            (KindOfOverdrive::Hard, true) | (KindOfOverdrive::Softer, false) => {
-                KindOfOverdrive::Soft
-            }
-            (KindOfOverdrive::Soft, true) => KindOfOverdrive::Softer,
-            (KindOfOverdrive::Soft, false) => KindOfOverdrive::Hard,
-            (KindOfOverdrive::Softer, true) => KindOfOverdrive::Hard,
-            (KindOfOverdrive::Hard, false) => KindOfOverdrive::Softer,
-        };
-        self.overdrive.reload(config);
-    }
-
-    pub fn adjust_overdrive_threshold(&mut self, clockwise: bool) {
-        const THRESHOLD_STEP: u16 = 250;
-        let mut config: OverdriveConfiguration = self.overdrive.config;
-        config.threshold = if clockwise {
-            config
-                .threshold
-                .saturating_add(THRESHOLD_STEP)
-                .min(i16::MAX as u16)
-        } else {
-            config.threshold.saturating_sub(THRESHOLD_STEP)
-        };
-        self.overdrive.reload(config);
-    }
-
-    pub fn delay_settings(&self) -> (bool, u16, u8, u8) {
-        (
-            self.delay.config.enabled,
-            self.delay.config.delay_time,
-            self.delay.config.mix_percentage,
-            if self.delay.config.feedback {
-                self.delay.config.feedback_percentage
-            } else {
-                0
-            },
-        )
-    }
-
-    pub fn fm_settings(&self) -> (bool, u8, u8, u16) {
-        (
-            self.fm_config.enabled,
-            self.fm_config.modulator_waveform,
-            self.fm_config.modulator_ratio,
-            self.fm_config.modulation_depth_hz,
-        )
-    }
-
-    pub fn adjust_fm_modulator_waveform(&mut self, clockwise: bool) {
-        if !self.fm_config.enabled || self.waveform_count == 0 {
-            return;
-        }
-
-        let waveform_count = self.waveform_count.min(u8::MAX as usize + 1);
-        let current = self.fm_config.modulator_waveform as usize % waveform_count;
-        self.fm_config.modulator_waveform = if clockwise {
-            ((current + 1) % waveform_count) as u8
-        } else {
-            ((current + waveform_count - 1) % waveform_count) as u8
-        };
-
-        for index in (1..self.voices.len()).step_by(2) {
-            self.voices[index].change_waveform(self.fm_config.modulator_waveform);
-        }
-    }
-
-    pub fn fm_carrier_waveform(&self) -> u8 {
-        self.fm_config.carrier_waveform
-    }
-
-    pub fn adjust_fm_carrier_waveform(&mut self, clockwise: bool) {
-        if !self.fm_config.enabled || self.waveform_count == 0 {
-            return;
-        }
-
-        let waveform_count = self.waveform_count.min(u8::MAX as usize + 1);
-        let current = self.fm_config.carrier_waveform as usize % waveform_count;
-        self.fm_config.carrier_waveform = if clockwise {
-            ((current + 1) % waveform_count) as u8
-        } else {
-            ((current + waveform_count - 1) % waveform_count) as u8
-        };
-
-        for index in (0..self.voices.len()).step_by(2) {
-            self.voices[index].change_waveform(self.fm_config.carrier_waveform);
-        }
-    }
-
-    pub fn adjust_fm_modulator_ratio(&mut self, clockwise: bool) {
-        if !self.fm_config.enabled {
-            return;
-        }
-
-        self.fm_config.modulator_ratio = if clockwise {
-            self.fm_config.modulator_ratio.max(1).saturating_add(1)
-        } else {
-            self.fm_config
-                .modulator_ratio
-                .max(1)
-                .saturating_sub(1)
-                .max(1)
-        };
-
-        let voices_per_note = self.voices_per_note();
-        let max_active_notes = self.max_active_notes();
-        for (note_index, &note) in self.active_note.iter().take(max_active_notes).enumerate() {
-            if note == 0 {
-                continue;
-            }
-            for pair_offset in (0..voices_per_note).step_by(2) {
-                let carrier_index = note_index * voices_per_note + pair_offset;
-                let modulator_index = carrier_index + 1;
-                let freq =
-                    MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
-                let tuned_frequency = (freq as i32
-                    + self.voices[carrier_index].config.freq_detune as i32)
-                    .clamp(0, u16::MAX as i32) as u16;
-                let modulator_frequency = (tuned_frequency as u32
-                    * self.fm_config.modulator_ratio.max(1) as u32)
-                    .min(u16::MAX as u32) as u16;
-                self.voices[modulator_index].change_freq(modulator_frequency);
-            }
-        }
-    }
-
-    pub fn adjust_fm_modulation_depth(&mut self, clockwise: bool) {
-        if !self.fm_config.enabled {
-            return;
-        }
-
-        self.fm_config.modulation_depth_hz = if clockwise {
-            self.fm_config.modulation_depth_hz.saturating_add(10)
-        } else {
-            self.fm_config.modulation_depth_hz.saturating_sub(10)
-        };
-    }
-
-    pub fn toggle_delay(&mut self) {
-        let mut config = self.delay.config;
-        config.enabled = !config.enabled;
-        self.delay.reload(config, self.sample_rate);
-    }
-
-    pub fn adjust_delay_time(&mut self, clockwise: bool) {
-        const DELAY_TIME_STEP_MS: u16 = 10;
-        let mut config = self.delay.config;
-        config.delay_time = if clockwise {
-            config
-                .delay_time
-                .saturating_add(DELAY_TIME_STEP_MS)
-                .min(5000)
-        } else {
-            config
-                .delay_time
-                .saturating_sub(DELAY_TIME_STEP_MS)
-                .max(DELAY_TIME_STEP_MS)
-        };
-        self.delay.reload(config, self.sample_rate);
-    }
-
-    pub fn adjust_delay_mix(&mut self, clockwise: bool) {
-        let mut config = self.delay.config;
-        config.mix_percentage = if clockwise {
-            config.mix_percentage.saturating_add(1).min(100)
-        } else {
-            config.mix_percentage.saturating_sub(1)
-        };
-        self.delay.reload(config, self.sample_rate);
-    }
-
-    pub fn adjust_delay_feedback(&mut self, clockwise: bool) {
-        let mut config = self.delay.config;
-        let current_feedback = if config.feedback {
-            config.feedback_percentage
-        } else {
-            0
-        };
-        config.feedback_percentage = if clockwise {
-            current_feedback.saturating_add(1).min(100)
-        } else {
-            current_feedback.saturating_sub(1)
-        };
-        config.feedback = config.feedback_percentage != 0;
-        self.delay.reload(config, self.sample_rate);
-    }
-
-    /// Change the main volume of the synthesizer
-    pub fn change_main_volume(&mut self, velocity: u8) {
-        self.mixer.config.gain_main = velocity;
-    }
-
-    /// Change the filter cutoff frequency
-    pub fn change_cutoff(&mut self, velocity: u8) {
-        let mut config = self.filter.config;
-        config.cutoff_frequency = velocity as u16 * 255;
-        self.filter.reload(config);
-    }
-
-    /// Change the filter resonance
-    pub fn change_resonance(&mut self, velocity: u8) {
-        let mut config = self.filter.config;
-        config.resonance = velocity as u16 * 255;
-        self.filter.reload(config);
     }
 
     /// Check if the note is within the valid range (C0 to C8)

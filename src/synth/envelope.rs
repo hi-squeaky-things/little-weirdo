@@ -6,7 +6,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::{math, Clockable};
+use super::Clockable;
 
 /// Represents the different states an envelope can be in
 #[derive(PartialEq)]
@@ -87,8 +87,6 @@ impl Clockable for EnvelopeGenerator {
                     output = self.configuration.sustain_level as u32;
                     self.transistion_state(EnvelopeState::Sustain);
                 } else {
-                    let remaining =
-                        self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
                     let drop_amount = 100 - self.configuration.sustain_level as u32;
                     let current_drop = (drop_amount as u64 * self.cumulative_time_tick as u64)
                         / self.cumulative_time_ticks_for_one_phase as u64;
@@ -107,9 +105,9 @@ impl Clockable for EnvelopeGenerator {
                 } else {
                     let remaining =
                         self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
-                    output = ((self.release_level as u64 * remaining as u64)
-                        / self.cumulative_time_ticks_for_one_phase as u64)
-                        as u32;
+                    let scaled_level = self.release_level as u64 * remaining as u64;
+                    let duration = self.cumulative_time_ticks_for_one_phase as u64;
+                    output = ((scaled_level + duration - 1) / duration) as u32;
                 }
             }
             EnvelopeState::Idle => {}

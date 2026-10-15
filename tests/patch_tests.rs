@@ -3,7 +3,6 @@ use little_weirdo::synth::{
         patches::{BoxedPatch, BoxedPatches},
         waveforms::{BoxedWaveform, BoxedWaveforms},
     },
-    mixer::{Mixer, MixerConfiguration},
     noise::NoiseKind,
     patch::{Patch, SynthMode},
     Synth, AMOUNT_OF_VOICES,
@@ -28,8 +27,6 @@ fn test_patch_deserialization_json() {
     assert_eq!(patch.flanger_config.depth_ms, 5);
     assert_eq!(patch.flanger_config.rate_hz, 5);
     assert_eq!(patch.flanger_config.mix_percentage, 40);
-    assert!(patch.mixer_config.avc_enabled);
-    assert_eq!(patch.mixer_config.avc_decay_time_ms, 50);
     assert!(!patch.fm_config.enabled);
     assert_eq!(patch.fm_config.carrier_waveform, 0);
     assert_eq!(patch.fm_config.modulator_waveform, 0);
@@ -199,7 +196,7 @@ fn fm_carrier_waveform_is_used_and_can_be_changed_at_runtime() {
     alternate_patches.add(BoxedPatch::new(alternate_carrier_patch));
     let mut alternate_synth = Synth::new(44_100, 0, Arc::new(alternate_patches), waveforms);
 
-    assert_eq!(synth.fm_carrier_waveform(), 0);
+    assert_eq!(synth.control().fm_carrier_waveform(), 0);
     synth.note_on(60, 127);
     alternate_synth.note_on(60, 127);
     let output_differs =
@@ -207,10 +204,13 @@ fn fm_carrier_waveform_is_used_and_can_be_changed_at_runtime() {
 
     assert!(output_differs);
 
-    synth.adjust_fm_carrier_waveform(true);
-    assert_eq!(synth.fm_carrier_waveform(), 1);
-    synth.adjust_fm_carrier_waveform(false);
-    assert_eq!(synth.fm_carrier_waveform(), 0);
+    {
+        let mut control = synth.control();
+        control.adjust_fm_carrier_waveform(true);
+        assert_eq!(control.fm_carrier_waveform(), 1);
+        control.adjust_fm_carrier_waveform(false);
+        assert_eq!(control.fm_carrier_waveform(), 0);
+    }
 }
 
 #[test]
@@ -305,60 +305,4 @@ fn test_synth_mode_polyphony_matches_expected_note_limits() {
     assert_eq!(SynthMode::BiPoly.max_active_notes(), 2);
     assert_eq!(SynthMode::QuadPoly.max_active_notes(), 4);
     assert_eq!(SynthMode::OctoPoly.max_active_notes(), 8);
-}
-
-#[test]
-fn test_mixer_avc_divides_voice_gain_by_active_notes() {
-    let mixer = Mixer::new(MixerConfiguration {
-        gain_voices: [100; AMOUNT_OF_VOICES],
-        gain_main: 100,
-        avc_enabled: true,
-        avc_decay_time_ms: 0,
-        balance: 100,
-    });
-
-    let mut mixer = mixer;
-    mixer.update_avc(1, 44_100);
-    assert_eq!(mixer.apply_voice_gain(1_000, 100), 1_000);
-    mixer.update_avc(2, 44_100);
-    assert_eq!(mixer.apply_voice_gain(1_000, 100), 500);
-    mixer.update_avc(4, 44_100);
-    assert_eq!(mixer.apply_voice_gain(1_000, 100), 250);
-    assert_eq!(mixer.apply_voice_gain(1_000, 80), 200);
-    mixer.update_avc(0, 44_100);
-    assert_eq!(mixer.apply_voice_gain(1_000, 100), 0);
-}
-
-#[test]
-fn test_mixer_can_disable_avc() {
-    let mixer = Mixer::new(MixerConfiguration {
-        gain_voices: [100; AMOUNT_OF_VOICES],
-        gain_main: 100,
-        avc_enabled: false,
-        avc_decay_time_ms: 0,
-        balance: 100,
-    });
-
-    let mut mixer = mixer;
-    mixer.update_avc(4, 44_100);
-    assert_eq!(mixer.apply_voice_gain(1_000, 80), 800);
-}
-
-#[test]
-fn test_mixer_avc_changes_over_configured_decay_time() {
-    let mut mixer = Mixer::new(MixerConfiguration {
-        gain_voices: [100; AMOUNT_OF_VOICES],
-        gain_main: 100,
-        avc_enabled: true,
-        avc_decay_time_ms: 10,
-        balance: 100,
-    });
-
-    mixer.update_avc(2, 1_000);
-    assert_eq!(mixer.apply_voice_gain(1_000, 100), 900);
-
-    for _ in 0..9 {
-        mixer.update_avc(2, 1_000);
-    }
-    assert_eq!(mixer.apply_voice_gain(1_000, 100), 500);
 }
