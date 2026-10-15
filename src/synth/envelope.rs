@@ -107,7 +107,7 @@ impl Clockable for EnvelopeGenerator {
                         self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
                     let scaled_level = self.release_level as u64 * remaining as u64;
                     let duration = self.cumulative_time_ticks_for_one_phase as u64;
-                    output = ((scaled_level + duration - 1) / duration) as u32;
+                    output = scaled_level.div_ceil(duration) as u32;
                 }
             }
             EnvelopeState::Idle => {}

@@ -269,37 +269,10 @@
             7
         ],
         "lfo_to_voice": [
-            {
-                "voices": [
-                    0,
-                    1
-                ],
-                "enable": true
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            }
+            0, -1, -1, -1, -1, -1, -1, -1
         ],
-        "lfo_to_filter": true,
-        "lfo_to_freq": true,
+        "lfo_to_filter": 0,
+        "lfo_to_freq": 0,
         "lfo_to_freq_amount": 5
     },
     "synth_config": {

@@ -1,16 +1,8 @@
-use std::{fs, sync::Arc};
-
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use little_weirdo::{
-    effects::{
-        bitcrunch::{Bitcrunch, BitcrunchConfiguration},
-        delay::{Delay, DelayConfiguration},
-        Effect,
-    },
-    synth::{
-        self,
-        data::waveforms::{BoxedWaveform, BoxedWaveforms},
-    },
+use little_weirdo::effects::{
+    bitcrunch::{Bitcrunch, BitcrunchConfiguration},
+    delay::{Delay, DelayConfiguration},
+    Effect,
 };
 use rand::rngs::SmallRng;
 use rand::{RngExt, SeedableRng};

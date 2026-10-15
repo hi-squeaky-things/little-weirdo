@@ -64,8 +64,6 @@ pub struct Synth {
     flanger: Flanger,
     /// Mixer for combining audio signals
     mixer: Mixer,
-    /// Velocity of the currently playing note
-    velocity: u8,
     /// Array tracking active notes
     active_note: [u8; AMOUNT_OF_VOICES],
     /// Current operating mode of the synthesizer
@@ -116,7 +114,6 @@ impl Synth {
             delay: Delay::new(patch.delay_config, sample_rate),
             flanger: Flanger::new(patch.flanger_config, sample_rate),
             router: Router::new(patch.routering_config),
-            velocity: 0,
             active_note: [0; AMOUNT_OF_VOICES],
             voice_velocities: [0; AMOUNT_OF_VOICES],
             mode: patch.synth_config.mode,
@@ -501,10 +498,6 @@ impl Synth {
             }
             None => 255,
         }
-    }
-
-    fn active_note_count(&self) -> usize {
-        self.active_note.iter().filter(|note| **note != 0).count()
     }
 
     ///
