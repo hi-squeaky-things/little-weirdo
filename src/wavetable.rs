@@ -122,17 +122,17 @@ impl WavetableSynth {
         // sampler
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
-        let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
+        let mut generate_env: [u32; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut voice_mix: i32 = 0;
 
         for i in 0..AMOUNT_OF_VOICES {
             generate_voices[i] = self.sample_voices[i].clock(None);
-            generate_env[i] = self.envelops[i].clock(None);
+            generate_env[i] = self.envelops[i].clock_fixed();
         }
 
         // Run and route voices through envelopes and apply gain
         for i in 0..AMOUNT_OF_VOICES {
-            generate_voices[i] = math::percentage(generate_voices[i], generate_env[i]);
+            generate_voices[i] = math::envelope_level(generate_voices[i], generate_env[i]);
             generate_voices[i] = math::percentage(generate_voices[i], 25);
             voice_mix += generate_voices[i] as i32;
         }

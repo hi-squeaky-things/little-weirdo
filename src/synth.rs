@@ -277,7 +277,7 @@ impl Synth {
 
         let mut generate_voices: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut generate_lfos: [i16; AMOUNT_OF_VOICES / 2] = [0; AMOUNT_OF_VOICES / 2];
-        let mut generate_env: [i16; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
+        let mut generate_env: [u32; AMOUNT_OF_VOICES] = [0; AMOUNT_OF_VOICES];
         let mut sound_mixing: [i16; AMOUNT_OF_OUTPUT_CHANNELS] = [0; AMOUNT_OF_OUTPUT_CHANNELS];
         let mut voice_mix: i32 = 0;
         let mut mono_sound: i16;
@@ -298,7 +298,7 @@ impl Synth {
             }
         }
         for (envelope, env_output) in self.envelops.iter_mut().zip(generate_env.iter_mut()) {
-            *env_output = envelope.clock(None);
+            *env_output = envelope.clock_fixed();
         }
 
         // Process LFOs
@@ -327,7 +327,7 @@ impl Synth {
             if self.fm_config.enabled && i % 2 == 1 {
                 continue;
             }
-            *voice_output = math::percentage(
+            *voice_output = math::envelope_level(
                 *voice_output,
                 if self.fm_config.enabled {
                     generate_env[i]
