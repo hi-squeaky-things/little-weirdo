@@ -30,6 +30,6 @@ impl Mixer {
     }
 
     pub fn apply_voice_gain(&self, sample: i16, voice_gain: u8) -> i16 {
-        (sample as i64 * voice_gain as i64 / 1_000) as i16
+        (sample as i64 * voice_gain as i64 / 1_00) as i16
     }
 }

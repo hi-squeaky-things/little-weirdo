@@ -95,8 +95,8 @@
     "enabled": true,
     "carrier_waveform": 0,
     "modulator_waveform": 0,
-    "modulator_ratio": 3,
-    "modulation_depth_hz": 200
+    "modulator_ratio": 1,
+    "modulation_depth_hz": 0
   },
   "filter_config": {
     "cutoff_frequency": 12000,
@@ -105,8 +105,8 @@
     "enabled": false
   },
   "mixer_config": {
-    "gain_voices": [80, 0, 80, 0, 80, 0, 80, 0],
-    "gain_main": 80
+    "gain_voices": [100, 0, 100, 0, 100, 0, 100, 0],
+    "gain_main": 100
   },
   "overdrive_config": {
     "threshold": 2000,
