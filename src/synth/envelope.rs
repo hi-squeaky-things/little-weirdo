@@ -87,28 +87,29 @@ impl Clockable for EnvelopeGenerator {
                     output = self.configuration.sustain_level as u32;
                     self.transistion_state(EnvelopeState::Sustain);
                 } else {
-                    let remaining = self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
+                    let remaining =
+                        self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
                     let drop_amount = 100 - self.configuration.sustain_level as u32;
-                    let current_drop = (drop_amount as u64 * self.cumulative_time_tick as u64) 
+                    let current_drop = (drop_amount as u64 * self.cumulative_time_tick as u64)
                         / self.cumulative_time_ticks_for_one_phase as u64;
                     output = 100 - current_drop as u32;
-    
                 }
             }
             EnvelopeState::Sustain => {
                 output = self.configuration.sustain_level as u32;
             }
-            
+
             EnvelopeState::Release => {
                 if self.cumulative_time_tick >= self.cumulative_time_ticks_for_one_phase {
                     output = 0;
                     self.transistion_state(EnvelopeState::Idle);
                     self.cumulative_time_ticks_for_one_phase = 0;
                 } else {
-                    let remaining = self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
-                    output = ((self.release_level as u64 * remaining as u64) 
-                        / self.cumulative_time_ticks_for_one_phase as u64) as u32;
-     
+                    let remaining =
+                        self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
+                    output = ((self.release_level as u64 * remaining as u64)
+                        / self.cumulative_time_ticks_for_one_phase as u64)
+                        as u32;
                 }
             }
             EnvelopeState::Idle => {}
@@ -185,17 +186,16 @@ impl EnvelopeGenerator {
             return;
         };
 
-            self.cumulative_time_tick = 0;
-            self.gate = false;
-            if self.configuration.release_time > 0 {
-                self.state = EnvelopeState::Release;
-                self.release_level = self.current_output_level_percentage;
-                self.cumulative_time_ticks_for_one_phase =
-                    self.duration_in_ticks(self.configuration.release_time as u32);
-            } else {
-                self.state = EnvelopeState::Idle;
-            }
-
+        self.cumulative_time_tick = 0;
+        self.gate = false;
+        if self.configuration.release_time > 0 {
+            self.state = EnvelopeState::Release;
+            self.release_level = self.current_output_level_percentage;
+            self.cumulative_time_ticks_for_one_phase =
+                self.duration_in_ticks(self.configuration.release_time as u32);
+        } else {
+            self.state = EnvelopeState::Idle;
+        }
     }
 
     /// Transition to decay phase from attack phase

@@ -39,7 +39,7 @@ pub struct Synth {
     sample_rate: u16,
     /// Array of waveform oscillators for generating sounds
     voices: [waveform_oscillator::WaveformOscillator; AMOUNT_OF_VOICES],
-        /// Per-voice velocity tracking to prevent release cutoffs
+    /// Per-voice velocity tracking to prevent release cutoffs
     voice_velocities: [u8; AMOUNT_OF_VOICES],
 
     fm_config: FmConfiguration,
@@ -397,13 +397,13 @@ impl Synth {
         if self.range_safeguard(note) {
             return;
         };
-        
+
         let voices_per_note = self.voices_per_note();
         let id = self.add_note(note);
         if id != 255 {
             self.delay.reset();
             self.flanger.reset();
-            
+
             // Calculate normalized velocity once (0-100%)
             let norm_velocity = (velocity as u32 * 1_000 / 1_270) as u8;
 
@@ -411,28 +411,36 @@ impl Synth {
                 for i in (0..voices_per_note).step_by(2) {
                     let carrier_index = id * voices_per_note + i;
                     let modulator_index = carrier_index + 1;
-                    
+
                     self.voice_velocities[carrier_index] = norm_velocity;
                     self.voice_velocities[modulator_index] = 0; // Modulators don't carry amplitude
-                    
-                    let freq = MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
-                    let tuned_frequency = (freq as i32 + self.voices[carrier_index].config.freq_detune as i32).clamp(0, u16::MAX as i32) as u16;
+
+                    let freq =
+                        MIDI2FREQ[(note as i8 + self.voices[carrier_index].config.detune) as usize];
+                    let tuned_frequency = (freq as i32
+                        + self.voices[carrier_index].config.freq_detune as i32)
+                        .clamp(0, u16::MAX as i32) as u16;
                     self.voices[carrier_index].change_freq(tuned_frequency);
-                    
-                    let modulator_frequency = (tuned_frequency as u32 * self.fm_config.modulator_ratio.max(1) as u32).min(u16::MAX as u32) as u16;
+
+                    let modulator_frequency = (tuned_frequency as u32
+                        * self.fm_config.modulator_ratio.max(1) as u32)
+                        .min(u16::MAX as u32) as u16;
                     self.voices[modulator_index].change_freq(modulator_frequency);
-                    
+
                     self.envelops[carrier_index].open_gate();
                 }
             } else {
                 for i in 0..voices_per_note {
                     let voice_index = id * voices_per_note + i;
                     let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
-                    
+
                     self.voice_velocities[voice_index] = norm_velocity;
-                    
-                    let freq: u16 = MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
-                    self.voices[voice_index].change_freq((freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16);
+
+                    let freq: u16 =
+                        MIDI2FREQ[(note as i8 + self.voices[voice_index].config.detune) as usize];
+                    self.voices[voice_index].change_freq(
+                        (freq as i16 + self.voices[voice_index].config.freq_detune as i16) as u16,
+                    );
                     self.envelops[env_index].open_gate();
                 }
             }
@@ -443,18 +451,18 @@ impl Synth {
         let voices_per_note = self.voices_per_note();
         let id = self.remove_note(note);
         if id != 255 {
-        /*     if self.fm_config.enabled {
-                for i in (0..voices_per_note).step_by(2) {
-                    let carrier_index = id * voices_per_note + i;
-                    self.envelops[carrier_index].close_gate();
-                }
-            } else {
-           */
-                for i in 0..voices_per_note {
-                    let voice_index = id * voices_per_note + i;
-                    let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
-                    self.envelops[env_index].close_gate();
-                }
+            /*     if self.fm_config.enabled {
+                 for i in (0..voices_per_note).step_by(2) {
+                     let carrier_index = id * voices_per_note + i;
+                     self.envelops[carrier_index].close_gate();
+                 }
+             } else {
+            */
+            for i in 0..voices_per_note {
+                let voice_index = id * voices_per_note + i;
+                let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
+                self.envelops[env_index].close_gate();
+            }
             //}
         }
     }
@@ -499,6 +507,9 @@ impl Synth {
     pub fn clock_and_output(&mut self) -> [i16; 2] {
         self.clock()
     }
+
+
+    /// TODO: Make the "external" control API as a seperate module and interface.
 
     pub fn change_all_voices(&mut self, voice_id: u8) {
         for i in 0..AMOUNT_OF_VOICES {
