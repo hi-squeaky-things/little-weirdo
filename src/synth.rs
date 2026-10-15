@@ -456,19 +456,18 @@ impl Synth {
         let voices_per_note = self.voices_per_note();
         let id = self.remove_note(note);
         if id != 255 {
-            /*     if self.fm_config.enabled {
-                 for i in (0..voices_per_note).step_by(2) {
-                     let carrier_index = id * voices_per_note + i;
-                     self.envelops[carrier_index].close_gate();
-                 }
-             } else {
-            */
-            for i in 0..voices_per_note {
-                let voice_index = id * voices_per_note + i;
-                let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
-                self.envelops[env_index].close_gate();
+            if self.fm_config.enabled {
+                for i in (0..voices_per_note).step_by(2) {
+                    let carrier_index = id * voices_per_note + i;
+                    self.envelops[carrier_index].close_gate();
+                }
+            } else {
+                for i in 0..voices_per_note {
+                    let voice_index = id * voices_per_note + i;
+                    let env_index = self.router.config.voices_to_envelop[voice_index] as usize;
+                    self.envelops[env_index].close_gate();
+                }
             }
-            //}
         }
     }
 
@@ -516,5 +515,59 @@ impl Synth {
             return true;
         }
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        data::{
+            patches::{BoxedPatch, BoxedPatches},
+            waveforms::{BoxedWaveform, BoxedWaveforms},
+        },
+        patch::{Patch, SynthMode},
+        Arc, Synth,
+    };
+
+    #[test]
+    fn fm_note_off_closes_the_released_notes_carrier_envelope() {
+        let mut patch: Patch = serde_json::from_slice(include_bytes!(
+            "../examples/soundbank/synth/patches/original/bass.json"
+        ))
+        .unwrap();
+        patch.fm_config.enabled = true;
+        patch.synth_config.mode = SynthMode::QuadPoly;
+        patch.routering_config.voices_to_envelop = [0, 0, 0, 3, 4, 5, 6, 7];
+        for envelope in &mut patch.envelops {
+            envelope.attack_time = 0;
+            envelope.decay_time = 0;
+            envelope.release_time = 5;
+            envelope.sustain_level = 100;
+        }
+
+        let mut patches = BoxedPatches::new();
+        patches.add(BoxedPatch::new(patch));
+        let mut waveforms = BoxedWaveforms::new();
+        waveforms.add(BoxedWaveform::new(include_bytes!(
+            "../examples/soundbank/synth/waveforms/src/000_sample.raw"
+        )));
+        let mut synth = Synth::new(44_100, 0, Arc::new(patches), Arc::new(waveforms));
+
+        synth.note_on(60, 127);
+        synth.note_on(64, 127);
+        for _ in 0..2 {
+            for envelope in &mut synth.envelops {
+                envelope.clock_fixed();
+            }
+        }
+
+        synth.note_off(64);
+        let mut released_level = 0;
+        for _ in 0..=220 {
+            released_level = synth.envelops[2].clock_fixed();
+        }
+
+        assert_eq!(released_level, 0);
+        assert!(synth.envelops[0].clock_fixed() > 0);
     }
 }
