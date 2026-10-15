@@ -603,12 +603,12 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
     for (index, key_area) in key_areas.iter().enumerate() {
         let note = keyboard_note(index as u8, panel.keyboard_octave_shift);
         let active = panel.held_keyboard_notes.contains(&note);
-        let key = Paragraph::new(format!("{}\n{}", index + 1, midi_note_name(note)))
+        let key = Paragraph::new(format!("♪ {} ♪", midi_note_name(note)))
             .alignment(Alignment::Center)
             .style(if active {
                 Style::default()
                     .fg(Color::Black)
-                    .bg(Color::Green)
+                    .bg(Color::LightMagenta)
                     .add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(Color::White)
