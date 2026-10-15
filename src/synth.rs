@@ -406,8 +406,6 @@ impl Synth {
         let voices_per_note = self.voices_per_note();
         let id = self.add_note(note);
         if id != 255 {
-            self.delay.reset();
-            self.flanger.reset();
 
             // Calculate normalized velocity once (0-100%)
             let norm_velocity = (velocity as u32 * 1_000 / 1_270) as u8;
