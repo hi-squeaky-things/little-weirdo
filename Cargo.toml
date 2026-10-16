@@ -1,6 +1,6 @@
 [package]
 name = "little_weirdo"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["Daniël⚡ <daniel@hi-squeaky-things.nl>"]
 description = "A Rust #no-std optimized wave table synthesizer for embedded devices."
