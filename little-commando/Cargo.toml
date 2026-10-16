@@ -1,0 +1,26 @@
+[package]
+name = "little-commando"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hound = "3.5.1"
+cpal = "0.17.1"
+anyhow = "1.0.104"
+clap = { version = "4.6.6", features = ["derive"] }
+console = "0.16.4"
+crossterm = "0.28.1"
+midir = "0.11.0"
+midi-control = "0.2.3"
+ratatui = "0.29.0"
+serde_json = "1.0.151"
+criterion = "0.8.2"
+embedded-storage = "0.3.1"
+embassy-embedded-hal = "0.6.0"
+link_args = { version = "0.6.0", default-features = false }
+tokio = { version = "1.53.1", features = ["full"] }
+embassy-sync = "0.8.0"
+soundfont = "0.1.0"
+embedded-io-cursor = { version = "0.1.0", features = ["std"] }
+embedded-io = { version = "0.7.1", features = ["std"] }
+little_weirdo = "0.1.4"

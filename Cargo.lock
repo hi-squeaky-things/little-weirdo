@@ -1039,6 +1039,44 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d26c52dbd32dccf2d10cac7725f8eae5296885fb5703b261f7d0a0739ec807ab"
 
 [[package]]
+name = "little-commando"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "console",
+ "cpal",
+ "criterion",
+ "crossterm",
+ "embassy-embedded-hal",
+ "embassy-sync",
+ "embedded-io 0.7.1",
+ "embedded-io-cursor",
+ "embedded-storage",
+ "hound",
+ "link_args",
+ "little_weirdo 0.1.4",
+ "midi-control",
+ "midir 0.11.0",
+ "ratatui",
+ "serde_json",
+ "soundfont",
+ "tokio",
+]
+
+[[package]]
+name = "little_weirdo"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "821fd79e3c8e766ff0c29a86045be0188b4693447ee6292e1b775dcacd1d58d0"
+dependencies = [
+ "array-init",
+ "postcard",
+ "rand",
+ "serde",
+]
+
+[[package]]
 name = "little_weirdo"
 version = "0.1.5"
 dependencies = [
