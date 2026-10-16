@@ -13,9 +13,11 @@ pub enum KindOfOverdrive {
 // Runtime settings for the effect: when enabled and how aggressively it should clip.
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct OverdriveConfiguration {
-    pub threshold: i16,
+    pub threshold: u16,
     pub kind: KindOfOverdrive,
     pub enabled: bool,
+    #[serde(default)]
+    pub gain_percentage: u8,
 }
 
 // Effect instance holding the active configuration.
@@ -40,15 +42,15 @@ impl Effect for Overdrive {
         let kind = self.config.kind;
 
         // Ignore the effect when disabled or when the input is still within the threshold.
-        if !self.config.enabled || sample.abs() <= threshold {
+        if !self.config.enabled || sample.unsigned_abs() <= threshold {
             return sample;
         }
 
         // Keep the sample sign and calculate the absolute magnitude for clipping math.
         let sign = sample.signum();
-        let magnitude = sample.abs() as i32;
+        let magnitude = sample.unsigned_abs() as i32;
 
-        match kind {
+        let processed_sample = match kind {
             // Hard clipping: flatten anything above the threshold to a fixed ceiling.
             KindOfOverdrive::Hard => sign * threshold as i32 as i16,
             // Soft clipping: compress the excess gradually before the threshold is reached.
@@ -61,6 +63,10 @@ impl Effect for Overdrive {
                 let value = ((magnitude - threshold as i32) / 8) + threshold as i32;
                 sign * value as i16
             }
-        }
+        };
+
+        let gain_multiplier = 100 + self.config.gain_percentage.min(100) as i32;
+        (processed_sample as i32 * gain_multiplier / 100).clamp(i16::MIN as i32, i16::MAX as i32)
+            as i16
     }
 }

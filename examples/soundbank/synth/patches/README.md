@@ -61,11 +61,35 @@ Global filter settings:
 Controls output levels:
 - `gain_voices`: Per-voice gain (0-100)
 - `gain_main`: Main output gain (0-100)
+- `avc_enabled`: Automatically divides voice gain by the number of active notes
+- `avc_decay_time_ms`: Time in milliseconds used to move AVC toward its new gain
+
+With AVC enabled, one active note uses 100% gain, two active notes use 50%
+each, and so on. The decay time smooths changes when notes are added or
+released. `gain_main` remains the master output control.
 
 ## Effects Configuration
 
-- **Overdrive**: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), and enable flag
+- **Overdrive**: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), enable flag, and makeup gain
+- **Overdrive `gain_percentage`**: Post-effect gain from 0% (unchanged) to 100% (2x amplitude)
 - **Bitcrunch**: 8-bit style bit reduction effect
+- **Delay**: Configurable delay time, mix, and optional feedback
+- **Flanger**: A modulated delay with these fields:
+  - `enabled`: Enable/disable the flanger
+  - `base_delay_time_ms`: Base delay time in milliseconds
+  - `depth_ms`: Modulation depth in milliseconds
+  - `rate_hz`: Modulation rate in Hz
+  - `mix_percentage`: Wet signal level from 0 to 100
+
+The final effect order is overdrive, bitcrunch, delay, flanger, then filter. The flanger defaults to disabled when omitted from an existing patch.
+
+## FM example
+
+`original/fm_basic.json` is a minimal two-operator FM preset. It uses wavetable
+23 for the modulator, a 5:1 modulator ratio, and 500 Hz modulation depth.
+Since the synth reuses oscillator slots in FM mode, the preset uses
+OctoPoly mode (up to four notes, one carrier/modulator pair per note). Its
+Postcard version is `src/fm_basic.lwp`.
 
 ## Routing Configuration
 

@@ -42,7 +42,6 @@ impl Effect for Filter {
 
 impl Filter {
     const SHIFTED_1: u16 = u16::MAX;
-    /// Maximum u16 value
 
     /// Create a new filter with given configuration
     pub fn new(config: FilterConfig) -> Self {

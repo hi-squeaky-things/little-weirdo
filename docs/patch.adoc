@@ -9,7 +9,8 @@ lw_patch.json
 
 Each patch contains 8 voices, each with:
 
-- soundbank_index: Selects wavetable (0-9) or noise (255)
+- soundbank_index: Selects wavetable (0-254) or legacy white noise (255)
+- noise: Selects `None`, `White`, `Pink`, or `Brown`; `None` keeps wavetable behavior
 - glide: Enables pitch glide
 - glide_rate: Controls glide speed
 - detune: Semitone detuning
@@ -19,17 +20,45 @@ Each patch contains 8 voices, each with:
 
 Eight ADSR envelopes control sound shaping:
 
-- attack_time: Attack time in samples
-- decay_time: Decay time in samples
-- release_time: Release time in samples
+- attack_time: Attack time in milliseconds
+- decay_time: Decay time in milliseconds
+- release_time: Release time in milliseconds
 - sustain_level: Sustain level percentage (0-100)
 
 === Low Frequency Oscillators (LFOs)
 
 Four LFOs provide modulation:
 
-- soundbank_index: Wavetable selection (0-9)
-- time: Modulation rate/frequency
+- soundbank_index: Wavetable selection (0-254)
+- time: Oscillation period in hundredths of a second (for example, 100 is 1 second and 500 is 5 seconds; 0 disables the LFO)
+
+LFOs use the same per-sample waveform oscillator as audible voices. Their
+legacy `time` setting is converted to a phase increment, allowing slow
+multi-second modulation periods without reducing the oscillator's audio-rate
+frequency range. Oscillator pitch is represented in fifths of a hertz, from
+0.2 Hz through 13,107 Hz; the usable upper limit is also constrained by the
+configured sample rate.
+
+=== FM Configuration
+
+Optional `fm_config` reuses adjacent slots in the existing eight-oscillator
+voice array as carrier/modulator pairs. The modulator is not mixed directly
+into the output; it frequency-modulates its carrier at audio rate. This
+preserves the oscillator count, with one pair assigned per note. FM supports
+up to four notes; the configured synth mode can impose a lower note limit
+(Mono: 1, BiPoly: 2, QuadPoly: 4, OctoPoly: 4). Omitted settings use defaults,
+and FM is disabled unless `enabled` is true:
+
+- `enabled`: Enable FM for all voices (default `false`)
+- `carrier_waveform`: Wavetable index for each carrier (default `0`)
+- `modulator_waveform`: Wavetable index for the modulator (default `0`, the sine table)
+- `modulator_ratio`: Integer multiplier of the note frequency for the modulator (default `1`; zero is treated as `1`)
+- `modulation_depth_hz`: Peak carrier frequency deviation in Hz (default `100`)
+
+Each carrier uses its corresponding voice envelope and mixer settings; FM
+carrier envelopes are kept per note so unused pairs remain silent. The paired
+modulator uses the configured modulator waveform. It does not yet provide
+independent operator envelopes or multi-operator algorithms.
 
 === Filter Configuration
 
@@ -46,11 +75,24 @@ Controls output levels:
 
 - gain_voices: Per-voice gain (0-100)
 - gain_main: Main output gain (0-100)
+- avc_enabled: Automatically divide voice gain by the number of active notes
+- avc_decay_time_ms: Time in milliseconds used to move AVC toward its new gain
+
+When AVC is enabled, one active note is played at 100%, two active notes at 50%
+each, and so on. `gain_voices` remains the relative gain balance between
+oscillators. `avc_decay_time_ms` smooths changes when notes are added or
+released, while `gain_main` controls the final mixed output level. A value of
+zero applies AVC changes immediately.
 
 === Effects Configuration
 
-- Overdrive: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), and enable flag
+- Overdrive: Distortion with threshold, type ('Soft', 'Hard', 'Softer'), enable flag, and makeup gain
+- Overdrive `gain_percentage`: Post-effect gain from 0% (unchanged) to 100% (2x amplitude)
 - Bitcrunch: 8-bit style bit reduction effect
+- Delay: Configurable delay time, mix, and optional feedback
+- Flanger: Modulated delay with `enabled`, `base_delay_time_ms`, `depth_ms`, `rate_hz`, and `mix_percentage`
+
+Flanger delay and depth values are expressed in milliseconds, `rate_hz` is the modulation frequency, and `mix_percentage` ranges from 0 to 100. The processing order is overdrive, bitcrunch, delay, flanger, then filter. Omitting `flanger_config` keeps the effect disabled for compatibility with existing JSON patches.
 
 === Routing Configuration
 
@@ -77,4 +119,3 @@ mode: 'Mono', 'BiPoly', 'QuadPoly', or 'OctoPoly'
 * **OctoPoly** (`mode: 4`): Eight voices can be active at any time. You can use only use 1 oscillator per voice. 
 
 The mode affects how many voices are allocated and how the voices are configured. The voices are distributed across the available voice slots in a round-robin fashion.
-

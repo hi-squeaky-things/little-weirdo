@@ -157,51 +157,51 @@
     ],
     "envelops": [
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 10,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         },
         {
-            "attack_time": 5,
+            "attack_time": 1000,
             "decay_time": 50,
-            "release_time": 250,
+            "release_time": 5000,
             "sustain_level": 80
         }
     ],
@@ -240,7 +240,9 @@
             10,
             10
         ],
-        "gain_main": 50
+        "gain_main": 100,
+        "avc_enabled":  false,
+        "avc_decay_time_ms": 250
     },
     "overdrive_config": {
         "threshold": 2000,
@@ -251,7 +253,7 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": true,
+        "enabled": false,
         "delay_time": 5000,
         "mix_percentage": 70,
         "feedback": true,
@@ -268,39 +270,20 @@
           6,
           7
         ],
-        "lfo_to_voice": [
-            {
-                "voices": [
-                    0,
-                    1
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            }
+       "lfo_to_voice": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
         ],
-        "lfo_to_filter": false,
-        "lfo_to_freq": false,
-        "lfo_to_freq_amount": 5
+        "lfo_to_filter": -1,
+        "lfo_to_freq": -1,
+        "lfo_to_freq_amount": 5,
+        "lfo_to_balance": -1
     },
     "synth_config": {
         "mode": "OctoPoly"

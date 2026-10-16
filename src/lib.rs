@@ -82,7 +82,7 @@
 //! ```rust
 //! use little_weirdo::wavetable::{
 //!     self,
-//!     audio_sampler::{BoxedSample, BoxedSamples},
+//!     sample_voice::{BoxedSample, BoxedSamples},
 //!     data::patches::{BoxedSamplerPatch, BoxedSamplerPatches},
 //!     patch::Patch,
 //! };

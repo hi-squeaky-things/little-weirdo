@@ -25,7 +25,17 @@
               9,
               255
             ],
-            "description": "Index of the wavetable to use for this voice (0-9) / 255 = noise"
+            "description": "Index of the wavetable to use for this voice (0-9) / 255 = legacy white noise"
+          },
+          "noise": {
+            "type": "string",
+            "enum": [
+              "None",
+              "White",
+              "Pink",
+              "Brown"
+            ],
+            "description": "Noise source for this voice; omitted means None"
           },
           "glide": {
             "type": "boolean",
@@ -106,7 +116,8 @@
           },
           "time": {
             "type": "integer",
-            "description": "LFO timing parameter (frequency or rate)"
+            "minimum": 0,
+            "description": "LFO period in hundredths of a second; 0 disables the LFO"
           }
         },
         "required": [
@@ -117,6 +128,50 @@
       "minItems": 4,
       "maxItems": 4,
       "description": "Low Frequency Oscillator configurations (4 LFOs total)"
+    },
+    "fm_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "carrier_waveform": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254,
+          "default": 0,
+          "description": "Wavetable index used by each FM carrier"
+        },
+        "modulator_waveform": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 254,
+          "default": 0,
+          "description": "Wavetable index used by each FM modulator"
+        },
+        "modulator_ratio": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255,
+          "default": 1,
+          "description": "Integer multiplier from note frequency to modulator frequency"
+        },
+        "modulation_depth_hz": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 13107,
+          "default": 100,
+          "description": "Peak carrier frequency deviation in hertz"
+        }
+      },
+      "required": [
+        "enabled",
+        "modulator_waveform",
+        "modulator_ratio",
+        "modulation_depth_hz"
+      ],
+      "description": "Optional two-operator wavetable FM configuration"
     },
     "filter_config": {
       "type": "object",
@@ -165,6 +220,16 @@
         "gain_main": {
           "type": "integer",
           "description": "Main output gain level (0-100)"
+        },
+        "avc_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically divide voice gain by active note count"
+        },
+        "avc_decay_time_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Time in milliseconds used to smooth AVC changes"
         }
       },
       "required": [
@@ -192,6 +257,13 @@
         "enabled": {
           "type": "boolean",
           "description": "Whether overdrive effect is enabled"
+        },
+        "gain_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0,
+          "description": "Makeup gain after overdrive (0% to 100%)"
         }
       },
       "required": [
@@ -214,6 +286,91 @@
       ],
       "description": "Bitcrush effect configuration for reducing audio bit depth (8 bit chip tunes!)"
     },
+    "delay_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the delay effect is enabled"
+        },
+        "delay_time": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Delay time in milliseconds"
+        },
+        "delay_decrease_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage by which feedback decreases during each delay cycle"
+        },
+        "mix_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Delayed signal mix percentage"
+        },
+        "feedback": {
+          "type": "boolean",
+          "description": "Whether processed signal is fed back into the delay"
+        },
+        "feedback_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Feedback signal percentage"
+        }
+      },
+      "required": [
+        "enabled",
+        "delay_time",
+        "mix_percentage",
+        "feedback"
+      ],
+      "description": "Delay and echo effect configuration"
+    },
+    "flanger_config": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the flanger effect is enabled"
+        },
+        "base_delay_time_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "Base flanger delay time in milliseconds"
+        },
+        "depth_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "Flanger delay modulation depth in milliseconds"
+        },
+        "rate_hz": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Flanger modulation rate in Hz; zero disables modulation"
+        },
+        "mix_percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Flanger wet signal mix percentage"
+        }
+      },
+      "required": [
+        "enabled",
+        "base_delay_time_ms",
+        "depth_ms",
+        "rate_hz",
+        "mix_percentage"
+      ],
+      "description": "Modulated delay effect configuration"
+    },
     "routering_config": {
       "type": "object",
       "properties": {
@@ -227,41 +384,9 @@
         "lfo_to_voice": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "voices": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "items": {
-                  "type": "integer",
-                  "enum": [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8,
-                    9,
-                    255
-                  ],
-                  "description": "Voice indices to route LFO to (255 = all voices)"
-                }
-              },
-              "enable": {
-                "type": "boolean",
-                "description": "Enable this LFO-to-voice routing"
-              }
-            },
-            "required": [
-              "voices",
-              "enable"
-            ]
-          },
-          "description": "LFO to voice routing configuration"
+            "type": "integer",
+            "description": "Voice routing to envelope mapping"
+          }
         },
         "lfo_to_filter": {
           "type": "boolean",
@@ -273,7 +398,7 @@
         },
         "lfo_to_freq_amount": {
           "type": "integer",
-          "description": "The amount of frequency modulation applied to oscillators by LFO #0, measured in Hz"
+          "description": "The amount of frequency modulation applied to oscillators in percentage"
         }
       },
       "required": [
@@ -314,6 +439,7 @@
     "mixer_config",
     "overdrive_config",
     "bitcrunch_config",
+    "delay_config",
     "routering_config",
     "synth_config"
   ]

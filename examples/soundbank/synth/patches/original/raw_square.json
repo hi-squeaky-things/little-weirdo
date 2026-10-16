@@ -251,39 +251,20 @@
     },
     "routering_config": {
         "voices_to_envelop": [0,1,0,3,4,5,6,7],
-        "lfo_to_voice": [
-            {
-                "voices": [
-                    0,
-                    255
-                ],
-                "enable": true
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            }
+          "lfo_to_voice": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
         ],
-        "lfo_to_filter": false,
-        "lfo_to_freq": false,
-        "lfo_to_freq_amount": 5
+        "lfo_to_filter": -1,
+        "lfo_to_freq": -1,
+        "lfo_to_freq_amount": 5,
+        "lfo_to_balance": -1
     },
     "synth_config": {
         "mode": "Mono"

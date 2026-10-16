@@ -6,9 +6,13 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::synth::math::percentage;
+use super::Clockable;
 
-use super::{math, Clockable};
+const LEVEL_SCALE: u32 = 1 << 16;
+
+fn level_percentage(level: u32) -> u32 {
+    (level as u64 * 100 / LEVEL_SCALE as u64) as u32
+}
 
 /// Represents the different states an envelope can be in
 #[derive(PartialEq)]
@@ -29,11 +33,11 @@ pub enum EnvelopeState {
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct EnvelopConfiguration {
     /// Time for the attack phase in milliseconds
-    pub attack_time: i16,
+    pub attack_time: u16,
     /// Time for the decay phase in milliseconds  
-    pub decay_time: i16,
+    pub decay_time: u16,
     /// Time for the release phase in milliseconds
-    pub release_time: i16,
+    pub release_time: u16,
     /// Sustain level percentage (0-100)
     pub sustain_level: i16,
 }
@@ -51,100 +55,92 @@ pub struct EnvelopeGenerator {
     state: EnvelopeState,
     /// Cumulative time ticks since last state transition
     cumulative_time_tick: u32,
-    /// Number of time ticks per millisecond based on sample rate
-    amount_of_time_ticks_for_1ms: u16,
-    /// Time ticks needed for one percent increase during phases
-    amout_of_time_ticks_needed_for_one_percent_increase: u32,
-    /// Current output level as percentage (0-100)
-    current_output_level_percentage: i16,
+    /// Sample rate used to convert phase durations to sample ticks
+    sample_rate: u16,
+    /// Current output level, where 0..LEVEL_SCALE represents 0..100%.
+    current_output_level: u32,
     /// Level at which release phase starts
-    release_level: i16,
+    release_level: u32,
     /// Total time ticks for current phase
-    cumalative_time_ticks_for_one_phase: u32,
+    cumulative_time_ticks_for_one_phase: u32,
     /// Level to restart from when retriggering
-    retrigger_level: i16,
-    /// Counter for how many times the gate has been opened
-    gate_open_counter: u8,
+    retrigger_level: u32,
 }
 
 impl Clockable for EnvelopeGenerator {
     // Clock the envelope, return the percentage (0..100%) of the envelope.
     fn clock(&mut self, _sample: Option<i16>) -> i16 {
-        let mut output: u32 = 0;
+        let level = self.clock_fixed();
+        let percentage = level_percentage(level) as i16;
+        if level > 0 {
+            percentage.max(1)
+        } else {
+            percentage
+        }
+    }
+}
 
-        // Silence when we are in the IDLE state.
-        if !self.gate && self.state == EnvelopeState::Idle {
-            return output as i16;
+impl EnvelopeGenerator {
+    /// Advances the envelope and returns its normalized Q16 level (0..65,536).
+    pub(crate) fn clock_fixed(&mut self) -> u32 {
+        let mut output = 0;
+
+        if self.state == EnvelopeState::Idle {
+            return 0;
         }
         match self.state {
             EnvelopeState::Attack => {
-                if self.cumulative_time_tick >= self.cumalative_time_ticks_for_one_phase {
-                    output = 100;
+                if self.cumulative_time_tick >= self.cumulative_time_ticks_for_one_phase {
+                    output = LEVEL_SCALE;
                     self.decay();
                 } else {
-                    let step = self
-                        .amout_of_time_ticks_needed_for_one_percent_increase
-                        .max(1);
-                    if self.amout_of_time_ticks_needed_for_one_percent_increase > 0 {
-                        output = self.retrigger_level as u32 + self.cumulative_time_tick / step;
-                    } else {
-                        output = self.current_output_level_percentage as u32;
-                    }
+                    let attack_range = LEVEL_SCALE - self.retrigger_level;
+                    let progress = self.cumulative_time_tick as u64 * attack_range as u64
+                        / self.cumulative_time_ticks_for_one_phase as u64;
+                    output = self.retrigger_level + progress as u32;
                 }
             }
             EnvelopeState::Decay => {
-                if self.cumulative_time_tick >= self.cumalative_time_ticks_for_one_phase {
-                    output = self.configuration.sustain_level as u32;
+                if self.cumulative_time_tick >= self.cumulative_time_ticks_for_one_phase {
+                    output = self.sustain_level_fixed();
                     self.transistion_state(EnvelopeState::Sustain);
                 } else {
-                    let step = self
-                        .amout_of_time_ticks_needed_for_one_percent_increase
-                        .max(1);
-                    output = 100
-                        - math::percentage(
-                            100 - self.configuration.sustain_level as i16,
-                            (self.cumulative_time_tick / step) as i16,
-                        ) as u32;
+                    let sustain_level = self.sustain_level_fixed();
+                    let drop_amount = LEVEL_SCALE - sustain_level;
+                    let current_drop = (drop_amount as u64 * self.cumulative_time_tick as u64)
+                        / self.cumulative_time_ticks_for_one_phase as u64;
+                    output = LEVEL_SCALE - current_drop as u32;
                 }
             }
             EnvelopeState::Sustain => {
-                output = self.configuration.sustain_level as u32;
+                output = self.sustain_level_fixed();
             }
+
             EnvelopeState::Release => {
-                if self.cumulative_time_tick >= self.cumalative_time_ticks_for_one_phase {
+                if self.cumulative_time_tick >= self.cumulative_time_ticks_for_one_phase {
                     output = 0;
                     self.transistion_state(EnvelopeState::Idle);
-                    self.cumalative_time_ticks_for_one_phase = 0;
+                    self.cumulative_time_ticks_for_one_phase = 0;
                 } else {
-                    let step = self
-                        .amout_of_time_ticks_needed_for_one_percent_increase
-                        .max(1);
-                    //TODO: Weird fix. need better investigation, probably some rounding issue.
-                    if self.cumulative_time_tick / step < 101 {
-                        output = math::percentage(
-                            self.release_level as i16,
-                            (100 - self.cumulative_time_tick / step) as i16,
-                        ) as u32;
-                    } else {
-                        output = 0;
-                    }
+                    let remaining =
+                        self.cumulative_time_ticks_for_one_phase - self.cumulative_time_tick;
+                    let scaled_level = self.release_level as u64 * remaining as u64;
+                    let duration = self.cumulative_time_ticks_for_one_phase as u64;
+                    output = scaled_level.div_ceil(duration) as u32;
                 }
             }
             EnvelopeState::Idle => {}
         }
         self.cumulative_time_tick += 1;
 
-        //safeguard, make sure we never output greater then 100%
-        if output > 100 {
-            output = 100;
-        }
-
-        self.current_output_level_percentage = output as i16;
-        self.current_output_level_percentage
+        self.current_output_level = output.min(LEVEL_SCALE);
+        self.current_output_level
     }
-}
 
-impl EnvelopeGenerator {
+    fn sustain_level_fixed(&self) -> u32 {
+        (self.configuration.sustain_level.clamp(0, 100) as u32 * LEVEL_SCALE) / 100
+    }
+
     /// Creates a new envelope generator with the given configuration and sample rate
     pub fn new(envelop: EnvelopConfiguration, sample_rate: u16) -> Self {
         Self {
@@ -152,13 +148,11 @@ impl EnvelopeGenerator {
             gate: false,
             state: EnvelopeState::Idle,
             cumulative_time_tick: 0,
-            amount_of_time_ticks_for_1ms: sample_rate / 1000,
-            amout_of_time_ticks_needed_for_one_percent_increase: 0,
-            current_output_level_percentage: 0,
+            sample_rate,
+            current_output_level: 0,
             release_level: 0,
-            cumalative_time_ticks_for_one_phase: 0,
+            cumulative_time_ticks_for_one_phase: 0,
             retrigger_level: 0,
-            gate_open_counter: 0,
         }
     }
 
@@ -166,6 +160,22 @@ impl EnvelopeGenerator {
     pub fn reload(&mut self, envelop: EnvelopConfiguration) {
         self.configuration = envelop;
         self.reset();
+    }
+
+    /// Updates the envelope configuration without interrupting its current phase.
+    pub fn update_configuration(&mut self, envelop: EnvelopConfiguration) {
+        let was_releasing = self.state == EnvelopeState::Release;
+        self.configuration = envelop;
+        if was_releasing {
+            self.release_level = self.current_output_level;
+            self.cumulative_time_tick = 0;
+            self.cumulative_time_ticks_for_one_phase =
+                self.duration_in_ticks(self.configuration.release_time as u32);
+        }
+    }
+
+    fn duration_in_ticks(&self, duration_ms: u32) -> u32 {
+        (duration_ms as u64 * self.sample_rate as u64 / 1000).min(u32::MAX as u64) as u32
     }
 
     /// Transitions the envelope to a new state and resets tick counter
@@ -178,12 +188,10 @@ impl EnvelopeGenerator {
         self.gate = false;
         self.state = EnvelopeState::Idle;
         self.cumulative_time_tick = 0;
-        self.amout_of_time_ticks_needed_for_one_percent_increase = 0;
-        self.current_output_level_percentage = 0;
+        self.current_output_level = 0;
         self.release_level = 0;
-        self.cumalative_time_ticks_for_one_phase = 0;
+        self.cumulative_time_ticks_for_one_phase = 0;
         self.retrigger_level = 0;
-        self.gate_open_counter = 0;
     }
 
     /// Closes the gate signal, initiating release phase if configured
@@ -191,72 +199,137 @@ impl EnvelopeGenerator {
         if !self.gate {
             return;
         };
-        if self.gate_open_counter > 0 {
-            self.gate_open_counter -= 1;
-        }
 
-        if self.gate_open_counter == 0 {
-            self.cumulative_time_tick = 0;
-            self.gate = false;
-            if self.configuration.release_time > 0 {
-                self.state = EnvelopeState::Release;
-                self.release_level = if self.release_level != self.configuration.sustain_level {
-                    self.current_output_level_percentage
-                } else {
-                    self.configuration.sustain_level
-                };
-                self.amout_of_time_ticks_needed_for_one_percent_increase =
-                    ((self.configuration.release_time as u32
-                        * self.amount_of_time_ticks_for_1ms as u32)
-                        / 100)
-                        .max(1);
-                self.cumalative_time_ticks_for_one_phase = self.configuration.release_time as u32
-                    * self.amount_of_time_ticks_for_1ms as u32;
-            } else {
-                self.state = EnvelopeState::Idle;
-            }
+        self.cumulative_time_tick = 0;
+        self.gate = false;
+        if self.configuration.release_time > 0 {
+            self.state = EnvelopeState::Release;
+            self.release_level = self.current_output_level;
+            self.cumulative_time_ticks_for_one_phase =
+                self.duration_in_ticks(self.configuration.release_time as u32);
+        } else {
+            self.state = EnvelopeState::Idle;
         }
     }
 
     /// Transition to decay phase from attack phase
     fn decay(&mut self) {
         self.transistion_state(EnvelopeState::Decay);
-        self.amout_of_time_ticks_needed_for_one_percent_increase =
-            ((self.configuration.decay_time as u32 * self.amount_of_time_ticks_for_1ms as u32)
-                / 100)
-                .max(1);
-        self.cumalative_time_ticks_for_one_phase =
-            self.configuration.decay_time as u32 * self.amount_of_time_ticks_for_1ms as u32;
+        self.cumulative_time_ticks_for_one_phase =
+            self.duration_in_ticks(self.configuration.decay_time as u32);
     }
 
     /// Opens the gate signal, initiating attack phase
     pub fn open_gate(&mut self) {
         self.gate = true;
-        self.cumulative_time_tick = 0;
-        self.gate_open_counter += 1;
         self.transistion_state(EnvelopeState::Attack);
-        let mut adjusted_attack_time = self.configuration.attack_time as u32;
-        self.retrigger_level = 0;
-        if self.current_output_level_percentage > 0 {
-            // calculate the remaining slope time to reach 100%
-            let percentage_remaining = 100 - self.current_output_level_percentage;
-            if percentage_remaining > 0 {
-                self.retrigger_level = self.current_output_level_percentage;
-                adjusted_attack_time =
-                    percentage(self.configuration.attack_time, percentage_remaining).max(1) as u32;
-                self.amout_of_time_ticks_needed_for_one_percent_increase =
-                    ((adjusted_attack_time as u32 * self.amount_of_time_ticks_for_1ms as u32)
-                        / percentage_remaining as u32)
-                        .max(1);
-            } else {
-                self.decay();
-            }
-        } else {
-            self.amout_of_time_ticks_needed_for_one_percent_increase =
-                ((adjusted_attack_time as u32 * self.amount_of_time_ticks_for_1ms as u32) / 100)
-                    .max(1);
+        self.retrigger_level = self.current_output_level.min(LEVEL_SCALE);
+        if self.retrigger_level == LEVEL_SCALE {
+            self.decay();
+            return;
         }
-        self.cumalative_time_ticks_for_one_phase =
-            adjusted_attack_time as u32 * self.amount_of_time_ticks_for_1ms as u32;
+
+        let current_level_percentage = level_percentage(self.retrigger_level);
+        let attack_range_percentage = 100 - current_level_percentage;
+        let full_attack_ticks = self.duration_in_ticks(self.configuration.attack_time as u32);
+        let adjusted_attack_ticks =
+            (full_attack_ticks as u64 * attack_range_percentage as u64 / 100) as u32;
+        self.cumulative_time_ticks_for_one_phase = if full_attack_ticks == 0 {
+            0
+        } else {
+            adjusted_attack_ticks.max(1)
+        };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{EnvelopConfiguration, EnvelopeGenerator, LEVEL_SCALE};
+    use crate::synth::Clockable;
+
+    #[test]
+    fn long_release_advances_smoothly_until_its_exact_endpoint() {
+        let mut envelope = EnvelopeGenerator::new(
+            EnvelopConfiguration {
+                attack_time: 0,
+                decay_time: 0,
+                release_time: 60_000,
+                sustain_level: 100,
+            },
+            1_000,
+        );
+        envelope.open_gate();
+        envelope.clock_fixed();
+        envelope.clock_fixed();
+        envelope.close_gate();
+
+        let mut previous_level = envelope.clock_fixed();
+        let mut changed_samples = 0;
+        for _ in 1..60_000 {
+            let level = envelope.clock_fixed();
+            assert!(level <= previous_level);
+            assert!(previous_level - level <= 2);
+            assert!(level > 0);
+            changed_samples += usize::from(level != previous_level);
+            previous_level = level;
+        }
+
+        assert!(changed_samples > 50_000);
+        assert_eq!(envelope.clock_fixed(), 0);
+    }
+
+    #[test]
+    fn public_clock_keeps_integer_release_projection() {
+        let mut envelope = EnvelopeGenerator::new(
+            EnvelopConfiguration {
+                attack_time: 0,
+                decay_time: 0,
+                release_time: 10,
+                sustain_level: 100,
+            },
+            1_000,
+        );
+        envelope.open_gate();
+        envelope.clock(None);
+        envelope.clock(None);
+        envelope.close_gate();
+
+        for expected in (1..=10).rev().map(|step| step * 10) {
+            assert_eq!(envelope.clock(None), expected);
+        }
+        assert_eq!(envelope.clock(None), 0);
+    }
+
+    #[test]
+    fn fractional_level_survives_release_update_and_retrigger() {
+        let mut envelope = EnvelopeGenerator::new(
+            EnvelopConfiguration {
+                attack_time: 0,
+                decay_time: 0,
+                release_time: 60_000,
+                sustain_level: 100,
+            },
+            1_000,
+        );
+        envelope.open_gate();
+        envelope.clock_fixed();
+        envelope.clock_fixed();
+        envelope.close_gate();
+        envelope.clock_fixed();
+        let fractional_level = envelope.clock_fixed();
+        assert!(fractional_level < LEVEL_SCALE);
+
+        envelope.update_configuration(EnvelopConfiguration {
+            attack_time: 100,
+            decay_time: 0,
+            release_time: 50_000,
+            sustain_level: 100,
+        });
+        assert_eq!(envelope.release_level, fractional_level);
+        assert_eq!(envelope.clock_fixed(), fractional_level);
+
+        envelope.open_gate();
+        assert_eq!(envelope.retrigger_level, fractional_level);
+        assert_eq!(envelope.clock_fixed(), fractional_level);
     }
 }

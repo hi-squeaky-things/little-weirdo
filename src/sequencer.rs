@@ -1,5 +1,6 @@
 pub const AMOUNT_OF_STEPS: usize = 16; // Number of steps per lane (e.g. 16th notes in a bar)
 pub const AMOUNT_OF_LANES: usize = 10; // Number of lanes (e.g. drum voices)
+pub const MAX_AMOUNT_OF_PATTERNS: usize = 10; // Maximum number of patterns
 
 /// Main sequencer struct
 pub struct Sequencer {
@@ -31,8 +32,8 @@ impl Sequencer {
             counter: 0,
         }
     }
-    /// Set the MIDI note for a lane
-    pub fn set_lane_note(&mut self, lane: usize, note: u8) {
+    /// Set the MIDI note for a lane in a pattern
+    pub fn set_lane_note(&mut self, _pattern: usize, lane: usize, note: u8) {
         if lane < AMOUNT_OF_LANES {
             self.lanes[lane].note = note;
         }
@@ -59,7 +60,7 @@ impl Sequencer {
         }
     }
 
-    pub fn get_lane(&mut self, lane: usize) -> SequencerLane {
+    pub fn get_lane(&mut self, _pattern: usize, lane: usize) -> SequencerLane {
         self.lanes[lane]
     }
 
@@ -71,6 +72,16 @@ impl Sequencer {
     /// Stop the sequencer
     pub fn stop(&mut self) {
         self.playing = false;
+    }
+
+    /// Check if the sequencer is playing
+    pub fn is_playing(&self) -> bool {
+        self.playing
+    }
+
+    /// Get the current position in the sequence
+    pub fn get_position(&self) -> u8 {
+        self.counter
     }
 
     /// Called once per audio sample.

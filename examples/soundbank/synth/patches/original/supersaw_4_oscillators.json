@@ -8,14 +8,14 @@
             "glide_rate": 200,
             "detune": 0,
             "freq_detune": 0,
-            "grains": true,
+            "grains": false,
             "grains_seq": [
                 0,
-                0,
-                1,
-                1,
-                11,
-                11,
+                255,
+                255,
+                255,
+                255,
+                255,
                 255,
                 255
             ]
@@ -243,11 +243,18 @@
         "enabled": false
     },
     "delay_config": {
-        "enabled": true,
+        "enabled": false,
         "delay_time": 5000,
         "mix_percentage": 70,
         "feedback": true,
         "feedback_percentage": 70
+    },
+     "flanger_config": {
+        "enabled": true,
+        "base_delay_time_ms": 4,
+        "depth_ms": 2,
+        "rate_hz": 1,
+        "mix_percentage": 60
     },
     "routering_config": {
         "voices_to_envelop": [
@@ -260,39 +267,20 @@
             1,
             1
         ],
-        "lfo_to_voice": [
-            {
-                "voices": [
-                    0,
-                    1
-                ],
-                "enable": true
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            }
+     "lfo_to_voice": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
         ],
-        "lfo_to_filter": false,
-        "lfo_to_freq": false,
-        "lfo_to_freq_amount": 5
+        "lfo_to_filter": -1,
+        "lfo_to_freq": -1,
+        "lfo_to_freq_amount": 5,
+        "lfo_to_balance": -1
     },
     "synth_config": {
         "mode": "Mono"

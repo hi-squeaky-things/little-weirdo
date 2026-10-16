@@ -260,39 +260,20 @@
             1,
             1
         ],
-        "lfo_to_voice": [
-            {
-                "voices": [
-                    0,
-                    1
-                ],
-                "enable": true
-            },
-            {
-                "voices": [
-                    2,
-                    3
-                ],
-                "enable": true
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            },
-            {
-                "voices": [
-                    1,
-                    255
-                ],
-                "enable": false
-            }
+           "lfo_to_voice": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
         ],
-        "lfo_to_filter": true,
-        "lfo_to_freq": true,
-        "lfo_to_freq_amount": 100
+        "lfo_to_filter": -1,
+        "lfo_to_freq": -1,
+        "lfo_to_freq_amount": 5,
+        "lfo_to_balance": -1
     },
     "synth_config": {
         "mode": "Mono"

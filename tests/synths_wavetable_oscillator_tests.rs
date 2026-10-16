@@ -1,5 +1,6 @@
 use std::{fs, sync::Arc};
 
+use little_weirdo::synth::noise::NoiseKind;
 use little_weirdo::synth::{
     data::waveforms::{BoxedWaveform, BoxedWaveforms},
     waveform_oscillator::{WaveformOscillator, WaveformOscillatorConfig},
@@ -23,6 +24,7 @@ fn wavetable_oscillator_outputs_samples_from_the_selected_table() {
         freq_detune: 0,
         grains: false,
         grains_seq: [0; 8],
+        noise: NoiseKind::None,
     };
 
     let _osc = WaveformOscillator::new(config, 1000, Arc::clone(&wavetables));
@@ -39,6 +41,7 @@ fn wavetable_oscillator_can_change_frequency() {
         freq_detune: 0,
         grains: false,
         grains_seq: [0; 8],
+        noise: NoiseKind::None,
     };
 
     let mut osc = WaveformOscillator::new(config, 1000, Arc::clone(&wavetables));
