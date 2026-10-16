@@ -41,6 +41,12 @@ Add the library to your project:
 ```bash
 cargo add little_weirdo
 ```
+## Test the sounds
+
+Just run the [command line example](examples/little_weirdo_synth_streaming_audio_with_midi.rs)!
+
+![](terminal_example.png)
+
 
 ## Quick Start
 
