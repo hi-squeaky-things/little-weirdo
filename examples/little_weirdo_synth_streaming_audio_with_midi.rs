@@ -1,5 +1,5 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{Device, Sample, StreamConfig};
+use cpal::{Device, Sample, Stream, StreamConfig};
 use crossterm::{
     event::{
         self, Event, KeyCode, KeyEventKind, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags,
@@ -28,7 +28,7 @@ use std::{
     io::{self, Stdout},
     sync::{
         atomic::{AtomicU32, AtomicUsize, Ordering},
-        mpsc, Arc,
+        mpsc, Arc, Mutex,
     },
     time::Duration,
 };
@@ -113,9 +113,12 @@ enum EnvelopeParameter {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Menu {
     Fm,
+    Voices,
     Effects,
     Envelope,
     Live,
+    Devices,
+    SavePatch,
 }
 
 enum AudioCommand {
@@ -126,9 +129,17 @@ enum AudioCommand {
     AdjustEffect(EffectParameter, bool),
     ToggleEffect(EffectToggle),
     SetEnvelope(EnvelopeParameter, u16),
+    ToggleFm(bool),
+    ChangeVoice(u8),
+}
+
+enum DeviceCommand {
+    SwitchAudioDevice(usize),
+    SwitchMidiPort(usize),
 }
 
 struct FmPanel {
+    fm_enabled: bool,
     carrier_waveform: u8,
     modulator_waveform: u8,
     modulator_ratio: u8,
@@ -161,10 +172,43 @@ struct FmPanel {
     release_time_ms: u16,
     keyboard_octave_shift: i8,
     held_keyboard_notes: HashSet<u8>,
+    audio_devices: Vec<String>,
+    selected_audio_device: usize,
+    midi_ports: Vec<String>,
+    selected_midi_port: usize,
+    device_status: String,
+    selected_voice: u8,
+    patch_name: String,
+    save_message: String,
 }
 
 fn main() -> anyhow::Result<()> {
-    let (device, config) = setup_device()?;
+    let host = cpal::default_host();
+    let output_devices = host
+        .output_devices()?
+        .map(|device| Ok((device.description()?.name().to_owned(), device)))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    let audio_devices: Vec<String> = output_devices
+        .iter()
+        .map(|(name, _)| name.clone())
+        .collect();
+    if output_devices.is_empty() {
+        anyhow::bail!("No audio output devices are available");
+    }
+    let default_output_name = host.default_output_device().and_then(|device| {
+        device
+            .description()
+            .ok()
+            .map(|description| description.name().to_owned())
+    });
+    let selected_audio_device = audio_devices
+        .iter()
+        .position(|name| Some(name) == default_output_name.as_ref())
+        .unwrap_or(0);
+    let initial_audio_name = audio_devices[selected_audio_device].clone();
+    let device = output_devices[selected_audio_device].1.clone();
+    let config: StreamConfig = device.default_output_config()?.into();
+
     let waveform_count = 55u8;
     let mut waveforms = BoxedWaveforms::new();
     for id in 0..waveform_count {
@@ -199,49 +243,105 @@ fn main() -> anyhow::Result<()> {
     patches.add(patch);
     let patches = Arc::new(patches);
 
-    let mut synth = synth::Synth::new(
+    let live_audio = Arc::new(LiveAudio::new());
+
+    let (audio_tx, audio_rx) = mpsc::channel::<AudioCommand>();
+    let audio_rx = Arc::new(Mutex::new(audio_rx));
+    let (device_tx, device_rx) = mpsc::channel::<DeviceCommand>();
+    let (status_tx, status_rx) = mpsc::channel::<String>();
+    let midi_ports = midi_input_port_names();
+    let selected_midi_port = midi_ports
+        .iter()
+        .position(|name| name.contains("IAC"))
+        .unwrap_or(0);
+    let (midi_status, midi_connection) = connect_midi_port(
+        (!midi_ports.is_empty()).then_some(selected_midi_port),
+        audio_tx.clone(),
+    );
+    let synth = Arc::new(Mutex::new(synth::Synth::new(
         config.sample_rate.min(u16::MAX as u32) as u16,
         0,
         Arc::clone(&patches),
         Arc::clone(&waveforms),
-    );
-    let (delay, flanger, filter, distortion) = {
-        let control = synth.control();
-        (
-            control.delay_settings(),
-            control.flanger_settings(),
-            control.filter_settings(),
-            control.overdrive_settings(),
-        )
-    };
-    let (audio_tx, audio_rx) = mpsc::channel::<AudioCommand>();
-    let (midi_status, midi_connection) = connect_midi(audio_tx.clone());
-    let live_audio = Arc::new(LiveAudio::new());
-    let callback_live_audio = Arc::clone(&live_audio);
+    )));
 
-    let channels = config.channels as usize;
-    let stream = device.build_output_stream(
+    // Query initial effect states directly from the synth
+    let (delay_enabled, delay_time_ms, delay_mix, delay_feedback) = {
+        let mut s = synth.lock().unwrap();
+        s.control().delay_settings()
+    };
+    let (flanger_enabled, flanger_base_delay_ms, flanger_depth_ms, flanger_rate_hz, flanger_mix) = {
+        let mut s = synth.lock().unwrap();
+        s.control().flanger_settings()
+    };
+    let (filter_enabled, filter_cutoff, filter_resonance, filter_kind) = {
+        let mut s = synth.lock().unwrap();
+        s.control().filter_settings()
+    };
+    let (distortion_enabled, distortion_kind, distortion_threshold) = {
+        let mut s = synth.lock().unwrap();
+        s.control().overdrive_settings()
+    };
+
+    let stream = build_audio_stream(
+        &device,
         &config,
-        move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-            for command in audio_rx.try_iter() {
-                process_command(&mut synth, command);
-            }
-            for frame in data.chunks_mut(channels) {
-                let output = synth.clock_and_output();
-                let left = Sample::from_sample(output[0]);
-                let right = Sample::from_sample(output[1]);
-                callback_live_audio.push(left);
-                for (index, sample) in frame.iter_mut().enumerate() {
-                    *sample = if index % 2 == 0 { left } else { right };
+        Arc::clone(&synth),
+        Arc::clone(&live_audio),
+        Arc::clone(&audio_rx),
+    )?;
+    let midi_audio_tx = audio_tx.clone();
+    let manager_live_audio = Arc::clone(&live_audio);
+    let audio_thread = std::thread::spawn(move || {
+        let mut stream = stream;
+        let mut midi_connection = midi_connection;
+
+        while let Ok(command) = device_rx.recv() {
+            match command {
+                DeviceCommand::SwitchAudioDevice(index) => {
+                    let Some((name, device)) = output_devices.get(index) else {
+                        let _ = status_tx.send("Audio switch failed: device is unavailable".into());
+                        continue;
+                    };
+                    let new_stream = device
+                        .default_output_config()
+                        .map_err(anyhow::Error::from)
+                        .and_then(|config| {
+                            let config: StreamConfig = config.into();
+                            build_audio_stream(
+                                device,
+                                &config,
+                                Arc::clone(&synth),
+                                Arc::clone(&manager_live_audio),
+                                Arc::clone(&audio_rx),
+                            )
+                        });
+                    match new_stream {
+                        Ok(new_stream) => {
+                            stream = new_stream;
+                            let _ = status_tx.send(format!("Audio output: {name}"));
+                        }
+                        Err(error) => {
+                            let _ = status_tx.send(format!("Audio switch failed: {error}"));
+                        }
+                    }
+                }
+                DeviceCommand::SwitchMidiPort(index) => {
+                    let (status, new_connection) =
+                        connect_midi_port(Some(index), midi_audio_tx.clone());
+                    if let Some(connection) = new_connection {
+                        midi_connection = Some(connection);
+                    }
+                    let _ = status_tx.send(status);
                 }
             }
-        },
-        |error| eprintln!("Audio stream error: {error}"),
-        None,
-    )?;
-    stream.play()?;
+        }
+        drop(stream);
+        drop(midi_connection);
+    });
 
     let mut panel = FmPanel {
+        fm_enabled: true,
         carrier_waveform: fm.carrier_waveform,
         modulator_waveform: fm.modulator_waveform,
         modulator_ratio: fm.modulator_ratio.max(1),
@@ -252,39 +352,51 @@ fn main() -> anyhow::Result<()> {
         waveform_plots,
         live_audio,
         midi_status,
-        delay_enabled: delay.0,
-        delay_time_ms: delay.1,
-        delay_mix: delay.2,
-        delay_feedback: delay.3,
-        flanger_enabled: flanger.0,
-        flanger_base_delay_ms: flanger.1,
-        flanger_depth_ms: flanger.2,
-        flanger_rate_hz: flanger.3,
-        flanger_mix: flanger.4,
-        filter_enabled: filter.0,
-        filter_cutoff: filter.1,
-        filter_resonance: filter.2,
-        filter_kind: filter.3,
-        distortion_enabled: distortion.0,
-        distortion_kind: distortion.1,
-        distortion_threshold: distortion.2,
+        delay_enabled,
+        delay_time_ms,
+        delay_mix,
+        delay_feedback,
+        flanger_enabled,
+        flanger_base_delay_ms,
+        flanger_depth_ms,
+        flanger_rate_hz,
+        flanger_mix,
+        filter_enabled,
+        filter_cutoff,
+        filter_resonance,
+        filter_kind,
+        distortion_enabled,
+        distortion_kind,
+        distortion_threshold,
         attack_time_ms: envelope.attack_time,
         decay_time_ms: envelope.decay_time,
         sustain_level: envelope.sustain_level.clamp(0, 100) as u8,
         release_time_ms: envelope.release_time,
         keyboard_octave_shift: 0,
         held_keyboard_notes: HashSet::new(),
+        audio_devices,
+        selected_audio_device,
+        midi_ports,
+        selected_midi_port,
+        device_status: format!("Audio output: {initial_audio_name}"),
+        selected_voice: 0,
+        patch_name: "new_patch".to_string(),
+        save_message: String::new(),
     };
-    run_terminal_ui(&mut panel, &audio_tx)?;
-
-    drop(midi_connection);
-    drop(stream);
+    let ui_result = run_terminal_ui(&mut panel, &audio_tx, &device_tx, &status_rx);
+    drop(device_tx);
+    audio_thread
+        .join()
+        .map_err(|_| anyhow::anyhow!("Audio device manager thread panicked"))?;
+    ui_result?;
     Ok(())
 }
 
 fn run_terminal_ui(
     panel: &mut FmPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
+    device_tx: &mpsc::Sender<DeviceCommand>,
+    status_rx: &mpsc::Receiver<String>,
 ) -> anyhow::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -295,7 +407,7 @@ fn run_terminal_ui(
     )?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    let result = event_loop(&mut terminal, panel, audio_tx);
+    let result = event_loop(&mut terminal, panel, audio_tx, device_tx, status_rx);
     disable_raw_mode()?;
     execute!(
         terminal.backend_mut(),
@@ -310,9 +422,14 @@ fn event_loop(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     panel: &mut FmPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
+    device_tx: &mpsc::Sender<DeviceCommand>,
+    status_rx: &mpsc::Receiver<String>,
 ) -> anyhow::Result<()> {
     let mut held_notes = HashSet::new();
     loop {
+        while let Ok(status) = status_rx.try_recv() {
+            panel.device_status = status;
+        }
         terminal.draw(|frame| draw_panel(frame, panel))?;
         if !event::poll(Duration::from_millis(100))? {
             continue;
@@ -348,10 +465,13 @@ fn event_loop(
             }
             KeyCode::Tab => {
                 panel.menu = match panel.menu {
-                    Menu::Fm => Menu::Effects,
+                    Menu::Fm => Menu::Voices,
+                    Menu::Voices => Menu::Effects,
                     Menu::Effects => Menu::Envelope,
                     Menu::Envelope => Menu::Live,
-                    Menu::Live => Menu::Fm,
+                    Menu::Live => Menu::Devices,
+                    Menu::Devices => Menu::SavePatch,
+                    Menu::SavePatch => Menu::Fm,
                 };
                 panel.selected = panel.selected.min(menu_item_count(panel.menu) - 1);
             }
@@ -359,8 +479,12 @@ fn event_loop(
             KeyCode::Down | KeyCode::Char('j') => {
                 panel.selected = (panel.selected + 1).min(menu_item_count(panel.menu) - 1)
             }
-            KeyCode::Left | KeyCode::Char('h') => adjust_selected(panel, audio_tx, false)?,
-            KeyCode::Right | KeyCode::Char('l') => adjust_selected(panel, audio_tx, true)?,
+            KeyCode::Left | KeyCode::Char('h') => {
+                adjust_selected(panel, audio_tx, device_tx, false)?
+            }
+            KeyCode::Right | KeyCode::Char('l') => {
+                adjust_selected(panel, audio_tx, device_tx, true)?
+            }
             _ => {}
         }
     }
@@ -411,9 +535,40 @@ fn keyboard_note(index: u8, octave_shift: i8) -> u8 {
 fn adjust_selected(
     panel: &mut FmPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
+    device_tx: &mpsc::Sender<DeviceCommand>,
     clockwise: bool,
 ) -> anyhow::Result<()> {
-    if panel.menu == Menu::Live {
+    if panel.menu == Menu::Voices {
+        panel.selected_voice = cycle_waveform(panel.selected_voice, panel.waveform_count, clockwise);
+        audio_tx.send(AudioCommand::ChangeVoice(panel.selected_voice))?;
+        return Ok(());
+    }
+    if panel.menu == Menu::Live || panel.menu == Menu::Devices {
+        if panel.menu == Menu::Devices {
+            if panel.selected == 0 {
+                let count = panel.audio_devices.len();
+                if count > 0 {
+                    let next_idx = if clockwise {
+                        (panel.selected_audio_device + 1) % count
+                    } else {
+                        (panel.selected_audio_device + count - 1) % count
+                    };
+                    panel.selected_audio_device = next_idx;
+                    device_tx.send(DeviceCommand::SwitchAudioDevice(next_idx))?;
+                }
+            } else if panel.selected == 1 {
+                let count = panel.midi_ports.len();
+                if count > 0 {
+                    let next_idx = if clockwise {
+                        (panel.selected_midi_port + 1) % count
+                    } else {
+                        (panel.selected_midi_port + count - 1) % count
+                    };
+                    panel.selected_midi_port = next_idx;
+                    device_tx.send(DeviceCommand::SwitchMidiPort(next_idx))?;
+                }
+            }
+        }
         return Ok(());
     }
     if panel.menu == Menu::Effects {
@@ -442,13 +597,18 @@ fn adjust_selected(
             };
             FmParameter::ModulatorRatio
         }
-        _ => {
+        3 => {
             panel.modulation_depth_hz = if clockwise {
                 panel.modulation_depth_hz.saturating_add(10)
             } else {
                 panel.modulation_depth_hz.saturating_sub(10)
             };
             FmParameter::ModulationDepth
+        }
+        _ => {
+            panel.fm_enabled = !panel.fm_enabled;
+            audio_tx.send(AudioCommand::ToggleFm(panel.fm_enabled))?;
+            return Ok(());
         }
     };
     audio_tx.send(AudioCommand::AdjustFm(parameter, clockwise))?;
@@ -457,10 +617,13 @@ fn adjust_selected(
 
 fn menu_item_count(menu: Menu) -> usize {
     match menu {
-        Menu::Fm => 4,
+        Menu::Fm => 5,
+        Menu::Voices => 1,
         Menu::Effects => 16,
         Menu::Envelope => 4,
         Menu::Live => 1,
+        Menu::Devices => 2,
+        Menu::SavePatch => 2,
     }
 }
 
@@ -630,22 +793,24 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
         ])
         .split(area);
 
-    let title = Paragraph::new(Line::from(vec![Span::styled(
-        "Hi Squeaky Things - LttL Weirdo",
-        Style::default()
-            .fg(Color::Cyan)
-            .add_modifier(Modifier::BOLD),
-    )]))
+    let title = Paragraph::new(vec![
+        Line::from(" ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱"),
+        Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi Squeaky Things can happen at any time!"),
+    ])
+    .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
     .block(Block::default().borders(Borders::BOTTOM));
     frame.render_widget(title, layout[0]);
 
     let selected_menu = match panel.menu {
         Menu::Fm => 0,
-        Menu::Effects => 1,
-        Menu::Envelope => 2,
-        Menu::Live => 3,
+        Menu::Voices => 1,
+        Menu::Effects => 2,
+        Menu::Envelope => 3,
+        Menu::Live => 4,
+        Menu::Devices => 5,
+        Menu::SavePatch => 6,
     };
-    let menus = Tabs::new(["FM", "EFFECTS", "ENVELOPE", "LIVE"])
+    let menus = Tabs::new(["FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "SAVE"])
         .select(selected_menu)
         .highlight_style(
             Style::default()
@@ -694,6 +859,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             format!("Modulator waveform     {:03}", panel.modulator_waveform),
             format!("Modulator ratio        {} : 1", panel.modulator_ratio),
             format!("Modulation depth       {} Hz", panel.modulation_depth_hz),
+            format!("FM Synthesis           {}", on_off(panel.fm_enabled)),
+        ],
+        Menu::Voices => vec![
+            format!("Selected Voice         {:03}", panel.selected_voice),
         ],
         Menu::Effects => vec![
             format!("Delay                 {}", on_off(panel.delay_enabled)),
@@ -726,6 +895,26 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             format!("Release               {} ms", panel.release_time_ms),
         ],
         Menu::Live => Vec::new(),
+        Menu::Devices => vec![
+            format!(
+                "Audio Output       {}",
+                panel
+                    .audio_devices
+                    .get(panel.selected_audio_device)
+                    .unwrap_or(&"None".to_string())
+            ),
+            format!(
+                "MIDI Input         {}",
+                panel
+                    .midi_ports
+                    .get(panel.selected_midi_port)
+                    .unwrap_or(&"None".to_string())
+            ),
+        ],
+        Menu::SavePatch => vec![
+            format!("Patch Name         {}", panel.patch_name),
+            format!("Status             {}", panel.save_message),
+        ],
     };
     let items = values
         .iter()
@@ -736,9 +925,12 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             Block::default()
                 .title(match panel.menu {
                     Menu::Fm => " FM PARAMETERS ",
+                    Menu::Voices => " VOICE SELECTION ",
                     Menu::Effects => " EFFECTS ",
                     Menu::Envelope => " ENVELOPE ",
                     Menu::Live => " LIVE AUDIO ",
+                    Menu::Devices => " DEVICES ",
+                    Menu::SavePatch => " SAVE PATCH ",
                 })
                 .borders(Borders::ALL),
         )
@@ -796,7 +988,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
     } else if panel.menu == Menu::Envelope {
         let content = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(58), Constraint::Percentage(42)])
+            .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
             .split(layout[3]);
         let attack = panel.attack_time_ms as f64;
         let decay = panel.decay_time_ms as f64;
@@ -815,7 +1007,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
         let envelope_chart = Chart::new(vec![Dataset::default()
             .name("Amplitude")
             .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::LightGreen))
+            .style(Style::default().fg(Color::LightCyan))
             .data(&envelope_points)])
         .block(
             Block::default()
@@ -835,8 +1027,8 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             Span::raw("0.5"),
             Span::raw("1"),
         ]));
-        frame.render_widget(envelope_chart, content[0]);
-        frame.render_stateful_widget(settings, content[1], &mut state);
+        frame.render_stateful_widget(settings, content[0], &mut state);
+        frame.render_widget(envelope_chart, content[1]);
     } else if panel.menu == Menu::Fm && panel.selected < 2 {
         let content = Layout::default()
             .direction(Direction::Horizontal)
@@ -879,6 +1071,38 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
             Span::raw("1"),
         ]));
         frame.render_widget(chart, content[1]);
+    } else if panel.menu == Menu::Voices {
+        let content = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
+            .split(layout[3]);
+        frame.render_stateful_widget(settings, content[0], &mut state);
+
+        let samples = &panel.waveform_plots[panel.selected_voice as usize];
+        let chart = Chart::new(vec![Dataset::default()
+            .name(format!("Voice {:03}", panel.selected_voice))
+            .graph_type(GraphType::Line)
+            .style(Style::default().fg(Color::LightCyan))
+            .data(samples)])
+        .block(
+            Block::default()
+                .title(" SELECTED VOICE WAVEFORM ")
+                .borders(Borders::ALL),
+        )
+        .x_axis(
+            Axis::default()
+                .bounds([0.0, samples.len().saturating_sub(1) as f64])
+                .labels(vec![
+                    Span::raw("0"),
+                    Span::raw(format!("{}", samples.len() - 1)),
+                ]),
+        )
+        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
+            Span::raw("-1"),
+            Span::raw("0"),
+            Span::raw("1"),
+        ]));
+        frame.render_widget(chart, content[1]);
     } else {
         frame.render_stateful_widget(settings, layout[3], &mut state);
     }
@@ -887,6 +1111,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
         Line::from("1-8 play    +/- octave    ↑/↓ select    ←/→ edit    Tab menu    q quit"),
         Line::from(Span::styled(
             format!("MIDI: {}", panel.midi_status),
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(Span::styled(
+            panel.device_status.as_str(),
             Style::default().fg(Color::DarkGray),
         )),
     ])
@@ -901,24 +1129,71 @@ fn midi_note_name(note: u8) -> String {
     format!("{}{}", NOTE_NAMES[(note % 12) as usize], note / 12 - 1)
 }
 
-fn setup_device() -> anyhow::Result<(Device, StreamConfig)> {
-    let host = cpal::default_host();
-    let device = host
-        .default_output_device()
-        .ok_or_else(|| anyhow::Error::msg("Default audio output device is unavailable"))?;
-    let config = device.default_output_config()?.into();
-    Ok((device, config))
+fn build_audio_stream(
+    device: &Device,
+    config: &StreamConfig,
+    synth: Arc<Mutex<synth::Synth>>,
+    live_audio: Arc<LiveAudio>,
+    audio_rx: Arc<Mutex<mpsc::Receiver<AudioCommand>>>,
+) -> anyhow::Result<Stream> {
+    let channels = config.channels as usize;
+    let stream = device.build_output_stream(
+        config,
+        move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+            let mut synth = synth
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let commands = audio_rx
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            for command in commands.try_iter() {
+                process_command(&mut synth, command);
+            }
+            drop(commands);
+            for frame in data.chunks_mut(channels) {
+                let output = synth.clock_and_output();
+                let left = Sample::from_sample(output[0]);
+                let right = Sample::from_sample(output[1]);
+                live_audio.push(left);
+                for (index, sample) in frame.iter_mut().enumerate() {
+                    *sample = if index % 2 == 0 { left } else { right };
+                }
+            }
+        },
+        |error| eprintln!("Audio stream error: {error}"),
+        None,
+    )?;
+    stream.play()?;
+    Ok(stream)
 }
 
-fn connect_midi(
+fn midi_input_port_names() -> Vec<String> {
+    let Ok(input) = midir::MidiInput::new("Little Weirdo FM List") else {
+        return Vec::new();
+    };
+    input
+        .ports()
+        .iter()
+        .filter_map(|port| input.port_name(port).ok())
+        .collect()
+}
+
+fn connect_midi_port(
+    port_index: Option<usize>,
     audio_tx: mpsc::Sender<AudioCommand>,
 ) -> (String, Option<midir::MidiInputConnection<()>>) {
     let input = match midir::MidiInput::new("Little Weirdo FM") {
         Ok(input) => input,
         Err(error) => return (format!("unavailable ({error})"), None),
     };
-    let Some(port) = find_port(&input) else {
-        return ("not connected; no IAC MIDI port found".to_owned(), None);
+    let Some(port_index) = port_index else {
+        return ("MIDI input: no input ports available".to_owned(), None);
+    };
+    let Some(port) = input.ports().into_iter().nth(port_index) else {
+        return (
+            "MIDI switch failed: input port is unavailable".to_owned(),
+            None,
+        );
     };
     let port_name = input
         .port_name(&port)
@@ -931,8 +1206,11 @@ fn connect_midi(
         },
         (),
     ) {
-        Ok(connection) => (format!("connected: {port_name}"), Some(connection)),
-        Err(error) => (format!("connection failed ({error})"), None),
+        Ok(connection) => (
+            format!("MIDI input: connected to {port_name}"),
+            Some(connection),
+        ),
+        Err(error) => (format!("MIDI switch failed: {error}"), None),
     }
 }
 
@@ -999,19 +1277,66 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
                 }
             }
         }
+        AudioCommand::ToggleFm(enabled) => {
+            let mut control = synth.control();
+            control.set_fm_enabled(enabled);
+        }
+        AudioCommand::ChangeVoice(voice_id) => {
+            let mut control = synth.control();
+            control.change_all_voices(voice_id);
+        }
     }
 }
 
-fn find_port<T>(midi_io: &T) -> Option<T::Port>
-where
-    T: midir::MidiIO,
-{
-    midi_io.ports().into_iter().find(|port| {
-        midi_io
-            .port_name(port)
-            .map(|name| name.contains("IAC"))
-            .unwrap_or(false)
-    })
+fn save_patch_to_disk(panel: &FmPanel) -> anyhow::Result<String> {
+    let patch_data = serde_json::json!({
+        "fm_config": {
+            "enabled": panel.fm_enabled,
+            "carrier_waveform": panel.carrier_waveform,
+            "modulator_waveform": panel.modulator_waveform,
+            "modulator_ratio": panel.modulator_ratio,
+            "modulation_depth_hz": panel.modulation_depth_hz
+        },
+        "envelops": [{
+            "attack_time": panel.attack_time_ms,
+            "decay_time": panel.decay_time_ms,
+            "sustain_level": panel.sustain_level as i16,
+            "release_time": panel.release_time_ms
+        }],
+        "effects": {
+            "delay": {
+                "enabled": panel.delay_enabled,
+                "delay_time": panel.delay_time_ms,
+                "mix_percentage": panel.delay_mix,
+                "feedback": panel.delay_feedback > 0,
+                "feedback_percentage": panel.delay_feedback
+            },
+            "flanger": {
+                "enabled": panel.flanger_enabled,
+                "base_delay_time_ms": panel.flanger_base_delay_ms,
+                "depth_ms": panel.flanger_depth_ms,
+                "rate_hz": panel.flanger_rate_hz,
+                "mix_percentage": panel.flanger_mix
+            },
+            "filter": {
+                "enabled": panel.filter_enabled,
+                "cutoff_frequency": panel.filter_cutoff,
+                "resonance": panel.filter_resonance,
+                "kind_of_filter": panel.filter_kind
+            },
+            "overdrive": {
+                "enabled": panel.distortion_enabled,
+                "kind": panel.distortion_kind,
+                "threshold": panel.distortion_threshold
+            }
+        }
+    });
+
+    let dir = "examples/soundbank/synth/patches/original";
+    fs::create_dir_all(dir)?;
+    let path = format!("{}/{}.json", dir, panel.patch_name);
+    fs::write(&path, serde_json::to_string_pretty(&patch_data)?)?;
+    Ok(path)
 }
 
 #[cfg(test)]

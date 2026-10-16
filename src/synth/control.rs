@@ -246,6 +246,10 @@ impl<'a> SynthControl<'a> {
         )
     }
 
+    pub fn set_fm_enabled(&mut self, enabled: bool) {
+           self.synth.fm_config.enabled = enabled;
+    }
+
     pub fn adjust_fm_modulator_waveform(&mut self, clockwise: bool) {
         if !self.synth.fm_config.enabled || self.synth.waveform_count == 0 {
             return;
