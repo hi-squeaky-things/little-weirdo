@@ -6,7 +6,7 @@ use crossterm::{
         PushKeyboardEnhancementFlags,
     },
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
 use little_weirdo::synth::{
@@ -15,20 +15,21 @@ use little_weirdo::synth::{
 };
 use midi_control::MidiMessage;
 use ratatui::{
+    Terminal,
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Axis, Block, Borders, Chart, Dataset, GraphType, List, ListItem, Paragraph, Tabs},
-    Terminal,
 };
 use std::{
     collections::HashSet,
     fs,
     io::{self, Stdout},
     sync::{
+        Arc, Mutex,
         atomic::{AtomicU32, AtomicUsize, Ordering},
-        mpsc, Arc, Mutex,
+        mpsc,
     },
     time::Duration,
 };
@@ -118,7 +119,7 @@ enum Menu {
     Envelope,
     Live,
     Devices,
-   // SavePatch,
+    // SavePatch,
 }
 
 enum AudioCommand {
@@ -131,6 +132,8 @@ enum AudioCommand {
     SetEnvelope(EnvelopeParameter, u16),
     ToggleFm(bool),
     ChangeVoice(u8),
+    ToggleGlide(bool),
+    AdjustGlide(u8),
 }
 
 enum DeviceCommand {
@@ -178,6 +181,8 @@ struct SynthPanel {
     selected_midi_port: usize,
     device_status: String,
     selected_voice: u8,
+    glide_enabled: bool,
+    glide_rate_ms: u8,
     patch_name: String,
     save_message: String,
 }
@@ -233,9 +238,8 @@ fn main() -> anyhow::Result<()> {
         })
         .collect();
 
-    let patch: synth::patch::Patch = serde_json::from_slice(include_bytes!(
-        "../soundbank/synth/patches/fm_basic.json"
-    ))?;
+    let patch: synth::patch::Patch =
+        serde_json::from_slice(include_bytes!("../soundbank/synth/patches/fm_basic.json"))?;
     let fm = patch.fm_config;
     let envelope = patch.envelops[0];
     let patch = BoxedPatch::new(patch);
@@ -380,6 +384,8 @@ fn main() -> anyhow::Result<()> {
         selected_midi_port,
         device_status: initial_audio_name,
         selected_voice: 0,
+        glide_enabled: false,
+        glide_rate_ms: 0,
         patch_name: "new_patch".to_string(),
         save_message: String::new(),
     };
@@ -471,7 +477,7 @@ fn event_loop(
                     Menu::Envelope => Menu::Live,
                     Menu::Live => Menu::Devices,
                     Menu::Devices => Menu::Fm,
-               //     Menu::SavePatch => Menu::Fm,
+                    //     Menu::SavePatch => Menu::Fm,
                 };
                 panel.selected = panel.selected.min(menu_item_count(panel.menu) - 1);
             }
@@ -539,8 +545,21 @@ fn adjust_selected(
     clockwise: bool,
 ) -> anyhow::Result<()> {
     if panel.menu == Menu::Voices {
-        panel.selected_voice = cycle_waveform(panel.selected_voice, panel.waveform_count, clockwise);
-        audio_tx.send(AudioCommand::ChangeVoice(panel.selected_voice))?;
+        if panel.selected == 0 {
+            panel.selected_voice =
+                cycle_waveform(panel.selected_voice, panel.waveform_count, clockwise);
+            audio_tx.send(AudioCommand::ChangeVoice(panel.selected_voice))?;
+        } else if panel.selected == 1 {
+            panel.glide_enabled = !panel.glide_enabled;
+            audio_tx.send(AudioCommand::ToggleGlide(panel.glide_enabled))?;
+        } else if panel.selected == 2 {
+            if (clockwise) {
+                panel.glide_rate_ms = panel.glide_rate_ms.saturating_add(1);
+            } else {
+                 panel.glide_rate_ms =  panel.glide_rate_ms.saturating_sub(1);
+            }
+            audio_tx.send(AudioCommand::AdjustGlide(panel.glide_rate_ms))?;
+        }
         return Ok(());
     }
     if panel.menu == Menu::Live || panel.menu == Menu::Devices {
@@ -618,12 +637,12 @@ fn adjust_selected(
 fn menu_item_count(menu: Menu) -> usize {
     match menu {
         Menu::Fm => 5,
-        Menu::Voices => 1,
+        Menu::Voices => 3,
         Menu::Effects => 16,
         Menu::Envelope => 4,
         Menu::Live => 1,
         Menu::Devices => 2,
-    //    Menu::SavePatch => 2,
+        //    Menu::SavePatch => 2,
     }
 }
 
@@ -757,11 +776,7 @@ fn step_u8(value: u8, clockwise: bool, amount: u8, minimum: u8, maximum: u8) -> 
 }
 
 fn on_off(enabled: bool) -> &'static str {
-    if enabled {
-        "[✔]"
-    } else {
-        "[ ]"
-    }
+    if enabled { "[✔]" } else { "[ ]" }
 }
 
 fn filter_kind_name(kind: u8) -> &'static str {
@@ -781,8 +796,7 @@ fn cycle_waveform(current: u8, count: u8, clockwise: bool) -> u8 {
 }
 
 fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
-
-     const LOGO: &str = include_str!("logo.txt");
+    const LOGO: &str = include_str!("logo.txt");
 
     let area = frame.area();
     let layout = Layout::default()
@@ -806,7 +820,11 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Line::from(" ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱"),
         Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi SQυεΛκY Things Cαη ħαρρεη α⊥ αηψ тıмε!"),
     ])
-    .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+    .style(
+        Style::default()
+            .fg(Color::Cyan)
+            .add_modifier(Modifier::BOLD),
+    )
     .block(Block::default().borders(Borders::BOTTOM));
     frame.render_widget(title, header_chunks[0]);
 
@@ -816,7 +834,6 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         .block(Block::default().borders(Borders::BOTTOM));
     frame.render_widget(logo, header_chunks[1]);
 
-
     let selected_menu = match panel.menu {
         Menu::Fm => 0,
         Menu::Voices => 1,
@@ -824,19 +841,21 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::Envelope => 3,
         Menu::Live => 4,
         Menu::Devices => 5,
-       // Menu::SavePatch => 6,
+        // Menu::SavePatch => 6,
     };
-    let menus = Tabs::new(["FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", /* "SAVE" */])
-        .select(selected_menu)
-        .highlight_style(
-            Style::default()
-                .fg(Color::Black)
-                .bg(Color::LightMagenta)
-                .add_modifier(Modifier::BOLD),
-        )
-        .style(Style::default().fg(Color::DarkGray))
-        .divider("  ")
-        .block(Block::default().borders(Borders::BOTTOM));
+    let menus = Tabs::new([
+        "FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", /* "SAVE" */
+    ])
+    .select(selected_menu)
+    .highlight_style(
+        Style::default()
+            .fg(Color::Black)
+            .bg(Color::LightMagenta)
+            .add_modifier(Modifier::BOLD),
+    )
+    .style(Style::default().fg(Color::DarkGray))
+    .divider("  ")
+    .block(Block::default().borders(Borders::BOTTOM));
     frame.render_widget(menus, layout[1]);
 
     let keyboard_block = Block::default()
@@ -858,12 +877,9 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         let key = Paragraph::new(format!("{}", midi_note_name(note)))
             .alignment(Alignment::Center)
             .style(if active {
-                Style::default()
-                    .fg(Color::White)
-                    .bg(Color::LightMagenta)
+                Style::default().fg(Color::White).bg(Color::LightMagenta)
             } else {
                 Style::default().bg(Color::White).fg(Color::Black)
-
             })
             .block(Block::default().borders(Borders::ALL));
         frame.render_widget(key, *key_area);
@@ -873,12 +889,23 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::Fm => vec![
             format!("└──FM Synthesis           : {}", on_off(panel.fm_enabled)),
             format!("   ├─ Carrier waveform    : {:03}", panel.carrier_waveform),
-            format!("   ├─ Modulator waveform  : {:03}", panel.modulator_waveform),
+            format!(
+                "   ├─ Modulator waveform  : {:03}",
+                panel.modulator_waveform
+            ),
             format!("   ├─ Modulator ratio     : {} : 1", panel.modulator_ratio),
-            format!("   └─ Modulation depth    : {} Hz", panel.modulation_depth_hz),
+            format!(
+                "   └─ Modulation depth    : {} Hz",
+                panel.modulation_depth_hz
+            ),
         ],
         Menu::Voices => vec![
-            format!("└──Voice waveform         : {:03}", panel.selected_voice),
+            format!("├─ Voice waveform         : {:03}", panel.selected_voice),
+            format!(
+                "├─ Glide                  : {}",
+                on_off(panel.glide_enabled)
+            ),
+            format!("└─ Glide time             : {:03} ms", panel.glide_rate_ms),
         ],
         Menu::Effects => vec![
             format!("├──Delay          : {}", on_off(panel.delay_enabled)),
@@ -893,9 +920,15 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             format!("├──Filter         : {}", on_off(panel.filter_enabled)),
             format!("│   ├─ Cutoff     : {}", panel.filter_cutoff),
             format!("│   ├─ Resonance  : {}", panel.filter_resonance),
-            format!("│   └─ Type       : {}", filter_kind_name(panel.filter_kind)),
+            format!(
+                "│   └─ Type       : {}",
+                filter_kind_name(panel.filter_kind)
+            ),
             format!("└──Distortion     : {}", on_off(panel.distortion_enabled)),
-            format!("   ├─  Curve      : {}", distortion_kind_name(panel.distortion_kind)),
+            format!(
+                "   ├─  Curve      : {}",
+                distortion_kind_name(panel.distortion_kind)
+            ),
             format!("   └─  Threshold  : {}", panel.distortion_threshold),
         ],
         Menu::Envelope => vec![
@@ -921,10 +954,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     .unwrap_or(&"None".to_string())
             ),
         ],
-     //   Menu::SavePatch => vec![
-     //       format!("├──Patch Name   : {}", panel.patch_name),
-      //      format!("└──Status       : {}", panel.save_message),
-       // ],
+        //   Menu::SavePatch => vec![
+        //       format!("├──Patch Name   : {}", panel.patch_name),
+        //      format!("└──Status       : {}", panel.save_message),
+        // ],
     };
     let items = values
         .iter()
@@ -940,7 +973,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     Menu::Envelope => " ENVELOPE ",
                     Menu::Live => " LIVE AUDIO ",
                     Menu::Devices => " DEVICES ",
-                 //   Menu::SavePatch => " SAVE PATCH ",
+                    //   Menu::SavePatch => " SAVE PATCH ",
                 })
                 .borders(Borders::ALL),
         )
@@ -969,11 +1002,13 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(78), Constraint::Percentage(22)])
             .split(layout[3]);
-        let chart = Chart::new(vec![Dataset::default()
-            .name("Output")
-            .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::LightCyan))
-            .data(&live_samples)])
+        let chart = Chart::new(vec![
+            Dataset::default()
+                .name("Output")
+                .graph_type(GraphType::Line)
+                .style(Style::default().fg(Color::LightCyan))
+                .data(&live_samples),
+        ])
         .block(
             Block::default()
                 .title(" LIVE AUDIO STREAM - RECENT SAMPLES ")
@@ -1014,11 +1049,13 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             (sustain_end, sustain),
             (release_end, 0.0),
         ];
-        let envelope_chart = Chart::new(vec![Dataset::default()
-            .name("Amplitude")
-            .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::LightCyan))
-            .data(&envelope_points)])
+        let envelope_chart = Chart::new(vec![
+            Dataset::default()
+                .name("Amplitude")
+                .graph_type(GraphType::Line)
+                .style(Style::default().fg(Color::LightCyan))
+                .data(&envelope_points),
+        ])
         .block(
             Block::default()
                 .title(" ADSR ENVELOPE ")
@@ -1046,24 +1083,24 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             .split(layout[3]);
         frame.render_stateful_widget(settings, content[0], &mut state);
 
-
-
         let waveform_index = if panel.selected == 1 {
             panel.carrier_waveform
         } else {
             panel.modulator_waveform
-        };  
+        };
         let waveform_name = if panel.selected == 1 {
             "CARRIER"
         } else {
             "MODULATOR"
         };
         let samples = &panel.waveform_plots[waveform_index as usize];
-        let chart = Chart::new(vec![Dataset::default()
-            .name(format!("Waveform {:03}", waveform_index))
-            .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::LightCyan))
-            .data(samples)])
+        let chart = Chart::new(vec![
+            Dataset::default()
+                .name(format!("Waveform {:03}", waveform_index))
+                .graph_type(GraphType::Line)
+                .style(Style::default().fg(Color::LightCyan))
+                .data(samples),
+        ])
         .block(
             Block::default()
                 .title(format!(" {waveform_name} WAVEFORM "))
@@ -1091,14 +1128,16 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         frame.render_stateful_widget(settings, content[0], &mut state);
 
         let samples = &panel.waveform_plots[panel.selected_voice as usize];
-        let chart = Chart::new(vec![Dataset::default()
-            .graph_type(GraphType::Line)
-            .style(Style::default().fg(Color::LightCyan))
-            .data(samples)])
+        let chart = Chart::new(vec![
+            Dataset::default()
+                .graph_type(GraphType::Line)
+                .style(Style::default().fg(Color::LightCyan))
+                .data(samples),
+        ])
         .block(
             Block::default()
                 .title(" VOICE WAVEFORM ")
-                .borders(Borders::ALL), 
+                .borders(Borders::ALL),
         )
         .x_axis(
             Axis::default()
@@ -1213,10 +1252,7 @@ fn connect_midi_port(
         },
         (),
     ) {
-        Ok(connection) => (
-            format!("{port_name}"),
-            Some(connection),
-        ),
+        Ok(connection) => (format!("{port_name}"), Some(connection)),
         Err(error) => (format!("MIDI switch failed: {error}"), None),
     }
 }
@@ -1292,6 +1328,15 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
             let mut control = synth.control();
             control.change_all_voices(voice_id);
         }
+        AudioCommand::ToggleGlide(enabled) => {
+            let mut control = synth.control();
+            control.set_glide_enabled(enabled);
+        }
+
+        AudioCommand::AdjustGlide(glide_time) => {
+            let mut control = synth.control();
+            control.set_glide_time(glide_time);
+        }
     }
 }
 
@@ -1345,4 +1390,3 @@ fn save_patch_to_disk(panel: &SynthPanel) -> anyhow::Result<String> {
     fs::write(&path, serde_json::to_string_pretty(&patch_data)?)?;
     Ok(path)
 }
-

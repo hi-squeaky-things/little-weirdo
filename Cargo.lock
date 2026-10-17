@@ -1055,25 +1055,13 @@ dependencies = [
  "embedded-storage",
  "hound",
  "link_args",
- "little_weirdo 0.1.4",
+ "little_weirdo",
  "midi-control",
  "midir 0.11.0",
  "ratatui",
  "serde_json",
  "soundfont",
  "tokio",
-]
-
-[[package]]
-name = "little_weirdo"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "821fd79e3c8e766ff0c29a86045be0188b4693447ee6292e1b775dcacd1d58d0"
-dependencies = [
- "array-init",
- "postcard",
- "rand",
- "serde",
 ]
 
 [[package]]

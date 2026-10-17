@@ -350,6 +350,36 @@ impl<'a> SynthControl<'a> {
         };
     }
 
+    pub fn set_glide_enabled(&mut self, enabled: bool) {
+        
+    for i in 0..AMOUNT_OF_VOICES {
+            if self.synth.fm_config.enabled && i % 2 == 1 {
+                continue;
+            }
+            let mut config = self.synth.voices[i].config;
+            config.glide = enabled;
+            config.glide_rate = 10;
+            self.synth.voices[i].reload(config);
+        }
+    }
+
+      pub fn set_glide_time(&mut self, time: u8) {
+
+        if time == 0 {
+            return;
+        }
+        
+    for i in 0..AMOUNT_OF_VOICES {
+            if self.synth.fm_config.enabled && i % 2 == 1 {
+                continue;
+            }
+            let mut config = self.synth.voices[i].config;
+            config.glide_rate = time;
+            self.synth.voices[i].reload(config);
+        }
+    }
+
+
     pub fn toggle_delay(&mut self) {
         let mut config = self.synth.delay.config;
         config.enabled = !config.enabled;

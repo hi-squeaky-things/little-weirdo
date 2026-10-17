@@ -23,4 +23,4 @@ embassy-sync = "0.8.0"
 soundfont = "0.1.0"
 embedded-io-cursor = { version = "0.1.0", features = ["std"] }
 embedded-io = { version = "0.7.1", features = ["std"] }
-little_weirdo = "0.1.4"
+little_weirdo = { path = "../" }
