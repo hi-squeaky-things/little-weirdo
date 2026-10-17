@@ -138,7 +138,7 @@ enum DeviceCommand {
     SwitchMidiPort(usize),
 }
 
-struct FmPanel {
+struct SynthPanel {
     fm_enabled: bool,
     carrier_waveform: u8,
     modulator_waveform: u8,
@@ -340,7 +340,7 @@ fn main() -> anyhow::Result<()> {
         drop(midi_connection);
     });
 
-    let mut panel = FmPanel {
+    let mut panel = SynthPanel {
         fm_enabled: true,
         carrier_waveform: fm.carrier_waveform,
         modulator_waveform: fm.modulator_waveform,
@@ -393,7 +393,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run_terminal_ui(
-    panel: &mut FmPanel,
+    panel: &mut SynthPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
     device_tx: &mpsc::Sender<DeviceCommand>,
     status_rx: &mpsc::Receiver<String>,
@@ -420,7 +420,7 @@ fn run_terminal_ui(
 
 fn event_loop(
     terminal: &mut Terminal<CrosstermBackend<Stdout>>,
-    panel: &mut FmPanel,
+    panel: &mut SynthPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
     device_tx: &mpsc::Sender<DeviceCommand>,
     status_rx: &mpsc::Receiver<String>,
@@ -496,7 +496,7 @@ fn event_loop(
 }
 
 fn shift_keyboard_octave(
-    panel: &mut FmPanel,
+    panel: &mut SynthPanel,
     held_notes: &mut HashSet<u8>,
     audio_tx: &mpsc::Sender<AudioCommand>,
     direction: i8,
@@ -533,7 +533,7 @@ fn keyboard_note(index: u8, octave_shift: i8) -> u8 {
 }
 
 fn adjust_selected(
-    panel: &mut FmPanel,
+    panel: &mut SynthPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
     device_tx: &mpsc::Sender<DeviceCommand>,
     clockwise: bool,
@@ -628,7 +628,7 @@ fn menu_item_count(menu: Menu) -> usize {
 }
 
 fn adjust_envelope_selected(
-    panel: &mut FmPanel,
+    panel: &mut SynthPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
     clockwise: bool,
 ) -> anyhow::Result<()> {
@@ -655,7 +655,7 @@ fn adjust_envelope_selected(
 }
 
 fn adjust_effect_selected(
-    panel: &mut FmPanel,
+    panel: &mut SynthPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
     clockwise: bool,
 ) -> anyhow::Result<()> {
@@ -780,7 +780,7 @@ fn cycle_waveform(current: u8, count: u8, clockwise: bool) -> u8 {
     }
 }
 
-fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
+fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
     let area = frame.area();
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -1288,7 +1288,7 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
     }
 }
 
-fn save_patch_to_disk(panel: &FmPanel) -> anyhow::Result<String> {
+fn save_patch_to_disk(panel: &SynthPanel) -> anyhow::Result<String> {
     let patch_data = serde_json::json!({
         "fm_config": {
             "enabled": panel.fm_enabled,
