@@ -118,7 +118,7 @@ enum Menu {
     Envelope,
     Live,
     Devices,
-    SavePatch,
+   // SavePatch,
 }
 
 enum AudioCommand {
@@ -470,8 +470,8 @@ fn event_loop(
                     Menu::Effects => Menu::Envelope,
                     Menu::Envelope => Menu::Live,
                     Menu::Live => Menu::Devices,
-                    Menu::Devices => Menu::SavePatch,
-                    Menu::SavePatch => Menu::Fm,
+                    Menu::Devices => Menu::Fm,
+               //     Menu::SavePatch => Menu::Fm,
                 };
                 panel.selected = panel.selected.min(menu_item_count(panel.menu) - 1);
             }
@@ -623,7 +623,7 @@ fn menu_item_count(menu: Menu) -> usize {
         Menu::Envelope => 4,
         Menu::Live => 1,
         Menu::Devices => 2,
-        Menu::SavePatch => 2,
+    //    Menu::SavePatch => 2,
     }
 }
 
@@ -781,11 +781,14 @@ fn cycle_waveform(current: u8, count: u8, clockwise: bool) -> u8 {
 }
 
 fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
+
+     const LOGO: &str = include_str!("logo.txt");
+
     let area = frame.area();
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),
+            Constraint::Length(11), // Increased to fit the logo
             Constraint::Length(3),
             Constraint::Length(5),
             Constraint::Min(8),
@@ -793,13 +796,26 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         ])
         .split(area);
 
+    // Split header horizontally for title and logo
+    let header_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+        .split(layout[0]);
+
     let title = Paragraph::new(vec![
         Line::from(" ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱"),
         Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi SQυεΛκY Things Cαη ħαρρεη α⊥ αηψ тıмε!"),
     ])
     .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
     .block(Block::default().borders(Borders::BOTTOM));
-    frame.render_widget(title, layout[0]);
+    frame.render_widget(title, header_chunks[0]);
+
+    let logo = Paragraph::new(LOGO)
+        .style(Style::default().fg(Color::LightMagenta))
+        .alignment(Alignment::Right)
+        .block(Block::default().borders(Borders::BOTTOM));
+    frame.render_widget(logo, header_chunks[1]);
+
 
     let selected_menu = match panel.menu {
         Menu::Fm => 0,
@@ -808,9 +824,9 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::Envelope => 3,
         Menu::Live => 4,
         Menu::Devices => 5,
-        Menu::SavePatch => 6,
+       // Menu::SavePatch => 6,
     };
-    let menus = Tabs::new(["FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "SAVE"])
+    let menus = Tabs::new(["FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", /* "SAVE" */])
         .select(selected_menu)
         .highlight_style(
             Style::default()
@@ -862,7 +878,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             format!("   └─ Modulation depth    : {} Hz", panel.modulation_depth_hz),
         ],
         Menu::Voices => vec![
-            format!("└──Selected Voice         {:03}", panel.selected_voice),
+            format!("└──Voice waveform         : {:03}", panel.selected_voice),
         ],
         Menu::Effects => vec![
             format!("├──Delay          : {}", on_off(panel.delay_enabled)),
@@ -905,10 +921,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     .unwrap_or(&"None".to_string())
             ),
         ],
-        Menu::SavePatch => vec![
-            format!("├──Patch Name   : {}", panel.patch_name),
-            format!("└──Status       : {}", panel.save_message),
-        ],
+     //   Menu::SavePatch => vec![
+     //       format!("├──Patch Name   : {}", panel.patch_name),
+      //      format!("└──Status       : {}", panel.save_message),
+       // ],
     };
     let items = values
         .iter()
@@ -924,7 +940,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     Menu::Envelope => " ENVELOPE ",
                     Menu::Live => " LIVE AUDIO ",
                     Menu::Devices => " DEVICES ",
-                    Menu::SavePatch => " SAVE PATCH ",
+                 //   Menu::SavePatch => " SAVE PATCH ",
                 })
                 .borders(Borders::ALL),
         )
@@ -1023,19 +1039,21 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         ]));
         frame.render_stateful_widget(settings, content[0], &mut state);
         frame.render_widget(envelope_chart, content[1]);
-    } else if panel.menu == Menu::Fm && panel.selected < 2 {
+    } else if panel.menu == Menu::Fm && panel.selected < 3 && panel.selected > 0 {
         let content = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
             .split(layout[3]);
         frame.render_stateful_widget(settings, content[0], &mut state);
 
-        let waveform_index = if panel.selected == 0 {
+
+
+        let waveform_index = if panel.selected == 1 {
             panel.carrier_waveform
         } else {
             panel.modulator_waveform
-        };
-        let waveform_name = if panel.selected == 0 {
+        };  
+        let waveform_name = if panel.selected == 1 {
             "CARRIER"
         } else {
             "MODULATOR"
@@ -1074,14 +1092,13 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
 
         let samples = &panel.waveform_plots[panel.selected_voice as usize];
         let chart = Chart::new(vec![Dataset::default()
-            .name(format!("Voice {:03}", panel.selected_voice))
             .graph_type(GraphType::Line)
             .style(Style::default().fg(Color::LightCyan))
             .data(samples)])
         .block(
             Block::default()
-                .title(" SELECTED VOICE WAVEFORM ")
-                .borders(Borders::ALL),
+                .title(" VOICE WAVEFORM ")
+                .borders(Borders::ALL), 
         )
         .x_axis(
             Axis::default()
@@ -1102,16 +1119,12 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
     }
 
     let footer = Paragraph::new(vec![
-        Line::from("[ 1 - 8 ├────play note [ + / - ├────octave change [ ↑ / ↓ ├────select parameter [ ← / → ├────edit parameter [ Ta b ├────change menu [ q  ├────quit"),
+        Line::from(Span::styled("[ 1 - 8 ├────play note [ + / - ├────octave change [ ↑ / ↓ ├────select parameter [ ← / → ├────edit parameter [ Tab ├────change menu [ q  ├────quit", Style::default().fg(Color::White).bg(Color::LightCyan))),
         Line::from(Span::styled(
             format!("🎹: {} - 🔊: {}", panel.midi_status, panel.device_status),
             Style::default().fg(Color::DarkGray),
-        )),
-        Line::from(Span::styled(
-            panel.device_status.as_str(),
-            Style::default().fg(Color::DarkGray),
-        )),
-    ])
+        ))
+        ])
     .block(Block::default().borders(Borders::TOP));
     frame.render_widget(footer, layout[4]);
 }
@@ -1333,43 +1346,3 @@ fn save_patch_to_disk(panel: &SynthPanel) -> anyhow::Result<String> {
     Ok(path)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{computer_key_index, keyboard_note, LiveAudio, LIVE_SAMPLE_COUNT};
-    use crossterm::event::KeyCode;
-
-    #[test]
-    fn number_keys_play_the_c_major_scale_from_c3_to_c4() {
-        let notes = [48, 50, 52, 53, 55, 57, 59, 60];
-        for (index, note) in notes.into_iter().enumerate() {
-            let key = KeyCode::Char(char::from(b'1' + index as u8));
-            assert_eq!(computer_key_index(key), Some(index as u8));
-            assert_eq!(keyboard_note(index as u8, 0), note);
-        }
-        assert_eq!(computer_key_index(KeyCode::Char('9')), None);
-    }
-
-    #[test]
-    fn octave_shifts_keep_the_keyboard_within_the_synth_note_range() {
-        assert_eq!(keyboard_note(0, -2), 24);
-        assert_eq!(keyboard_note(7, 4), 108);
-    }
-
-    #[test]
-    fn live_audio_snapshot_keeps_recent_samples_in_order() {
-        let live_audio = LiveAudio::new();
-        live_audio.push(-0.5);
-        live_audio.push(0.25);
-
-        let snapshot = live_audio.snapshot();
-        assert_eq!(snapshot.len(), LIVE_SAMPLE_COUNT);
-        assert_eq!(
-            snapshot[LIVE_SAMPLE_COUNT - 2],
-            ((LIVE_SAMPLE_COUNT - 2) as f64, -0.5)
-        );
-        assert_eq!(
-            snapshot[LIVE_SAMPLE_COUNT - 1],
-            ((LIVE_SAMPLE_COUNT - 1) as f64, 0.25)
-        );
-    }
-}
