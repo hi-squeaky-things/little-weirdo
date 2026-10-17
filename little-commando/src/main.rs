@@ -319,7 +319,7 @@ fn main() -> anyhow::Result<()> {
                     match new_stream {
                         Ok(new_stream) => {
                             stream = new_stream;
-                            let _ = status_tx.send(format!("Audio output: {name}"));
+                            let _ = status_tx.send(format!("{name}"));
                         }
                         Err(error) => {
                             let _ = status_tx.send(format!("Audio switch failed: {error}"));
@@ -378,7 +378,7 @@ fn main() -> anyhow::Result<()> {
         selected_audio_device,
         midi_ports,
         selected_midi_port,
-        device_status: format!("Audio output: {initial_audio_name}"),
+        device_status: initial_audio_name,
         selected_voice: 0,
         patch_name: "new_patch".to_string(),
         save_message: String::new(),
@@ -795,7 +795,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
 
     let title = Paragraph::new(vec![
         Line::from(" ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱"),
-        Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi Squeaky Things can happen at any time!"),
+        Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi SQυεΛκY Things Cαη ħαρρεη α⊥ αηψ тıмε!"),
     ])
     .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
     .block(Block::default().borders(Borders::BOTTOM));
@@ -815,7 +815,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         .highlight_style(
             Style::default()
                 .fg(Color::Black)
-                .bg(Color::Cyan)
+                .bg(Color::LightMagenta)
                 .add_modifier(Modifier::BOLD),
         )
         .style(Style::default().fg(Color::DarkGray))
@@ -839,15 +839,15 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
     for (index, key_area) in key_areas.iter().enumerate() {
         let note = keyboard_note(index as u8, panel.keyboard_octave_shift);
         let active = panel.held_keyboard_notes.contains(&note);
-        let key = Paragraph::new(format!("♪ {} ♪", midi_note_name(note)))
+        let key = Paragraph::new(format!("{}", midi_note_name(note)))
             .alignment(Alignment::Center)
             .style(if active {
                 Style::default()
-                    .fg(Color::Black)
+                    .fg(Color::White)
                     .bg(Color::LightMagenta)
-                    .add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(Color::White)
+                Style::default().bg(Color::White).fg(Color::Black)
+
             })
             .block(Block::default().borders(Borders::ALL));
         frame.render_widget(key, *key_area);
@@ -1102,9 +1102,9 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
     }
 
     let footer = Paragraph::new(vec![
-        Line::from("1-8 play    +/- octave    ↑/↓ select    ←/→ edit    Tab menu    q quit"),
+        Line::from("[ 1 - 8 ├────play note [ + / - ├────octave change [ ↑ / ↓ ├────select parameter [ ← / → ├────edit parameter [ Ta b ├────change menu [ q  ├────quit"),
         Line::from(Span::styled(
-            format!("MIDI: {}", panel.midi_status),
+            format!("🎹: {} - 🔊: {}", panel.midi_status, panel.device_status),
             Style::default().fg(Color::DarkGray),
         )),
         Line::from(Span::styled(
@@ -1194,14 +1194,14 @@ fn connect_midi_port(
         .unwrap_or_else(|_| "MIDI input".to_owned());
     match input.connect(
         &port,
-        "Little Weirdo FM",
+        "Little Weirdo",
         move |_timestamp, data, _| {
             let _ = audio_tx.send(AudioCommand::Midi(MidiMessage::from(data)));
         },
         (),
     ) {
         Ok(connection) => (
-            format!("MIDI input: connected to {port_name}"),
+            format!("{port_name}"),
             Some(connection),
         ),
         Err(error) => (format!("MIDI switch failed: {error}"), None),
