@@ -8,7 +8,11 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use little_weirdo::synth::{self, data::{patches::{BoxedPatch, BoxedPatches}, waveforms::{BoxedWaveform, BoxedWaveforms, Waveforms}}};
+use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
+use little_weirdo::synth::{
+    self,
+    data::waveforms::{BoxedWaveform, BoxedWaveforms, Waveforms},
+};
 use midi_control::MidiMessage;
 use ratatui::{
     backend::CrosstermBackend,
@@ -18,7 +22,6 @@ use ratatui::{
     widgets::{Axis, Block, Borders, Chart, Dataset, GraphType, List, ListItem, Paragraph, Tabs},
     Terminal,
 };
-use std::path::Path;
 use std::{
     collections::HashSet,
     fs,
@@ -180,8 +183,6 @@ struct FmPanel {
 }
 
 fn main() -> anyhow::Result<()> {
-
-    // initialize sound and midi devices
     let host = cpal::default_host();
     let output_devices = host
         .output_devices()?
@@ -208,52 +209,39 @@ fn main() -> anyhow::Result<()> {
     let device = output_devices[selected_audio_device].1.clone();
     let config: StreamConfig = device.default_output_config()?.into();
 
-    // load the assets (waveform and patches) for little weirdo
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let waveform_dir = Path::new(manifest_dir).join("soundbank/synth/waveforms");
-  
-    let mut waveform_files: Vec<_> = fs::read_dir(waveform_dir)?
-        .filter_map(|entry| entry.ok())
-        .filter(|entry| entry.path().extension().map_or(false, |ext| ext == "raw"))
-        .map(|entry| entry.path())
-        .collect();
-    waveform_files.sort();
-
+    let waveform_count = 55u8;
     let mut waveforms = BoxedWaveforms::new();
-    for path in &waveform_files {
-        let contents = fs::read(path)?;
+    for id in 0..waveform_count {
+        let filename = format!(
+            "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
+            id
+        );
+        let contents = fs::read(filename)?;
         waveforms.add(BoxedWaveform::new(&contents));
     }
-    let waveform_count = waveform_files.len().min(u8::MAX as usize) as u8;
     let waveforms = Arc::new(waveforms);
-
-   let patch_dir = Path::new(manifest_dir).join("soundbank/synth/patches");
-      let mut patch_files: Vec<_> = fs::read_dir(patch_dir)?
-        .filter_map(|entry| entry.ok())
-        .filter(|entry| entry.path().extension().map_or(false, |ext| ext == "json"))
-        .map(|entry| entry.path())
+    let waveform_plots = (0..waveform_count)
+        .map(|index| {
+            waveforms
+                .get_waveform_reference(index)
+                .iter()
+                .enumerate()
+                .map(|(sample_index, sample)| {
+                    (sample_index as f64, *sample as f64 / i16::MAX as f64)
+                })
+                .collect()
+        })
         .collect();
-    patch_files.sort();
 
+    let patch: synth::patch::Patch = serde_json::from_slice(include_bytes!(
+        "../soundbank/synth/patches/fm_basic.json"
+    ))?;
+    let fm = patch.fm_config;
+    let envelope = patch.envelops[0];
+    let patch = BoxedPatch::new(patch);
     let mut patches = BoxedPatches::new();
-    let mut initial_fm = None;
-    let mut initial_envelope = None;
-
-    for path in &patch_files {
-        let contents = fs::read(path)?;
-        let patch: synth::patch::Patch = serde_json::from_slice(&contents)?;
-        if initial_fm.is_none() {
-            initial_fm = Some(patch.fm_config);
-            initial_envelope = patch.envelops.first().cloned();
-        }
-        patches.add(BoxedPatch::new(patch));
-    }
-
-    let fm = initial_fm.ok_or_else(|| anyhow::anyhow!("No patches found"))?;
-    let envelope = initial_envelope.ok_or_else(|| anyhow::anyhow!("First patch has no envelopes"))?;
+    patches.add(patch);
     let patches = Arc::new(patches);
-
- let waveform_plots = vec![vec![]; waveform_count as usize];
 
     let live_audio = Arc::new(LiveAudio::new());
 
@@ -1069,12 +1057,12 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &FmPanel) {
                 .title(format!(" {waveform_name} WAVEFORM "))
                 .borders(Borders::ALL),
         )
-       .x_axis(
+        .x_axis(
             Axis::default()
                 .bounds([0.0, samples.len().saturating_sub(1) as f64])
                 .labels(vec![
                     Span::raw("0"),
-                    Span::raw(format!("{}", samples.len().saturating_sub(1))),
+                    Span::raw(format!("{}", samples.len() - 1)),
                 ]),
         )
         .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
