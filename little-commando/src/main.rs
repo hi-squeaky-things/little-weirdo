@@ -579,17 +579,17 @@ fn adjust_selected(
     }
 
     let parameter = match panel.selected {
-        0 => {
+        1 => {
             panel.carrier_waveform =
                 cycle_waveform(panel.carrier_waveform, panel.waveform_count, clockwise);
             FmParameter::CarrierWaveform
         }
-        1 => {
+        2 => {
             panel.modulator_waveform =
                 cycle_waveform(panel.modulator_waveform, panel.waveform_count, clockwise);
             FmParameter::ModulatorWaveform
         }
-        2 => {
+        3 => {
             panel.modulator_ratio = if clockwise {
                 panel.modulator_ratio.saturating_add(1)
             } else {
@@ -597,7 +597,7 @@ fn adjust_selected(
             };
             FmParameter::ModulatorRatio
         }
-        3 => {
+        4 => {
             panel.modulation_depth_hz = if clockwise {
                 panel.modulation_depth_hz.saturating_add(10)
             } else {
@@ -758,9 +758,9 @@ fn step_u8(value: u8, clockwise: bool, amount: u8, minimum: u8, maximum: u8) -> 
 
 fn on_off(enabled: bool) -> &'static str {
     if enabled {
-        "ON"
+        "[✔]"
     } else {
-        "OFF"
+        "[ ]"
     }
 }
 
@@ -855,56 +855,50 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
 
     let values = match panel.menu {
         Menu::Fm => vec![
-            format!("Carrier waveform       {:03}", panel.carrier_waveform),
-            format!("Modulator waveform     {:03}", panel.modulator_waveform),
-            format!("Modulator ratio        {} : 1", panel.modulator_ratio),
-            format!("Modulation depth       {} Hz", panel.modulation_depth_hz),
-            format!("FM Synthesis           {}", on_off(panel.fm_enabled)),
+            format!("└──FM Synthesis           : {}", on_off(panel.fm_enabled)),
+            format!("   ├─ Carrier waveform    : {:03}", panel.carrier_waveform),
+            format!("   ├─ Modulator waveform  : {:03}", panel.modulator_waveform),
+            format!("   ├─ Modulator ratio     : {} : 1", panel.modulator_ratio),
+            format!("   └─ Modulation depth    : {} Hz", panel.modulation_depth_hz),
         ],
         Menu::Voices => vec![
-            format!("Selected Voice         {:03}", panel.selected_voice),
+            format!("└──Selected Voice         {:03}", panel.selected_voice),
         ],
         Menu::Effects => vec![
-            format!("Delay                 {}", on_off(panel.delay_enabled)),
-            format!("  Time                {} ms", panel.delay_time_ms),
-            format!("  Mix                 {}%", panel.delay_mix),
-            format!("  Feedback            {}%", panel.delay_feedback),
-            format!("Flanger               {}", on_off(panel.flanger_enabled)),
-            format!("  Base delay          {} ms", panel.flanger_base_delay_ms),
-            format!("  Depth               {} ms", panel.flanger_depth_ms),
-            format!("  Rate                {} Hz", panel.flanger_rate_hz),
-            format!("  Mix                 {}%", panel.flanger_mix),
-            format!("Filter                {}", on_off(panel.filter_enabled)),
-            format!("  Cutoff              {}", panel.filter_cutoff),
-            format!("  Resonance           {}", panel.filter_resonance),
-            format!(
-                "  Type                {}",
-                filter_kind_name(panel.filter_kind)
-            ),
-            format!("Distortion            {}", on_off(panel.distortion_enabled)),
-            format!(
-                "  Curve               {}",
-                distortion_kind_name(panel.distortion_kind)
-            ),
-            format!("  Threshold           {}", panel.distortion_threshold),
+            format!("├──Delay          : {}", on_off(panel.delay_enabled)),
+            format!("│   ├─ Time       : {} ms", panel.delay_time_ms),
+            format!("│   ├─ Mix        : {}%", panel.delay_mix),
+            format!("│   └─ Feedback   : {}%", panel.delay_feedback),
+            format!("├──Flanger        : {}", on_off(panel.flanger_enabled)),
+            format!("│   ├─ Base delay : {} ms", panel.flanger_base_delay_ms),
+            format!("│   ├─ Depth      : {} ms", panel.flanger_depth_ms),
+            format!("│   ├─ Rate       : {} Hz", panel.flanger_rate_hz),
+            format!("│   └─ Mix        : {}%", panel.flanger_mix),
+            format!("├──Filter         : {}", on_off(panel.filter_enabled)),
+            format!("│   ├─ Cutoff     : {}", panel.filter_cutoff),
+            format!("│   ├─ Resonance  : {}", panel.filter_resonance),
+            format!("│   └─ Type       : {}", filter_kind_name(panel.filter_kind)),
+            format!("└──Distortion     : {}", on_off(panel.distortion_enabled)),
+            format!("   ├─  Curve      : {}", distortion_kind_name(panel.distortion_kind)),
+            format!("   └─  Threshold  : {}", panel.distortion_threshold),
         ],
         Menu::Envelope => vec![
-            format!("Attack                {} ms", panel.attack_time_ms),
-            format!("Decay                 {} ms", panel.decay_time_ms),
-            format!("Sustain               {}%", panel.sustain_level),
-            format!("Release               {} ms", panel.release_time_ms),
+            format!("├─ Attack     : {} ms", panel.attack_time_ms),
+            format!("├─ Decay      : {} ms", panel.decay_time_ms),
+            format!("├─ Sustain    : {}%", panel.sustain_level),
+            format!("└─ Release    : {} ms", panel.release_time_ms),
         ],
         Menu::Live => Vec::new(),
         Menu::Devices => vec![
             format!(
-                "Audio Output       {}",
+                "├──Audio Output    : {}",
                 panel
                     .audio_devices
                     .get(panel.selected_audio_device)
                     .unwrap_or(&"None".to_string())
             ),
             format!(
-                "MIDI Input         {}",
+                "└──MIDI Input      : {}",
                 panel
                     .midi_ports
                     .get(panel.selected_midi_port)
@@ -912,8 +906,8 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             ),
         ],
         Menu::SavePatch => vec![
-            format!("Patch Name         {}", panel.patch_name),
-            format!("Status             {}", panel.save_message),
+            format!("├──Patch Name   : {}", panel.patch_name),
+            format!("└──Status       : {}", panel.save_message),
         ],
     };
     let items = values
@@ -925,7 +919,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             Block::default()
                 .title(match panel.menu {
                     Menu::Fm => " FM PARAMETERS ",
-                    Menu::Voices => " VOICE SELECTION ",
+                    Menu::Voices => " VOICES ",
                     Menu::Effects => " EFFECTS ",
                     Menu::Envelope => " ENVELOPE ",
                     Menu::Live => " LIVE AUDIO ",
