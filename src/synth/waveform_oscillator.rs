@@ -96,6 +96,9 @@ pub struct WaveformOscillator {
     waveform_pointer: u8,
 
     grain_selector: u8,
+
+    // time for LFO
+    lfo_time: u16
 }
 
 impl Clockable for WaveformOscillator {
@@ -172,6 +175,7 @@ impl WaveformOscillator {
         };
         let mut osc = Self::new(new_config, sample_rate, waveforms);
         osc.enabled = config.time != 0;
+        osc.lfo_time = config.time;
         osc.phase_increment = Self::phase_increment_for_period(sample_rate, config.time);
         osc
     }
@@ -205,6 +209,7 @@ impl WaveformOscillator {
             waveforms,
             waveform_pointer: config.soundbank_index,
             grain_selector: 0,
+            lfo_time: 0
         };
         if config.grains {
             osc.waveform_pointer = config.grains_seq[osc.grain_selector as usize];
@@ -274,9 +279,14 @@ impl WaveformOscillator {
         };
         self.reset_state();
         self.enabled = config.time != 0;
+        self.lfo_time = config.time;
         self.phase_increment = Self::phase_increment_for_period(self.sample_rate, config.time);
         self.waveform_pointer = config.soundbank_index;
         self.config = new_config;
+    }
+
+    pub fn get_lfo_config(&mut self) -> WaveformLFOConfig {
+        WaveformLFOConfig { soundbank_index: self.config.soundbank_index, time: self.lfo_time  }
     }
 
     /// Manipulate frequency with percentage

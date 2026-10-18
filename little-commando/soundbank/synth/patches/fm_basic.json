@@ -92,7 +92,7 @@
     {"soundbank_index": 0, "time": 0}
   ],
   "fm_config": {
-    "enabled": true,
+    "enabled": false,
     "carrier_waveform": 6,
     "modulator_waveform": 10,
     "modulator_ratio": 1,

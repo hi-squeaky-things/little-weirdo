@@ -5,10 +5,12 @@
 //! this separate interface.
 
 use super::{data::frequencies::MIDI2FREQ, Synth, AMOUNT_OF_VOICES};
-use crate::effects::{
+use crate::{effects::{
     filter::KindOfFilter,
     overdrive::{KindOfOverdrive, OverdriveConfiguration},
-};
+}, synth::{noise::NoiseKind, patch::{Patch, SynthConfiguration}}};
+extern crate alloc;
+use alloc::string::String;
 
 /// A live-control interface borrowing a synthesizer mutably.
 ///
@@ -24,6 +26,47 @@ impl<'a> SynthControl<'a> {
         Self { synth }
     }
 
+    pub fn get_current_patch(&mut self) -> Patch {
+        Patch {
+            name: alloc::string::ToString::to_string(&"test"),
+            voices: [
+                self.synth.voices[0].config,
+                self.synth.voices[1].config,
+                self.synth.voices[2].config,
+                self.synth.voices[3].config,
+                self.synth.voices[4].config,
+                self.synth.voices[5].config,
+                self.synth.voices[6].config,
+                self.synth.voices[7].config,
+            ],
+            envelops: [
+                self.synth.envelops[0].configuration,
+                self.synth.envelops[1].configuration,
+                self.synth.envelops[2].configuration,
+                self.synth.envelops[3].configuration,
+                self.synth.envelops[4].configuration,
+                self.synth.envelops[5].configuration,
+                self.synth.envelops[6].configuration,
+                self.synth.envelops[7].configuration,
+            ],
+            lfos: [
+                self.synth.lfo[0].get_lfo_config(),
+                self.synth.lfo[1].get_lfo_config(),
+                self.synth.lfo[2].get_lfo_config(),
+                self.synth.lfo[3].get_lfo_config(), 
+            ],
+            filter_config: self.synth.filter.config,
+            mixer_config: self.synth.mixer.config,
+            overdrive_config: self.synth.overdrive.config,
+            bitcrunch_config: self.synth.bitcrunch.config,
+            delay_config: self.synth.delay.config,
+            routering_config: self.synth.router.config,
+            synth_config: SynthConfiguration { mode: super::patch::SynthMode::OctoPoly },
+            flanger_config: self.synth.flanger.config,
+            fm_config: self.synth.fm_config,
+        }
+    }
+
     pub fn change_all_voices(&mut self, voice_id: u8) {
         for i in 0..AMOUNT_OF_VOICES {
             if self.synth.fm_config.enabled && i % 2 == 1 {
@@ -34,6 +77,19 @@ impl<'a> SynthControl<'a> {
             self.synth.voices[i].reload(config);
         }
     }
+
+     pub fn change_all_voices_noise(&mut self, noise: NoiseKind) {
+        for i in 0..AMOUNT_OF_VOICES {
+            if self.synth.fm_config.enabled && i % 2 == 1 {
+                continue;
+            }
+            let mut config = self.synth.voices[i].config;
+            config.noise = noise;
+            self.synth.voices[i].reload(config);
+        }
+    }
+
+
 
     /// Change the settings of all envelopes
     ///
@@ -362,6 +418,9 @@ impl<'a> SynthControl<'a> {
             self.synth.voices[i].reload(config);
         }
     }
+
+
+    
 
       pub fn set_glide_time(&mut self, time: u8) {
 

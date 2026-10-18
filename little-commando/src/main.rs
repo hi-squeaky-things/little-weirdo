@@ -9,6 +9,7 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
+use little_weirdo::synth::noise::{self, NoiseKind};
 use little_weirdo::synth::{
     self,
     data::waveforms::{BoxedWaveform, BoxedWaveforms, Waveforms},
@@ -134,6 +135,7 @@ enum AudioCommand {
     ChangeVoice(u8),
     ToggleGlide(bool),
     AdjustGlide(u8),
+    ChangeNoise(NoiseKind)
 }
 
 enum DeviceCommand {
@@ -183,6 +185,7 @@ struct SynthPanel {
     selected_voice: u8,
     glide_enabled: bool,
     glide_rate_ms: u8,
+    selected_noise: NoiseKind,
     patch_name: String,
     save_message: String,
 }
@@ -386,6 +389,7 @@ fn main() -> anyhow::Result<()> {
         selected_voice: 0,
         glide_enabled: false,
         glide_rate_ms: 0,
+        selected_noise: NoiseKind::None,
         patch_name: "new_patch".to_string(),
         save_message: String::new(),
     };
@@ -559,6 +563,27 @@ fn adjust_selected(
                  panel.glide_rate_ms =  panel.glide_rate_ms.saturating_sub(1);
             }
             audio_tx.send(AudioCommand::AdjustGlide(panel.glide_rate_ms))?;
+        } else if panel.selected == 3 {
+            // noise select.
+            if (clockwise) { 
+                match panel.selected_noise {
+                    NoiseKind::None => panel.selected_noise =  NoiseKind::White,
+                    NoiseKind::White => panel.selected_noise =  NoiseKind::Pink,
+                    NoiseKind::Pink => panel.selected_noise =  NoiseKind::Brown,
+                    NoiseKind::Brown => panel.selected_noise =  NoiseKind::None,
+                }
+            } else {
+                 match panel.selected_noise {
+                    NoiseKind::None => panel.selected_noise =  NoiseKind::Brown,
+                    NoiseKind::White => panel.selected_noise =  NoiseKind::None,
+                    NoiseKind::Pink => panel.selected_noise =  NoiseKind::White,
+                    NoiseKind::Brown => panel.selected_noise =  NoiseKind::Pink,
+                }
+            }
+
+            
+
+            audio_tx.send(AudioCommand::ChangeNoise(panel.selected_noise))?;
         }
         return Ok(());
     }
@@ -637,7 +662,7 @@ fn adjust_selected(
 fn menu_item_count(menu: Menu) -> usize {
     match menu {
         Menu::Fm => 5,
-        Menu::Voices => 3,
+        Menu::Voices => 4,
         Menu::Effects => 16,
         Menu::Envelope => 4,
         Menu::Live => 1,
@@ -905,7 +930,9 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                 "├─ Glide                  : {}",
                 on_off(panel.glide_enabled)
             ),
-            format!("└─ Glide time             : {:03} ms", panel.glide_rate_ms),
+            format!("├─ Glide time             : {:03} ms", panel.glide_rate_ms),
+            format!("└─ Noise                  : {:?}", panel.selected_noise),
+
         ],
         Menu::Effects => vec![
             format!("├──Delay          : {}", on_off(panel.delay_enabled)),
@@ -1336,6 +1363,12 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
         AudioCommand::AdjustGlide(glide_time) => {
             let mut control = synth.control();
             control.set_glide_time(glide_time);
+        }
+
+        AudioCommand::ChangeNoise(noise) => {
+               let mut control = synth.control();
+               println!("{:?}", serde_json::to_string(&control.get_current_patch()));
+               control.change_all_voices_noise(noise);
         }
     }
 }
