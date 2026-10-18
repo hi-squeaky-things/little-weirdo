@@ -120,7 +120,7 @@ enum Menu {
     Envelope,
     Live,
     Devices,
-    // SavePatch,
+    SavePatch,
 }
 
 enum AudioCommand {
@@ -135,7 +135,8 @@ enum AudioCommand {
     ChangeVoice(u8),
     ToggleGlide(bool),
     AdjustGlide(u8),
-    ChangeNoise(NoiseKind)
+    ChangeNoise(NoiseKind),
+    SavePatch()
 }
 
 enum DeviceCommand {
@@ -186,8 +187,7 @@ struct SynthPanel {
     glide_enabled: bool,
     glide_rate_ms: u8,
     selected_noise: NoiseKind,
-    patch_name: String,
-    save_message: String,
+    patch_name: String
 }
 
 fn main() -> anyhow::Result<()> {
@@ -391,7 +391,6 @@ fn main() -> anyhow::Result<()> {
         glide_rate_ms: 0,
         selected_noise: NoiseKind::None,
         patch_name: "new_patch".to_string(),
-        save_message: String::new(),
     };
     let ui_result = run_terminal_ui(&mut panel, &audio_tx, &device_tx, &status_rx);
     drop(device_tx);
@@ -480,20 +479,23 @@ fn event_loop(
                     Menu::Effects => Menu::Envelope,
                     Menu::Envelope => Menu::Live,
                     Menu::Live => Menu::Devices,
-                    Menu::Devices => Menu::Fm,
-                    //     Menu::SavePatch => Menu::Fm,
+                    Menu::Devices => Menu::SavePatch,
+                    Menu::SavePatch => Menu::Fm,
                 };
                 panel.selected = panel.selected.min(menu_item_count(panel.menu) - 1);
             }
-            KeyCode::Up | KeyCode::Char('k') => panel.selected = panel.selected.saturating_sub(1),
-            KeyCode::Down | KeyCode::Char('j') => {
+            KeyCode::Up => panel.selected = panel.selected.saturating_sub(1),
+            KeyCode::Down => {
                 panel.selected = (panel.selected + 1).min(menu_item_count(panel.menu) - 1)
             }
-            KeyCode::Left | KeyCode::Char('h') => {
+            KeyCode::Left => {
                 adjust_selected(panel, audio_tx, device_tx, false)?
             }
-            KeyCode::Right | KeyCode::Char('l') => {
+            KeyCode::Right => {
                 adjust_selected(panel, audio_tx, device_tx, true)?
+            }
+            KeyCode::Char('s') => {
+                 audio_tx.send(AudioCommand::SavePatch())?;
             }
             _ => {}
         }
@@ -667,7 +669,7 @@ fn menu_item_count(menu: Menu) -> usize {
         Menu::Envelope => 4,
         Menu::Live => 1,
         Menu::Devices => 2,
-        //    Menu::SavePatch => 2,
+        Menu::SavePatch => 2,
     }
 }
 
@@ -866,10 +868,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::Envelope => 3,
         Menu::Live => 4,
         Menu::Devices => 5,
-        // Menu::SavePatch => 6,
+        Menu::SavePatch => 6,
     };
     let menus = Tabs::new([
-        "FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", /* "SAVE" */
+        "FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "SAVE"
     ])
     .select(selected_menu)
     .highlight_style(
@@ -981,10 +983,9 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     .unwrap_or(&"None".to_string())
             ),
         ],
-        //   Menu::SavePatch => vec![
-        //       format!("├──Patch Name   : {}", panel.patch_name),
-        //      format!("└──Status       : {}", panel.save_message),
-        // ],
+           Menu::SavePatch => vec![
+               format!("└──Patch Name   : {}", panel        .patch_name),
+         ],
     };
     let items = values
         .iter()
@@ -1000,7 +1001,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     Menu::Envelope => " ENVELOPE ",
                     Menu::Live => " LIVE AUDIO ",
                     Menu::Devices => " DEVICES ",
-                    //   Menu::SavePatch => " SAVE PATCH ",
+                    Menu::SavePatch => " SAVE PATCH ",
                 })
                 .borders(Borders::ALL),
         )
@@ -1367,59 +1368,16 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
 
         AudioCommand::ChangeNoise(noise) => {
                let mut control = synth.control();
-               println!("{:?}", serde_json::to_string(&control.get_current_patch()));
                control.change_all_voices_noise(noise);
         }
-    }
-}
-
-fn save_patch_to_disk(panel: &SynthPanel) -> anyhow::Result<String> {
-    let patch_data = serde_json::json!({
-        "fm_config": {
-            "enabled": panel.fm_enabled,
-            "carrier_waveform": panel.carrier_waveform,
-            "modulator_waveform": panel.modulator_waveform,
-            "modulator_ratio": panel.modulator_ratio,
-            "modulation_depth_hz": panel.modulation_depth_hz
-        },
-        "envelops": [{
-            "attack_time": panel.attack_time_ms,
-            "decay_time": panel.decay_time_ms,
-            "sustain_level": panel.sustain_level as i16,
-            "release_time": panel.release_time_ms
-        }],
-        "effects": {
-            "delay": {
-                "enabled": panel.delay_enabled,
-                "delay_time": panel.delay_time_ms,
-                "mix_percentage": panel.delay_mix,
-                "feedback": panel.delay_feedback > 0,
-                "feedback_percentage": panel.delay_feedback
-            },
-            "flanger": {
-                "enabled": panel.flanger_enabled,
-                "base_delay_time_ms": panel.flanger_base_delay_ms,
-                "depth_ms": panel.flanger_depth_ms,
-                "rate_hz": panel.flanger_rate_hz,
-                "mix_percentage": panel.flanger_mix
-            },
-            "filter": {
-                "enabled": panel.filter_enabled,
-                "cutoff_frequency": panel.filter_cutoff,
-                "resonance": panel.filter_resonance,
-                "kind_of_filter": panel.filter_kind
-            },
-            "overdrive": {
-                "enabled": panel.distortion_enabled,
-                "kind": panel.distortion_kind,
-                "threshold": panel.distortion_threshold
-            }
+        AudioCommand::SavePatch() => {
+               let mut control = synth.control();
+               let patch =  serde_json::to_string_pretty(&control.get_current_patch()).unwrap();
+                let dir = "saved";
+             fs::create_dir_all(dir).unwrap();
+             let path = format!("{}/test.json", dir);
+            fs::write(&path, &patch).unwrap();
+   
         }
-    });
-
-    let dir = "examples/soundbank/synth/patches/original";
-    fs::create_dir_all(dir)?;
-    let path = format!("{}/{}.json", dir, panel.patch_name);
-    fs::write(&path, serde_json::to_string_pretty(&patch_data)?)?;
-    Ok(path)
+    }
 }
