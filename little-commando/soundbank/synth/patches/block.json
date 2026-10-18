@@ -156,49 +156,49 @@
   ],
   "envelops": [
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 10,
+      "attack_time": 30,
       "decay_time": 145,
       "release_time": 290,
       "sustain_level": 80
@@ -262,13 +262,13 @@
   "routering_config": {
     "voices_to_envelop": [
       0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
     ],
     "lfo_to_voice": [
       -1,

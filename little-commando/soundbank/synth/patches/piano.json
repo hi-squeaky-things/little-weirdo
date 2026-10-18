@@ -2,7 +2,7 @@
   "name": "piano",
   "voices": [
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -21,7 +21,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -40,7 +40,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -59,7 +59,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -78,7 +78,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -97,7 +97,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -116,7 +116,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -135,7 +135,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 6,
+      "soundbank_index": 5,
       "glide": true,
       "glide_rate": 2,
       "detune": 0,
@@ -156,51 +156,51 @@
   ],
   "envelops": [
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     },
     {
-      "attack_time": 160,
+      "attack_time": 40,
       "decay_time": 10,
-      "release_time": 480,
+      "release_time": 560,
       "sustain_level": 80
     }
   ],
@@ -253,9 +253,9 @@
   },
   "delay_config": {
     "enabled": true,
-    "delay_time": 270,
+    "delay_time": 90,
     "delay_decrease_percentage": 0,
-    "mix_percentage": 57,
+    "mix_percentage": 54,
     "feedback": true,
     "feedback_percentage": 70
   },

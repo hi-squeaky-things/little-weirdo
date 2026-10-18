@@ -28,7 +28,7 @@ impl<'a> SynthControl<'a> {
 
     pub fn get_current_patch(&mut self) -> Patch {
         Patch {
-            name: alloc::string::ToString::to_string(&"test"),
+            name: self.synth.patch_name.clone(),
             voices: [
                 self.synth.voices[0].config,
                 self.synth.voices[1].config,
@@ -110,6 +110,13 @@ impl<'a> SynthControl<'a> {
         sustain: Option<i16>,
         release: Option<u16>,
     ) {
+
+        let mut routing = self.synth.router.config;
+          for i in 0..AMOUNT_OF_VOICES {
+            routing.voices_to_envelop[i] = i as u8;
+          }
+          self.synth.router.reload(routing);
+
         for i in 0..AMOUNT_OF_VOICES {
             let mut config = self.synth.envelops[i].configuration;
 
@@ -125,6 +132,8 @@ impl<'a> SynthControl<'a> {
             if let Some(val) = release {
                 config.release_time = val;
             }
+
+            
 
             self.synth.envelops[i].update_configuration(config);
         }

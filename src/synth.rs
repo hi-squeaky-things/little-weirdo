@@ -71,6 +71,7 @@ pub struct Synth {
     /// Reference to all the patches on the heap
     patches: Arc<BoxedPatches>,
     waveform_count: usize,
+    patch_name: alloc::string::String,
 }
 
 ///
@@ -102,6 +103,7 @@ impl Synth {
     ) -> Self {
         let patch = patches.get_patches_reference(patch_selected);
         Self {
+            patch_name: patch.name.clone(),
             sample_rate,
             voices: Synth::init_voices(sample_rate, patch, Arc::clone(&waveforms)),
             fm_config: patch.fm_config,
@@ -225,6 +227,7 @@ impl Synth {
     ///
     pub fn load_patch(&mut self, patch_selected: u8) {
         let patch = self.patches.get_patches_reference(patch_selected);
+        self.patch_name = patch.name.clone();
         self.mode = patch.synth_config.mode;
         self.fm_config = patch.fm_config;
 
