@@ -207,6 +207,8 @@ struct SynthPanel {
     lfo_to_freq: i8,
     lfo_to_balance: i8,
     lfo_to_freq_amount: u16,
+    lfo_waveform: u8,
+    lfo_time: u16,
     main_gain: u8,
     voice_gain: u8,
 }
@@ -468,6 +470,8 @@ fn main() -> anyhow::Result<()> {
         lfo_to_freq: patch.routering_config.lfo_to_freq,
         lfo_to_balance: patch.routering_config.lfo_to_balance,
         lfo_to_freq_amount: patch.routering_config.lfo_to_freq_amount,
+        lfo_waveform: patch.lfos[0].soundbank_index,
+        lfo_time:  patch.lfos[0].time,
     };
     let ui_result = run_terminal_ui(&mut panel, &audio_tx, &device_tx, &status_rx);
     drop(device_tx);
@@ -796,6 +800,10 @@ fn adjust_patch_selected(
             panel.lfo_to_freq = patch.routering_config.lfo_to_freq;
             panel.lfo_to_balance = patch.routering_config.lfo_to_balance;
             panel.lfo_to_freq_amount = patch.routering_config.lfo_to_freq_amount;
+
+            panel.lfo_waveform =  patch.lfos[0].soundbank_index;
+            panel.lfo_time = patch.lfos[0].time;
+
             audio_tx.send(AudioCommand::LoadPatch(panel.patch_id))?;
         }
         _ => {}
@@ -1200,7 +1208,13 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             format!("├──LFO to Filter      : {}", panel.lfo_to_filter),
             format!("├──LFO to Freq        : {}", panel.lfo_to_freq),
             format!("├──LFO to Freq Amount : {}", panel.lfo_to_freq_amount),
-            format!("└──LFO to Balance     : {}", panel.lfo_to_balance),
+            format!("├──LFO to Balance     :    {}", panel.lfo_to_balance),
+            format!("└──LFO 0"),
+            format!("    ├─ LFO Waveform   : {}", panel.lfo_waveform),
+            format!("    └─ LFO Time       : {}", panel.lfo_time),
+        
+
+
         ],
     };
     let items = values
