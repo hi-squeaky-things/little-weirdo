@@ -8,8 +8,9 @@ use crossterm::{
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches};
+use little_weirdo::synth::data::patches::{BoxedPatch, BoxedPatches, Patches};
 use little_weirdo::synth::noise::{self, NoiseKind};
+use little_weirdo::synth::patch::Patch;
 use little_weirdo::synth::{
     self,
     data::waveforms::{BoxedWaveform, BoxedWaveforms, Waveforms},
@@ -23,6 +24,9 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Axis, Block, Borders, Chart, Dataset, GraphType, List, ListItem, Paragraph, Tabs},
 };
+use std::env;
+use std::fs::read_dir;
+use std::path::PathBuf;
 use std::{
     collections::HashSet,
     fs,
@@ -136,7 +140,7 @@ enum AudioCommand {
     ToggleGlide(bool),
     AdjustGlide(u8),
     ChangeNoise(NoiseKind),
-    SavePatch()
+    SavePatch(),
 }
 
 enum DeviceCommand {
@@ -187,7 +191,7 @@ struct SynthPanel {
     glide_enabled: bool,
     glide_rate_ms: u8,
     selected_noise: NoiseKind,
-    patch_name: String
+    patch_name: String,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -217,13 +221,18 @@ fn main() -> anyhow::Result<()> {
     let device = output_devices[selected_audio_device].1.clone();
     let config: StreamConfig = device.default_output_config()?.into();
 
+     let manifest_dir = env::var("CARGO_MANIFEST_DIR")?;
+    let base_path = PathBuf::from(manifest_dir);
+
+     
     let waveform_count = 55u8;
     let mut waveforms = BoxedWaveforms::new();
     for id in 0..waveform_count {
-        let filename = format!(
-            "examples/soundbank/synth/waveforms/src/{:03}_sample.raw",
-            id
-        );
+        let filename = base_path
+            .join("soundbank")
+            .join("synth")
+            .join("waveforms")
+            .join(format!("{:03}_sample.raw", id));
         let contents = fs::read(filename)?;
         waveforms.add(BoxedWaveform::new(&contents));
     }
@@ -241,14 +250,41 @@ fn main() -> anyhow::Result<()> {
         })
         .collect();
 
-    let patch: synth::patch::Patch =
-        serde_json::from_slice(include_bytes!("../soundbank/synth/patches/fm_basic.json"))?;
-    let fm = patch.fm_config;
-    let envelope = patch.envelops[0];
-    let patch = BoxedPatch::new(patch);
+    let patch_dir = "soundbank/synth/patches";
+
+    // Read all files from the patches directory
+    let mut paths: Vec<_> = read_dir(base_path    
+            .join("soundbank")
+            .join("synth")
+            .join("patches")
+    )
+        .unwrap()
+        .filter_map(Result::ok)
+        .collect();
+
+    // Sort directory entries by filename for consistent processing
+    paths.sort_by_key(|dir| dir.file_name());
     let mut patches = BoxedPatches::new();
-    patches.add(patch);
+    for entry in paths {
+        let path = entry.path();
+
+        // Only process JSON files
+        if let Some(extension) = path.extension() {
+            if extension == "json" {
+                let json_content = fs::read_to_string(&path).expect("Failed to read JSON file");
+                // Parse JSON
+                let patch: Patch = serde_json::from_str(&json_content).unwrap();
+                let boxed_patch = BoxedPatch::new(patch);
+                patches.add(boxed_patch);
+            }
+        }
+    }
+
     let patches = Arc::new(patches);
+
+    let fm = patches.as_ref().get_patches_reference(0).fm_config;
+    let envelope = patches.as_ref().get_patches_reference(0).envelops[0];
+
 
     let live_audio = Arc::new(LiveAudio::new());
 
@@ -347,8 +383,10 @@ fn main() -> anyhow::Result<()> {
         drop(midi_connection);
     });
 
+    let patch = patches.as_ref().get_patches_reference(0);
+
     let mut panel = SynthPanel {
-        fm_enabled: true,
+        fm_enabled: fm.enabled,
         carrier_waveform: fm.carrier_waveform,
         modulator_waveform: fm.modulator_waveform,
         modulator_ratio: fm.modulator_ratio.max(1),
@@ -368,11 +406,11 @@ fn main() -> anyhow::Result<()> {
         flanger_depth_ms,
         flanger_rate_hz,
         flanger_mix,
-        filter_enabled,
+        filter_enabled: patch.filter_config.enabled,
         filter_cutoff,
         filter_resonance,
         filter_kind,
-        distortion_enabled,
+        distortion_enabled: patch.overdrive_config.enabled,
         distortion_kind,
         distortion_threshold,
         attack_time_ms: envelope.attack_time,
@@ -386,11 +424,11 @@ fn main() -> anyhow::Result<()> {
         midi_ports,
         selected_midi_port,
         device_status: initial_audio_name,
-        selected_voice: 0,
-        glide_enabled: false,
-        glide_rate_ms: 0,
+        selected_voice: patch.voices[0].soundbank_index,
+        glide_enabled: patch.voices[0].glide,
+        glide_rate_ms:  patch.voices[0].glide_rate,
         selected_noise: NoiseKind::None,
-        patch_name: "new_patch".to_string(),
+        patch_name:  patch.name.clone(),
     };
     let ui_result = run_terminal_ui(&mut panel, &audio_tx, &device_tx, &status_rx);
     drop(device_tx);
@@ -488,14 +526,10 @@ fn event_loop(
             KeyCode::Down => {
                 panel.selected = (panel.selected + 1).min(menu_item_count(panel.menu) - 1)
             }
-            KeyCode::Left => {
-                adjust_selected(panel, audio_tx, device_tx, false)?
-            }
-            KeyCode::Right => {
-                adjust_selected(panel, audio_tx, device_tx, true)?
-            }
+            KeyCode::Left => adjust_selected(panel, audio_tx, device_tx, false)?,
+            KeyCode::Right => adjust_selected(panel, audio_tx, device_tx, true)?,
             KeyCode::Char('s') => {
-                 audio_tx.send(AudioCommand::SavePatch())?;
+                audio_tx.send(AudioCommand::SavePatch())?;
             }
             _ => {}
         }
@@ -562,28 +596,26 @@ fn adjust_selected(
             if (clockwise) {
                 panel.glide_rate_ms = panel.glide_rate_ms.saturating_add(1);
             } else {
-                 panel.glide_rate_ms =  panel.glide_rate_ms.saturating_sub(1);
+                panel.glide_rate_ms = panel.glide_rate_ms.saturating_sub(1);
             }
             audio_tx.send(AudioCommand::AdjustGlide(panel.glide_rate_ms))?;
         } else if panel.selected == 3 {
             // noise select.
-            if (clockwise) { 
+            if (clockwise) {
                 match panel.selected_noise {
-                    NoiseKind::None => panel.selected_noise =  NoiseKind::White,
-                    NoiseKind::White => panel.selected_noise =  NoiseKind::Pink,
-                    NoiseKind::Pink => panel.selected_noise =  NoiseKind::Brown,
-                    NoiseKind::Brown => panel.selected_noise =  NoiseKind::None,
+                    NoiseKind::None => panel.selected_noise = NoiseKind::White,
+                    NoiseKind::White => panel.selected_noise = NoiseKind::Pink,
+                    NoiseKind::Pink => panel.selected_noise = NoiseKind::Brown,
+                    NoiseKind::Brown => panel.selected_noise = NoiseKind::None,
                 }
             } else {
-                 match panel.selected_noise {
-                    NoiseKind::None => panel.selected_noise =  NoiseKind::Brown,
-                    NoiseKind::White => panel.selected_noise =  NoiseKind::None,
-                    NoiseKind::Pink => panel.selected_noise =  NoiseKind::White,
-                    NoiseKind::Brown => panel.selected_noise =  NoiseKind::Pink,
+                match panel.selected_noise {
+                    NoiseKind::None => panel.selected_noise = NoiseKind::Brown,
+                    NoiseKind::White => panel.selected_noise = NoiseKind::None,
+                    NoiseKind::Pink => panel.selected_noise = NoiseKind::White,
+                    NoiseKind::Brown => panel.selected_noise = NoiseKind::Pink,
                 }
             }
-
-            
 
             audio_tx.send(AudioCommand::ChangeNoise(panel.selected_noise))?;
         }
@@ -871,7 +903,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::SavePatch => 6,
     };
     let menus = Tabs::new([
-        "FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "SAVE"
+        "FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "SAVE",
     ])
     .select(selected_menu)
     .highlight_style(
@@ -934,7 +966,6 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             ),
             format!("├─ Glide time             : {:03} ms", panel.glide_rate_ms),
             format!("└─ Noise                  : {:?}", panel.selected_noise),
-
         ],
         Menu::Effects => vec![
             format!("├──Delay          : {}", on_off(panel.delay_enabled)),
@@ -983,9 +1014,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     .unwrap_or(&"None".to_string())
             ),
         ],
-           Menu::SavePatch => vec![
-               format!("└──Patch Name   : {}", panel        .patch_name),
-         ],
+        Menu::SavePatch => vec![format!("└──Patch Name   : {}", panel.patch_name)],
     };
     let items = values
         .iter()
@@ -1367,17 +1396,22 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
         }
 
         AudioCommand::ChangeNoise(noise) => {
-               let mut control = synth.control();
-               control.change_all_voices_noise(noise);
+            let mut control = synth.control();
+            control.change_all_voices_noise(noise);
         }
         AudioCommand::SavePatch() => {
-               let mut control = synth.control();
-               let patch =  serde_json::to_string_pretty(&control.get_current_patch()).unwrap();
-                let dir = "saved";
-             fs::create_dir_all(dir).unwrap();
-             let path = format!("{}/test.json", dir);
-            fs::write(&path, &patch).unwrap();
-   
+            let mut control = synth.control();
+            let patch = serde_json::to_string_pretty(&control.get_current_patch()).unwrap();
+
+              let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+             let base_path = PathBuf::from(manifest_dir);
+
+             let filename = base_path
+            .join("soundbank")
+            .join("synth")
+            .join("patches")
+             .join(format!("test.json"));
+            fs::write(&filename, &patch).unwrap();
         }
     }
 }

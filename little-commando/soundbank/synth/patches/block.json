@@ -1,10 +1,10 @@
 {
-  "name": "test",
+  "name": "block",
   "voices": [
     {
-      "soundbank_index": 14,
+      "soundbank_index": 2,
       "glide": true,
-      "glide_rate": 4,
+      "glide_rate": 7,
       "detune": 0,
       "freq_detune": 0,
       "grains": false,
@@ -21,28 +21,9 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 0,
-      "glide": false,
-      "glide_rate": 0,
-      "detune": 0,
-      "freq_detune": 0,
-      "grains": false,
-      "grains_seq": [
-        0,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255
-      ],
-      "noise": "None"
-    },
-    {
-      "soundbank_index": 14,
+      "soundbank_index": 2,
       "glide": true,
-      "glide_rate": 4,
+      "glide_rate": 7,
       "detune": 0,
       "freq_detune": 0,
       "grains": false,
@@ -59,28 +40,9 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 0,
-      "glide": false,
-      "glide_rate": 0,
-      "detune": 0,
-      "freq_detune": 0,
-      "grains": false,
-      "grains_seq": [
-        0,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255
-      ],
-      "noise": "None"
-    },
-    {
-      "soundbank_index": 14,
+      "soundbank_index": 2,
       "glide": true,
-      "glide_rate": 4,
+      "glide_rate": 7,
       "detune": 0,
       "freq_detune": 0,
       "grains": false,
@@ -97,28 +59,9 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 0,
-      "glide": false,
-      "glide_rate": 0,
-      "detune": 0,
-      "freq_detune": 0,
-      "grains": false,
-      "grains_seq": [
-        0,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255,
-        255
-      ],
-      "noise": "None"
-    },
-    {
-      "soundbank_index": 14,
+      "soundbank_index": 2,
       "glide": true,
-      "glide_rate": 4,
+      "glide_rate": 7,
       "detune": 0,
       "freq_detune": 0,
       "grains": false,
@@ -135,9 +78,66 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 0,
-      "glide": false,
-      "glide_rate": 0,
+      "soundbank_index": 2,
+      "glide": true,
+      "glide_rate": 7,
+      "detune": 0,
+      "freq_detune": 0,
+      "grains": false,
+      "grains_seq": [
+        0,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ],
+      "noise": "None"
+    },
+    {
+      "soundbank_index": 2,
+      "glide": true,
+      "glide_rate": 7,
+      "detune": 0,
+      "freq_detune": 0,
+      "grains": false,
+      "grains_seq": [
+        0,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ],
+      "noise": "None"
+    },
+    {
+      "soundbank_index": 2,
+      "glide": true,
+      "glide_rate": 7,
+      "detune": 0,
+      "freq_detune": 0,
+      "grains": false,
+      "grains_seq": [
+        0,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255,
+        255
+      ],
+      "noise": "None"
+    },
+    {
+      "soundbank_index": 2,
+      "glide": true,
+      "glide_rate": 7,
       "detune": 0,
       "freq_detune": 0,
       "grains": false,
@@ -156,51 +156,51 @@
   ],
   "envelops": [
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     },
     {
-      "attack_time": 0,
-      "decay_time": 215,
-      "release_time": 350,
+      "attack_time": 10,
+      "decay_time": 145,
+      "release_time": 290,
       "sustain_level": 80
     }
   ],
@@ -223,10 +223,10 @@
     }
   ],
   "filter_config": {
-    "cutoff_frequency": 12000,
+    "cutoff_frequency": 16500,
     "resonance": 0,
     "kind_of_filter": "Low",
-    "enabled": false
+    "enabled": true
   },
   "mixer_config": {
     "gain_voices": [
@@ -243,9 +243,9 @@
     "balance": 0
   },
   "overdrive_config": {
-    "threshold": 2000,
-    "kind": "Soft",
-    "enabled": false,
+    "threshold": 7000,
+    "kind": "Softer",
+    "enabled": true,
     "gain_percentage": 0
   },
   "bitcrunch_config": {
@@ -253,11 +253,11 @@
   },
   "delay_config": {
     "enabled": true,
-    "delay_time": 80,
+    "delay_time": 330,
     "delay_decrease_percentage": 0,
-    "mix_percentage": 30,
+    "mix_percentage": 64,
     "feedback": true,
-    "feedback_percentage": 30
+    "feedback_percentage": 69
   },
   "routering_config": {
     "voices_to_envelop": [
@@ -290,16 +290,16 @@
   },
   "flanger_config": {
     "enabled": false,
-    "base_delay_time_ms": 10,
-    "depth_ms": 5,
-    "rate_hz": 5,
-    "mix_percentage": 30
+    "base_delay_time_ms": 4,
+    "depth_ms": 3,
+    "rate_hz": 20,
+    "mix_percentage": 28
   },
   "fm_config": {
-    "enabled": true,
+    "enabled": false,
     "modulator_waveform": 10,
     "modulator_ratio": 1,
     "modulation_depth_hz": 70,
-    "carrier_waveform": 7
+    "carrier_waveform": 6
   }
 }

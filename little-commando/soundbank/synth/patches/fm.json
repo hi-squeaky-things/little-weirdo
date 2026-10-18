@@ -1,6 +1,5 @@
 {
-  "$schema": "schema/lw_patch.json",
-  "name": "fm_basic",
+  "name": "fm",
   "voices": [
     {
       "soundbank_index": 0,
