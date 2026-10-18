@@ -16,6 +16,7 @@ use little_weirdo::synth::{
     data::waveforms::{BoxedWaveform, BoxedWaveforms, Waveforms},
 };
 use midi_control::MidiMessage;
+use ratatui::style::Stylize;
 use ratatui::{
     Terminal,
     backend::CrosstermBackend,
@@ -874,17 +875,37 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
         .split(layout[0]);
+        
 
-    let title = Paragraph::new(vec![
+    let mut title_text = vec![
         Line::from(" ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱"),
         Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi SQυεΛκY Things Cαη ħαρρεη α⊥ αηψ тıмε!"),
-    ])
+        Line::from("└────────────────────────────────────────────────────────────────────── "),
+        Line::from("")
+    ];     
+
+            match panel.menu {
+                Menu::Fm => title_text.push(Line::from(" 👉 🎛️ Change the parameters of the FM synthesizer part.")),
+                Menu::Voices => title_text.push(Line::from(" 👉 🎛️ Change the parameters of the additive synthesizer part.")),
+                Menu::Effects => title_text.push(Line::from(" 👉 🎛️ Change the parameters of effect rack part.")),
+                Menu::Envelope => title_text.push(Line::from(" 👉 🎛️ Change the parameters of the ADSR envelope.")),
+                Menu::Live => title_text.push(Line::from(" 🎧 Show the live output ot the synthesizer.")),
+                Menu::Devices => title_text.push(Line::from(" Select the  🔊 audio output and 🎹 midi-in device(s).")),
+                Menu::SavePatch => title_text.push(Line::from(" ✨ Load and save patches.")),
+            }
+
+            title_text.push(Line::from(""));
+            title_text.push(Line::from(" 🌈 SQUEAKINESS COMES IN WAVES! 🌊 ").style(Style::new().white()).bg(Color::LightYellow));
+            
+    let title = Paragraph::new(title_text)
     .style(
         Style::default()
             .fg(Color::Cyan)
             .add_modifier(Modifier::BOLD),
     )
     .block(Block::default().borders(Borders::BOTTOM));
+
+
     frame.render_widget(title, header_chunks[0]);
 
     let logo = Paragraph::new(LOGO)
@@ -903,7 +924,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::SavePatch => 6,
     };
     let menus = Tabs::new([
-        "FM", "VOICES", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "SAVE",
+        "FM VOICE", "ADD/SUB VOICE", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "PATCH",
     ])
     .select(selected_menu)
     .highlight_style(
@@ -1127,9 +1148,9 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                 ]),
         )
         .y_axis(Axis::default().bounds([0.0, 1.0]).labels(vec![
-            Span::raw("0"),
-            Span::raw("0.5"),
-            Span::raw("1"),
+            Span::raw("0%"),
+            Span::raw("50%"),
+            Span::raw("100%"),
         ]));
         frame.render_stateful_widget(settings, content[0], &mut state);
         frame.render_widget(envelope_chart, content[1]);
