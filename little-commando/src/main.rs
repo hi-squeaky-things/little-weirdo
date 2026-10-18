@@ -123,6 +123,7 @@ enum Menu {
     Voices,
     Effects,
     Envelope,
+    Mixer,
     Live,
     Devices,
     SavePatch,
@@ -142,6 +143,8 @@ enum AudioCommand {
     AdjustGlide(u8),
     ChangeNoise(NoiseKind),
     SavePatch(),
+    AdjustMainVolume(u8),
+    AdjustVoiceVolume(u8)
 }
 
 enum DeviceCommand {
@@ -193,6 +196,8 @@ struct SynthPanel {
     glide_rate_ms: u8,
     selected_noise: NoiseKind,
     patch_name: String,
+    main_gain: u8,
+    voice_gain: u8
 }
 
 fn main() -> anyhow::Result<()> {
@@ -226,22 +231,40 @@ fn main() -> anyhow::Result<()> {
     let base_path = PathBuf::from(manifest_dir);
 
      
-    let waveform_count = 55u8;
     let mut waveforms = BoxedWaveforms::new();
-    for id in 0..waveform_count {
-        let filename = base_path
+
+     // Read all files from the patches directory
+    let mut paths: Vec<_> = read_dir(base_path    
             .join("soundbank")
             .join("synth")
             .join("waveforms")
-            .join(format!("{:03}_sample.raw", id));
-        let contents = fs::read(filename)?;
-        waveforms.add(BoxedWaveform::new(&contents));
+    )
+        .unwrap()
+        .filter_map(Result::ok)
+        .collect();
+
+
+
+
+     paths.sort_by_key(|dir| dir.file_name());
+      for entry in paths {
+        let path = entry.path();
+
+        // Only process JSON files
+        if let Some(extension) = path.extension() {
+             if extension == "raw" {
+                  let contents = fs::read(path)?;
+                waveforms.add(BoxedWaveform::new(&contents));
+             }
+        }
     }
+
+   
     let waveforms = Arc::new(waveforms);
-    let waveform_plots = (0..waveform_count)
+    let waveform_plots = (0..waveforms.len())
         .map(|index| {
             waveforms
-                .get_waveform_reference(index)
+                .get_waveform_reference(index as u8)
                 .iter()
                 .enumerate()
                 .map(|(sample_index, sample)| {
@@ -394,7 +417,7 @@ fn main() -> anyhow::Result<()> {
         modulation_depth_hz: fm.modulation_depth_hz,
         selected: 0,
         menu: Menu::Fm,
-        waveform_count,
+        waveform_count: waveforms.len() as u8,
         waveform_plots,
         live_audio,
         midi_status,
@@ -430,6 +453,8 @@ fn main() -> anyhow::Result<()> {
         glide_rate_ms:  patch.voices[0].glide_rate,
         selected_noise: NoiseKind::None,
         patch_name:  patch.name.clone(),
+        main_gain: patch.mixer_config.gain_main,
+        voice_gain: patch.mixer_config.gain_voices[0]
     };
     let ui_result = run_terminal_ui(&mut panel, &audio_tx, &device_tx, &status_rx);
     drop(device_tx);
@@ -489,7 +514,7 @@ fn event_loop(
             let note = keyboard_note(note_index, panel.keyboard_octave_shift);
             match key.kind {
                 KeyEventKind::Press if held_notes.insert(note) => {
-                    audio_tx.send(AudioCommand::NoteOn(note, 100))?;
+                    audio_tx.send(AudioCommand::NoteOn(note, 127))?;
                     panel.held_keyboard_notes.insert(note);
                 }
                 KeyEventKind::Release if held_notes.remove(&note) => {
@@ -516,7 +541,8 @@ fn event_loop(
                     Menu::Fm => Menu::Voices,
                     Menu::Voices => Menu::Effects,
                     Menu::Effects => Menu::Envelope,
-                    Menu::Envelope => Menu::Live,
+                    Menu::Envelope => Menu::Mixer,
+                    Menu::Mixer => Menu::Live,
                     Menu::Live => Menu::Devices,
                     Menu::Devices => Menu::SavePatch,
                     Menu::SavePatch => Menu::Fm,
@@ -657,6 +683,11 @@ fn adjust_selected(
         return adjust_envelope_selected(panel, audio_tx, clockwise);
     }
 
+    if panel.menu == Menu::Mixer {
+        return adjust_mixer_selected(panel, audio_tx, clockwise);
+    }
+
+
     let parameter = match panel.selected {
         1 => {
             panel.carrier_waveform =
@@ -703,9 +734,30 @@ fn menu_item_count(menu: Menu) -> usize {
         Menu::Live => 1,
         Menu::Devices => 2,
         Menu::SavePatch => 2,
+        Menu::Mixer => 2,
     }
 }
 
+fn adjust_mixer_selected(
+    panel: &mut SynthPanel,
+    audio_tx: &mpsc::Sender<AudioCommand>,
+    clockwise: bool,
+) -> anyhow::Result<()> {
+    let (value) = match panel.selected {
+        0 => {
+            panel.main_gain = step_u8(panel.main_gain, clockwise, 1, 0, 100);
+            audio_tx.send(AudioCommand::AdjustMainVolume(panel.main_gain))?;
+        },
+        1 => {
+            panel.voice_gain = step_u8(panel.voice_gain, clockwise, 1, 0, 100);
+            audio_tx.send(AudioCommand::AdjustVoiceVolume(panel.voice_gain))?;
+        },
+        _ => {
+        }
+    };
+    //audio_tx.send(AudioCommand::SetEnvelope(parameter, value))?;
+    Ok(())
+}
 fn adjust_envelope_selected(
     panel: &mut SynthPanel,
     audio_tx: &mpsc::Sender<AudioCommand>,
@@ -892,6 +944,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                 Menu::Live => title_text.push(Line::from(" 🎧 Show the live output ot the synthesizer.")),
                 Menu::Devices => title_text.push(Line::from(" Select the  🔊 audio output and 🎹 midi-in device(s).")),
                 Menu::SavePatch => title_text.push(Line::from(" ✨ Load and save patches.")),
+                Menu::Mixer =>  title_text.push(Line::from(" 👉 🎛️ Change the parameters of the sound mixer.")),
             }
 
             title_text.push(Line::from(""));
@@ -919,12 +972,13 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         Menu::Voices => 1,
         Menu::Effects => 2,
         Menu::Envelope => 3,
-        Menu::Live => 4,
-        Menu::Devices => 5,
-        Menu::SavePatch => 6,
+        Menu::Mixer => 4,
+        Menu::Live => 5,
+        Menu::Devices => 6,
+        Menu::SavePatch => 7,
     };
     let menus = Tabs::new([
-        "FM VOICE", "ADD/SUB VOICE", "EFFECTS", "ENVELOPE", "LIVE", "DEVICES", "PATCH",
+        "FM VOICE", "ADD/SUB VOICE", "EFFECTS", "ENVELOPE", "MIXER", "LIVE", "DEVICES", "PATCH",
     ])
     .select(selected_menu)
     .highlight_style(
@@ -966,6 +1020,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
     }
 
     let values = match panel.menu {
+        
         Menu::Fm => vec![
             format!("└──FM Synthesis           : {}", on_off(panel.fm_enabled)),
             format!("   ├─ Carrier waveform    : {:03}", panel.carrier_waveform),
@@ -980,7 +1035,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             ),
         ],
         Menu::Voices => vec![
-            format!("├─ Voice waveform         : {:03}", panel.selected_voice),
+            format!("├─ Voice waveform ({:03})   : {:03}", panel.waveform_count, panel.selected_voice),
             format!(
                 "├─ Glide                  : {}",
                 on_off(panel.glide_enabled)
@@ -1036,6 +1091,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             ),
         ],
         Menu::SavePatch => vec![format!("└──Patch Name   : {}", panel.patch_name)],
+        Menu::Mixer => vec![
+            format!("└──Main gain   : {}", panel.main_gain),
+            format!("└──Voice gain   : {}", panel.voice_gain)
+        ],
     };
     let items = values
         .iter()
@@ -1052,6 +1111,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     Menu::Live => " LIVE AUDIO ",
                     Menu::Devices => " DEVICES ",
                     Menu::SavePatch => " SAVE PATCH ",
+                     Menu::Mixer => " MIXER "
                 })
                 .borders(Borders::ALL),
         )
@@ -1433,6 +1493,14 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
             .join("patches")
              .join(format!("test.json"));
             fs::write(&filename, &patch).unwrap();
+        }
+        AudioCommand::AdjustMainVolume(value) => {
+                let mut control = synth.control();
+                control.change_main_volume(value);
+        }
+          AudioCommand::AdjustVoiceVolume(value) => {
+                let mut control = synth.control();
+                control.change_all_voices_volume(value);
         }
     }
 }

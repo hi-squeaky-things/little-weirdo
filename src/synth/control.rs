@@ -90,6 +90,16 @@ impl<'a> SynthControl<'a> {
     }
 
 
+    
+    pub fn change_all_voices_volume(&mut self, volume: u8)  {
+        let mut config = self.synth.mixer.config;
+         for i in 0..AMOUNT_OF_VOICES {
+            config.gain_voices[i] = volume;
+         }
+          self.synth.mixer.reload(config);
+    }
+
+
 
     /// Change the settings of all envelopes
     ///
@@ -492,6 +502,7 @@ impl<'a> SynthControl<'a> {
     pub fn change_main_volume(&mut self, velocity: u8) {
         self.synth.mixer.config.gain_main = velocity;
     }
+
 
     /// Change the filter cutoff frequency
     pub fn change_cutoff(&mut self, velocity: u8) {
