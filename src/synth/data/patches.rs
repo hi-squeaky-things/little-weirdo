@@ -5,11 +5,12 @@ use alloc::vec::Vec;
 
 pub trait Patches {
     fn get_patches_reference(&self, index: u8) -> &Patch;
+    fn size(&self) -> u8;
 }
 
 #[derive(Clone)]
 pub struct BoxedPatches {
-    data: Vec<BoxedPatch>,
+    pub data: Vec<BoxedPatch>,
 }
 
 impl Default for BoxedPatches {
@@ -38,7 +39,7 @@ impl BoxedPatches {
 // Struct representing a single patch containing audio samples
 #[derive(Clone)]
 pub struct BoxedPatch {
-    data: Box<Patch>,
+    pub data: Box<Patch>,
 }
 
 impl BoxedPatch {
@@ -56,5 +57,10 @@ impl BoxedPatch {
 impl Patches for BoxedPatches {
     fn get_patches_reference(&self, index: u8) -> &Patch {
         &self.data[index as usize].data
+    }
+
+    fn size(&self) -> u8 {
+        let size = self.data.len();
+        size as u8
     }
 }

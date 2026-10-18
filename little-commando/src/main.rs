@@ -1,3 +1,4 @@
+use clap::Id;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, Sample, Stream, StreamConfig};
 use crossterm::{
@@ -143,6 +144,7 @@ enum AudioCommand {
     AdjustGlide(u8),
     ChangeNoise(NoiseKind),
     SavePatch(),
+    LoadPatch(u8),
     AdjustMainVolume(u8),
     AdjustVoiceVolume(u8)
 }
@@ -196,6 +198,10 @@ struct SynthPanel {
     glide_rate_ms: u8,
     selected_noise: NoiseKind,
     patch_name: String,
+    patch_id: u8,
+    patch_count: u8,
+    patch_names: Vec<String>,
+    patches: Arc<BoxedPatches>,
     main_gain: u8,
     voice_gain: u8
 }
@@ -304,7 +310,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let patches = Arc::new(patches);
+    let patches: Arc<BoxedPatches> = Arc::new(patches);
 
     let fm = patches.as_ref().get_patches_reference(0).fm_config;
     let envelope = patches.as_ref().get_patches_reference(0).envelops[0];
@@ -407,7 +413,13 @@ fn main() -> anyhow::Result<()> {
         drop(midi_connection);
     });
 
-    let patch = patches.as_ref().get_patches_reference(0);
+    let mut patch = patches.get_patches_reference(0);
+   let mut amount_of_patches =  patches.as_ref().size() as u8;
+
+   let patch_names: Vec<String> = patches.as_ref().data.iter()
+    .map(|boxed_patch| boxed_patch.data.name.clone())
+    .collect();
+
 
     let mut panel = SynthPanel {
         fm_enabled: fm.enabled,
@@ -453,6 +465,10 @@ fn main() -> anyhow::Result<()> {
         glide_rate_ms:  patch.voices[0].glide_rate,
         selected_noise: NoiseKind::None,
         patch_name:  patch.name.clone(),
+        patch_count:  amount_of_patches,
+        patch_names,
+        patch_id: 0,
+        patches: Arc::clone(&patches),
         main_gain: patch.mixer_config.gain_main,
         voice_gain: patch.mixer_config.gain_voices[0]
     };
@@ -687,6 +703,10 @@ fn adjust_selected(
         return adjust_mixer_selected(panel, audio_tx, clockwise);
     }
 
+    if panel.menu == Menu::SavePatch {
+        return adjust_patch_selected(panel, audio_tx, clockwise);
+    }   
+
 
     let parameter = match panel.selected {
         1 => {
@@ -736,6 +756,48 @@ fn menu_item_count(menu: Menu) -> usize {
         Menu::SavePatch => 2,
         Menu::Mixer => 2,
     }
+}
+
+fn adjust_patch_selected(
+    panel: &mut SynthPanel,
+    audio_tx: &mpsc::Sender<AudioCommand>,
+    clockwise: bool,
+) -> anyhow::Result<()> {
+    let (value) = match panel.selected {
+        0 => {
+            panel.patch_id = step_u8(panel.patch_id, clockwise, 1, 0, panel.patch_count - 1);
+
+            let patch = panel.patches.get_patches_reference( panel.patch_id);
+            panel.patch_name = patch.name.clone();
+
+        panel.fm_enabled = patch.fm_config.enabled;
+        panel.carrier_waveform = patch.fm_config.carrier_waveform;
+        panel.modulator_waveform = patch.fm_config.modulator_waveform;
+        panel.modulation_depth_hz = patch.fm_config.modulation_depth_hz;
+        
+        panel.filter_enabled = patch.filter_config.enabled;
+        panel.distortion_enabled = patch.overdrive_config.enabled;
+      
+        panel.attack_time_ms = patch.envelops[0].attack_time;
+        panel.decay_time_ms = patch.envelops[0].decay_time;
+        panel.sustain_level =  patch.envelops[0].sustain_level as u8;
+        panel.release_time_ms = patch.envelops[0].release_time;
+      
+      
+        panel.selected_voice = patch.voices[0].soundbank_index;
+        panel.glide_enabled = patch.voices[0].glide;
+        panel.glide_rate_ms = patch.voices[0].glide_rate;
+        panel.selected_noise = patch.voices[0].noise;
+        panel.main_gain =  patch.mixer_config.gain_main;
+        panel.voice_gain = patch.mixer_config.gain_voices[0];
+
+            audio_tx.send(AudioCommand::LoadPatch(panel.patch_id))?;
+        },
+        _ => {
+        }
+    };
+    //audio_tx.send(AudioCommand::SetEnvelope(parameter, value))?;
+    Ok(())
 }
 
 fn adjust_mixer_selected(
@@ -1092,7 +1154,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         ],
         Menu::SavePatch => vec![format!("└──Patch Name   : {}", panel.patch_name)],
         Menu::Mixer => vec![
-            format!("└──Main gain   : {}", panel.main_gain),
+            format!("├──Main gain    : {}", panel.main_gain),
             format!("└──Voice gain   : {}", panel.voice_gain)
         ],
     };
@@ -1110,8 +1172,8 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
                     Menu::Envelope => " ENVELOPE ",
                     Menu::Live => " LIVE AUDIO ",
                     Menu::Devices => " DEVICES ",
-                    Menu::SavePatch => " SAVE PATCH ",
-                     Menu::Mixer => " MIXER "
+                    Menu::SavePatch => " PATCHES ",
+                    Menu::Mixer => " MIXER "
                 })
                 .borders(Borders::ALL),
         )
@@ -1502,5 +1564,9 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
                 let mut control = synth.control();
                 control.change_all_voices_volume(value);
         }
+        AudioCommand::LoadPatch(value) => {
+            synth.load_patch(value);
+
+        },
     }
 }
