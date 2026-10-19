@@ -148,6 +148,8 @@ enum AudioCommand {
     LoadPatch(u8),
     AdjustMainVolume(u8),
     AdjustVoiceVolume(u8),
+    AdjustLFO(u8, u8, u16),
+    AdjustRoutingLFO(i8),
 }
 
 enum DeviceCommand {
@@ -207,8 +209,8 @@ struct SynthPanel {
     lfo_to_freq: i8,
     lfo_to_balance: i8,
     lfo_to_freq_amount: u16,
-    lfo_waveform: u8,
-    lfo_time: u16,
+    lfo_waveform: [u8; 4],
+    lfo_time: [u16; 4],
     main_gain: u8,
     voice_gain: u8,
 }
@@ -470,8 +472,18 @@ fn main() -> anyhow::Result<()> {
         lfo_to_freq: patch.routering_config.lfo_to_freq,
         lfo_to_balance: patch.routering_config.lfo_to_balance,
         lfo_to_freq_amount: patch.routering_config.lfo_to_freq_amount,
-        lfo_waveform: patch.lfos[0].soundbank_index,
-        lfo_time:  patch.lfos[0].time,
+        lfo_waveform: [
+            patch.lfos[0].soundbank_index,
+            patch.lfos[1].soundbank_index,
+            patch.lfos[2].soundbank_index,
+            patch.lfos[3].soundbank_index,
+        ],
+        lfo_time: [
+            patch.lfos[0].time,
+            patch.lfos[1].time,
+            patch.lfos[2].time,
+            patch.lfos[3].time,
+        ],
     };
     let ui_result = run_terminal_ui(&mut panel, &audio_tx, &device_tx, &status_rx);
     drop(device_tx);
@@ -760,7 +772,7 @@ fn menu_item_count(menu: Menu) -> usize {
         Menu::Devices => 2,
         Menu::SavePatch => 2,
         Menu::Mixer => 2,
-        Menu::Routing => 4,
+        Menu::Routing => 16,
     }
 }
 
@@ -801,8 +813,18 @@ fn adjust_patch_selected(
             panel.lfo_to_balance = patch.routering_config.lfo_to_balance;
             panel.lfo_to_freq_amount = patch.routering_config.lfo_to_freq_amount;
 
-            panel.lfo_waveform =  patch.lfos[0].soundbank_index;
-            panel.lfo_time = patch.lfos[0].time;
+            panel.lfo_waveform = [
+                patch.lfos[0].soundbank_index,
+                patch.lfos[1].soundbank_index,
+                patch.lfos[2].soundbank_index,
+                patch.lfos[3].soundbank_index,
+            ];
+            panel.lfo_time = [
+                patch.lfos[0].time,
+                patch.lfos[1].time,
+                patch.lfos[2].time,
+                patch.lfos[3].time,
+            ];
 
             audio_tx.send(AudioCommand::LoadPatch(panel.patch_id))?;
         }
@@ -817,6 +839,81 @@ fn adjust_routing_selected(
     audio_tx: &mpsc::Sender<AudioCommand>,
     clockwise: bool,
 ) -> anyhow::Result<()> {
+    let (value) = match panel.selected {
+        0 => {
+            panel.lfo_to_filter = step_i8(panel.lfo_to_filter, clockwise, 1, -1, 3);
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter))?;
+        }
+        5 => {
+            panel.lfo_waveform[0] =
+                cycle_waveform(panel.lfo_waveform[0], panel.waveform_count, clockwise);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                0,
+                panel.lfo_waveform[0],
+                panel.lfo_time[0],
+            ))?;
+        }
+        6 => {
+            panel.lfo_time[0] = step_u16(panel.lfo_time[0], clockwise, 1, 1, 500);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                0,
+                panel.lfo_waveform[0],
+                panel.lfo_time[0],
+            ))?;
+        }
+        8 => {
+            panel.lfo_waveform[1] =
+                cycle_waveform(panel.lfo_waveform[1], panel.waveform_count, clockwise);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                1,
+                panel.lfo_waveform[1],
+                panel.lfo_time[1],
+            ))?;
+        }
+        9 => {
+            panel.lfo_time[1] = step_u16(panel.lfo_time[1], clockwise, 1, 1, 500);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                1,
+                panel.lfo_waveform[1],
+                panel.lfo_time[1],
+            ))?;
+        }
+        11 => {
+            panel.lfo_waveform[2] =
+                cycle_waveform(panel.lfo_waveform[2], panel.waveform_count, clockwise);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                2,
+                panel.lfo_waveform[2],
+                panel.lfo_time[2],
+            ))?;
+        }
+        12 => {
+            panel.lfo_time[2] = step_u16(panel.lfo_time[2], clockwise, 1, 1, 500);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                2,
+                panel.lfo_waveform[2],
+                panel.lfo_time[2],
+            ))?;
+        }
+        14 => {
+            panel.lfo_waveform[3] =
+                cycle_waveform(panel.lfo_waveform[3], panel.waveform_count, clockwise);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                3,
+                panel.lfo_waveform[3],
+                panel.lfo_time[3],
+            ))?;
+        }
+        15 => {
+            panel.lfo_time[3] = step_u16(panel.lfo_time[3], clockwise, 1, 1, 500);
+            audio_tx.send(AudioCommand::AdjustLFO(
+                3,
+                panel.lfo_waveform[3],
+                panel.lfo_time[3],
+            ))?;
+        }
+        _ => {}
+    };
     Ok(())
 }
 
@@ -968,8 +1065,24 @@ fn step_u8(value: u8, clockwise: bool, amount: u8, minimum: u8, maximum: u8) -> 
     }
 }
 
+fn step_i8(value: i8, clockwise: bool, amount: i8, minimum: i8, maximum: i8) -> i8 {
+    if clockwise {
+        value.saturating_add(amount).min(maximum)
+    } else {
+        value.saturating_sub(amount).max(minimum)
+    }
+}
+
 fn on_off(enabled: bool) -> &'static str {
     if enabled { "[✔]" } else { "[ ]" }
+}
+
+fn on_off_select(select: i8) -> &'static str {
+    if select == -1 {
+        "🚫"
+    } else {
+        ["⌁ LFO 0", "⌁ LFO 1", "⌁ LFO 2", "⌁ LFO 3"][select as usize % 4]
+    }
 }
 
 fn filter_kind_name(kind: u8) -> &'static str {
@@ -1205,16 +1318,31 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             format!("└──Voice gain   : {}", panel.voice_gain),
         ],
         Menu::Routing => vec![
-            format!("├──LFO to Filter      : {}", panel.lfo_to_filter),
-            format!("├──LFO to Freq        : {}", panel.lfo_to_freq),
+            format!(
+                "├──LFO to Filter      : {}",
+                on_off_select(panel.lfo_to_filter)
+            ),
+            format!(
+                "├──LFO to Freq        : {}",
+                on_off_select(panel.lfo_to_freq)
+            ),
             format!("├──LFO to Freq Amount : {}", panel.lfo_to_freq_amount),
-            format!("├──LFO to Balance     :    {}", panel.lfo_to_balance),
+            format!(
+                "├──LFO to Balance     : {}",
+                on_off_select(panel.lfo_to_balance)
+            ),
             format!("└──LFO 0"),
-            format!("    ├─ LFO Waveform   : {}", panel.lfo_waveform),
-            format!("    └─ LFO Time       : {}", panel.lfo_time),
-        
-
-
+            format!("│   ├─ LFO Waveform   : {}", panel.lfo_waveform[0]),
+            format!("│   └─ LFO Time       : {}", panel.lfo_time[0]),
+            format!("└──LFO 1"),
+            format!("│   ├─ LFO Waveform   : {}", panel.lfo_waveform[1]),
+            format!("│   └─ LFO Time       : {}", panel.lfo_time[1]),
+            format!("└──LFO 2"),
+            format!("│   ├─ LFO Waveform   : {}", panel.lfo_waveform[2]),
+            format!("│   └─ LFO Time       : {}", panel.lfo_time[2]),
+            format!("└──LFO 3"),
+            format!("    ├─ LFO Waveform   : {}", panel.lfo_waveform[3]),
+            format!("    └─ LFO Time       : {}", panel.lfo_time[3]),
         ],
     };
     let items = values
@@ -1336,7 +1464,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         ]));
         frame.render_stateful_widget(settings, content[0], &mut state);
         frame.render_widget(envelope_chart, content[1]);
-    } else if panel.menu == Menu::Fm && panel.selected < 4 && panel.selected > 0 {
+    } else if panel.menu == Menu::Fm && panel.selected < 3 && panel.selected > 0 {
         let content = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
@@ -1380,7 +1508,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             Span::raw("1"),
         ]));
         frame.render_widget(chart, content[1]);
-    } else if panel.menu == Menu::Voices {
+    } else if panel.menu == Menu::Voices && panel.selected == 0 {
         let content = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
@@ -1388,6 +1516,47 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         frame.render_stateful_widget(settings, content[0], &mut state);
 
         let samples = &panel.waveform_plots[panel.selected_voice as usize];
+        let chart = Chart::new(vec![
+            Dataset::default()
+                .graph_type(GraphType::Line)
+                .style(Style::default().fg(Color::LightCyan))
+                .data(samples),
+        ])
+        .block(
+            Block::default()
+                .title(" VOICE WAVEFORM ")
+                .borders(Borders::ALL),
+        )
+        .x_axis(
+            Axis::default()
+                .bounds([0.0, samples.len().saturating_sub(1) as f64])
+                .labels(vec![
+                    Span::raw("0"),
+                    Span::raw(format!("{}", samples.len() - 1)),
+                ]),
+        )
+        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
+            Span::raw("-1"),
+            Span::raw("0"),
+            Span::raw("1"),
+        ]));
+        frame.render_widget(chart, content[1]);
+    } else if panel.menu == Menu::Routing && (panel.selected == 5 || panel.selected == 8 || panel.selected == 11 || panel.selected == 14) {
+        let content = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
+            .split(layout[3]);
+        frame.render_stateful_widget(settings, content[0], &mut state);
+
+        let samples = if (panel.selected == 5) {
+            &panel.waveform_plots[panel.lfo_waveform[0] as usize]
+        } else if (panel.selected == 8)  {
+            &panel.waveform_plots[panel.lfo_waveform[1] as usize]
+        } else if (panel.selected == 11)  {
+            &panel.waveform_plots[panel.lfo_waveform[2] as usize]
+        } else {
+            &panel.waveform_plots[panel.lfo_waveform[3] as usize]
+        };
         let chart = Chart::new(vec![
             Dataset::default()
                 .graph_type(GraphType::Line)
@@ -1626,6 +1795,14 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
         }
         AudioCommand::LoadPatch(value) => {
             synth.load_patch(value);
+        }
+        AudioCommand::AdjustLFO(id, waveform, time) => {
+            let mut control = synth.control();
+            control.change_lfo(id, waveform, time);
+        }
+        AudioCommand::AdjustRoutingLFO(lfo_filter) => {
+            let mut control = synth.control();
+            control.change_lfo_routing(lfo_filter);
         }
     }
 }

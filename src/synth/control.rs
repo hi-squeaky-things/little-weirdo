@@ -89,7 +89,13 @@ impl<'a> SynthControl<'a> {
         }
     }
 
-
+    pub fn change_lfo(&mut self, id: u8, waveform: u8, timing: u16) {
+         let lfo = &mut self.synth.lfo[id as usize];
+         let mut config = lfo.get_lfo_config();
+         config.soundbank_index = waveform;
+         config.time = timing;
+        lfo.reload_lfo(config);
+    }
     
     pub fn change_all_voices_volume(&mut self, volume: u8)  {
         let mut config = self.synth.mixer.config;
@@ -99,6 +105,11 @@ impl<'a> SynthControl<'a> {
           self.synth.mixer.reload(config);
     }
 
+    pub fn change_lfo_routing(&mut self, lfo_filter: i8 ) {
+        let mut routing = self.synth.router.config;
+        routing.lfo_to_filter = lfo_filter;
+           self.synth.router.reload(routing);
+    }
 
 
     /// Change the settings of all envelopes

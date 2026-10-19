@@ -375,6 +375,7 @@ impl Synth {
 
         // Apply filter to mixed signal
         mono_sound = self.filter.clock(mono_sound);
+        
         mono_sound = math::percentage(mono_sound, self.mixer.config.gain_main as i16);
 
         // Apply panning
