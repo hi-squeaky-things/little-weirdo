@@ -2,7 +2,7 @@
   "name": "block",
   "voices": [
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -21,7 +21,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -40,7 +40,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -59,7 +59,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -78,7 +78,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -97,7 +97,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -116,7 +116,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -135,7 +135,7 @@
       "noise": "None"
     },
     {
-      "soundbank_index": 2,
+      "soundbank_index": 6,
       "glide": true,
       "glide_rate": 7,
       "detune": 0,
@@ -207,11 +207,11 @@
   "lfos": [
     {
       "soundbank_index": 0,
-      "time": 0
+      "time": 20
     },
     {
-      "soundbank_index": 0,
-      "time": 0
+      "soundbank_index": 9,
+      "time": 87
     },
     {
       "soundbank_index": 0,
@@ -223,7 +223,7 @@
     }
   ],
   "filter_config": {
-    "cutoff_frequency": 16500,
+    "cutoff_frequency": 10700,
     "resonance": 0,
     "kind_of_filter": "Low",
     "enabled": true
@@ -280,10 +280,10 @@
       -1,
       -1
     ],
-    "lfo_to_filter": -1,
-    "lfo_to_freq": -1,
+    "lfo_to_filter": 1,
+    "lfo_to_freq": 0,
     "lfo_to_balance": -1,
-    "lfo_to_freq_amount": 0
+    "lfo_to_freq_amount": 25
   },
   "synth_config": {
     "mode": "OctoPoly"

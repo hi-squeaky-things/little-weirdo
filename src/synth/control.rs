@@ -105,9 +105,16 @@ impl<'a> SynthControl<'a> {
           self.synth.mixer.reload(config);
     }
 
-    pub fn change_lfo_routing(&mut self, lfo_filter: i8 ) {
+    pub fn change_lfo_routing(&mut self, lfo_filter: i8, lfo_freq: i8, lfo_freq_amount: u16 ) {
         let mut routing = self.synth.router.config;
         routing.lfo_to_filter = lfo_filter;
+        routing.lfo_to_freq = lfo_freq;
+        if  routing.lfo_to_freq != -1 {
+            routing.lfo_to_freq_amount = lfo_freq_amount;
+        } else {
+             routing.lfo_to_freq_amount = 0;
+        }
+
            self.synth.router.reload(routing);
     }
 

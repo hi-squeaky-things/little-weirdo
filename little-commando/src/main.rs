@@ -149,7 +149,7 @@ enum AudioCommand {
     AdjustMainVolume(u8),
     AdjustVoiceVolume(u8),
     AdjustLFO(u8, u8, u16),
-    AdjustRoutingLFO(i8),
+    AdjustRoutingLFO(i8, i8, u16),
 }
 
 enum DeviceCommand {
@@ -842,7 +842,15 @@ fn adjust_routing_selected(
     let (value) = match panel.selected {
         0 => {
             panel.lfo_to_filter = step_i8(panel.lfo_to_filter, clockwise, 1, -1, 3);
-            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter))?;
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter, panel.lfo_to_freq, panel.lfo_to_freq_amount))?;
+        }
+        1 => {
+            panel.lfo_to_freq = step_i8(panel.lfo_to_freq, clockwise, 1, -1, 3);
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter, panel.lfo_to_freq, panel.lfo_to_freq_amount))?;
+        }
+        2 => {
+            panel.lfo_to_freq_amount = step_u16(panel.lfo_to_freq_amount, clockwise, 5, 0, 300);
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter, panel.lfo_to_freq, panel.lfo_to_freq_amount))?;
         }
         5 => {
             panel.lfo_waveform[0] =
@@ -1800,9 +1808,9 @@ fn process_command(synth: &mut synth::Synth, command: AudioCommand) {
             let mut control = synth.control();
             control.change_lfo(id, waveform, time);
         }
-        AudioCommand::AdjustRoutingLFO(lfo_filter) => {
+        AudioCommand::AdjustRoutingLFO(lfo_filter, lfo_freq, lfo_freq_amount) => {
             let mut control = synth.control();
-            control.change_lfo_routing(lfo_filter);
+            control.change_lfo_routing(lfo_filter, lfo_freq, lfo_freq_amount);
         }
     }
 }
