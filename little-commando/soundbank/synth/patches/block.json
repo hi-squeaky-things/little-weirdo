@@ -223,7 +223,7 @@
     }
   ],
   "filter_config": {
-    "cutoff_frequency": 10700,
+    "cutoff_frequency": 2200,
     "resonance": 0,
     "kind_of_filter": "Low",
     "enabled": true

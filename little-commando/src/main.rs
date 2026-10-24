@@ -18,6 +18,7 @@ use little_weirdo::synth::{
 };
 use midi_control::MidiMessage;
 use ratatui::style::Stylize;
+use ratatui::widgets::Padding;
 use ratatui::{
     Terminal,
     backend::CrosstermBackend,
@@ -842,15 +843,27 @@ fn adjust_routing_selected(
     let (value) = match panel.selected {
         0 => {
             panel.lfo_to_filter = step_i8(panel.lfo_to_filter, clockwise, 1, -1, 3);
-            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter, panel.lfo_to_freq, panel.lfo_to_freq_amount))?;
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(
+                panel.lfo_to_filter,
+                panel.lfo_to_freq,
+                panel.lfo_to_freq_amount,
+            ))?;
         }
         1 => {
             panel.lfo_to_freq = step_i8(panel.lfo_to_freq, clockwise, 1, -1, 3);
-            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter, panel.lfo_to_freq, panel.lfo_to_freq_amount))?;
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(
+                panel.lfo_to_filter,
+                panel.lfo_to_freq,
+                panel.lfo_to_freq_amount,
+            ))?;
         }
         2 => {
             panel.lfo_to_freq_amount = step_u16(panel.lfo_to_freq_amount, clockwise, 5, 0, 300);
-            audio_tx.send(AudioCommand::AdjustRoutingLFO(panel.lfo_to_filter, panel.lfo_to_freq, panel.lfo_to_freq_amount))?;
+            audio_tx.send(AudioCommand::AdjustRoutingLFO(
+                panel.lfo_to_filter,
+                panel.lfo_to_freq,
+                panel.lfo_to_freq_amount,
+            ))?;
         }
         5 => {
             panel.lfo_waveform[0] =
@@ -1118,7 +1131,7 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         .constraints([
             Constraint::Length(11), // Increased to fit the logo
             Constraint::Length(3),
-            Constraint::Length(5),
+            Constraint::Length(4),
             Constraint::Min(8),
             Constraint::Length(3),
         ])
@@ -1131,9 +1144,10 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         .split(layout[0]);
 
     let mut title_text = vec![
-        Line::from(" ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱"),
-        Line::from(" ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi SQυεΛκY Things Cαη ħαρρεη α⊥ αηψ тıмε!"),
-        Line::from("└────────────────────────────────────────────────────────────────────── "),
+        Line::from("▐▀▀▀▀────────────────────────────────────────────────────────────────────┐"),
+        Line::from("│ ⡇ ⡇⢹⠁⢹⠁⡇ ⣏⡉ ⡇⢸⣏⡉⡇⣏⡱⡏⢱⡎⢱                                                │"),
+        Line::from("│ ⠧⠤⠇⠸ ⠸ ⠧⠤⠧⠤ ⠟⠻⠧⠤⠇⠇⠱⠧⠜⠣⠜ - Hi SQυεΛκY Things Cαη ħαρρεη α⊥ αηψ тıмε!    │"),
+        Line::from("└────────────────────────────────────────────────────────────────────────┘"),
         Line::from(""),
     ];
 
@@ -1222,11 +1236,11 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
 
     let keyboard_block = Block::default()
         .title(format!(
-            " KEYBOARD C{}-C{}  (+/- octave) ",
+            "▀▀▀▀ KEYBOARD C{}-C{}  (+/- octave) ",
             3 + panel.keyboard_octave_shift,
             4 + panel.keyboard_octave_shift
         ))
-        .borders(Borders::ALL);
+        .borders(Borders::ALL).padding(Padding { left: 5, right: 5, top: 1, bottom: 0 });
     let keyboard_area = keyboard_block.inner(layout[2]);
     frame.render_widget(keyboard_block, layout[2]);
     let key_areas = Layout::default()
@@ -1236,14 +1250,13 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
     for (index, key_area) in key_areas.iter().enumerate() {
         let note = keyboard_note(index as u8, panel.keyboard_octave_shift);
         let active = panel.held_keyboard_notes.contains(&note);
-        let key = Paragraph::new(format!("{}", midi_note_name(note)))
+        let key = Paragraph::new(format!("{}", if active { "██▓▒▒░  ░▒▒▓██" } else { "█▓▒░▒▓█" }))
             .alignment(Alignment::Center)
             .style(if active {
                 Style::default().fg(Color::White).bg(Color::LightMagenta)
             } else {
-                Style::default().bg(Color::White).fg(Color::Black)
-            })
-            .block(Block::default().borders(Borders::ALL));
+                Style::default().bg(Color::White).fg(Color::LightCyan)
+            });
         frame.render_widget(key, *key_area);
     }
 
@@ -1361,15 +1374,15 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
         .block(
             Block::default()
                 .title(match panel.menu {
-                    Menu::Fm => " FM PARAMETERS ",
-                    Menu::Voices => " VOICES ",
-                    Menu::Effects => " EFFECTS ",
-                    Menu::Envelope => " ENVELOPE ",
-                    Menu::Live => " LIVE AUDIO ",
-                    Menu::Devices => " DEVICES ",
-                    Menu::SavePatch => " PATCHES ",
-                    Menu::Mixer => " MIXER ",
-                    Menu::Routing => " ROUTING ",
+                    Menu::Fm => "▀▀▀▀ FM PARAMETERS ",
+                    Menu::Voices => "▀▀▀▀ VOICES ",
+                    Menu::Effects => "▀▀▀▀ EFFECTS ",
+                    Menu::Envelope => "▀▀▀▀ ENVELOPE ",
+                    Menu::Live => "▀▀▀▀ LIVE AUDIO ",
+                    Menu::Devices => "▀▀▀▀ DEVICES ",
+                    Menu::SavePatch => "▀▀▀▀ PATCHES ",
+                    Menu::Mixer => "▀▀▀▀ MIXER ",
+                    Menu::Routing => "▀▀▀▀ ROUTING ",
                 })
                 .borders(Borders::ALL),
         )
@@ -1485,36 +1498,11 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             panel.modulator_waveform
         };
         let waveform_name = if panel.selected == 1 {
-            "CARRIER"
+            "CARRIER".to_string()
         } else {
-            "MODULATOR"
+            "MODULATOR".to_string()
         };
-        let samples = &panel.waveform_plots[waveform_index as usize];
-        let chart = Chart::new(vec![
-            Dataset::default()
-                .name(format!("Waveform {:03}", waveform_index))
-                .graph_type(GraphType::Line)
-                .style(Style::default().fg(Color::LightCyan))
-                .data(samples),
-        ])
-        .block(
-            Block::default()
-                .title(format!(" {waveform_name} WAVEFORM "))
-                .borders(Borders::ALL),
-        )
-        .x_axis(
-            Axis::default()
-                .bounds([0.0, samples.len().saturating_sub(1) as f64])
-                .labels(vec![
-                    Span::raw("0"),
-                    Span::raw(format!("{}", samples.len() - 1)),
-                ]),
-        )
-        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
-            Span::raw("-1"),
-            Span::raw("0"),
-            Span::raw("1"),
-        ]));
+        let chart = draw_waveform(panel, waveform_index, waveform_name);
         frame.render_widget(chart, content[1]);
     } else if panel.menu == Menu::Voices && panel.selected == 0 {
         let content = Layout::default()
@@ -1522,74 +1510,32 @@ fn draw_panel(frame: &mut ratatui::Frame<'_>, panel: &SynthPanel) {
             .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
             .split(layout[3]);
         frame.render_stateful_widget(settings, content[0], &mut state);
-
-        let samples = &panel.waveform_plots[panel.selected_voice as usize];
-        let chart = Chart::new(vec![
-            Dataset::default()
-                .graph_type(GraphType::Line)
-                .style(Style::default().fg(Color::LightCyan))
-                .data(samples),
-        ])
-        .block(
-            Block::default()
-                .title(" VOICE WAVEFORM ")
-                .borders(Borders::ALL),
-        )
-        .x_axis(
-            Axis::default()
-                .bounds([0.0, samples.len().saturating_sub(1) as f64])
-                .labels(vec![
-                    Span::raw("0"),
-                    Span::raw(format!("{}", samples.len() - 1)),
-                ]),
-        )
-        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
-            Span::raw("-1"),
-            Span::raw("0"),
-            Span::raw("1"),
-        ]));
+        let chart = draw_waveform(panel, panel.selected_voice, String::new());
         frame.render_widget(chart, content[1]);
-    } else if panel.menu == Menu::Routing && (panel.selected == 5 || panel.selected == 8 || panel.selected == 11 || panel.selected == 14) {
+    } else if panel.menu == Menu::Routing
+        && (panel.selected == 5
+            || panel.selected == 8
+            || panel.selected == 11
+            || panel.selected == 14)
+    {
         let content = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(42), Constraint::Percentage(58)])
             .split(layout[3]);
         frame.render_stateful_widget(settings, content[0], &mut state);
 
-        let samples = if (panel.selected == 5) {
-            &panel.waveform_plots[panel.lfo_waveform[0] as usize]
-        } else if (panel.selected == 8)  {
-            &panel.waveform_plots[panel.lfo_waveform[1] as usize]
-        } else if (panel.selected == 11)  {
-            &panel.waveform_plots[panel.lfo_waveform[2] as usize]
+        let selected_waveform = if (panel.selected == 5) {
+          panel.lfo_waveform[0]
+        } else if (panel.selected == 8) {
+            panel.lfo_waveform[1]
+        } else if (panel.selected == 11) {
+             panel.lfo_waveform[2]
         } else {
-            &panel.waveform_plots[panel.lfo_waveform[3] as usize]
+            panel.lfo_waveform[3]
         };
-        let chart = Chart::new(vec![
-            Dataset::default()
-                .graph_type(GraphType::Line)
-                .style(Style::default().fg(Color::LightCyan))
-                .data(samples),
-        ])
-        .block(
-            Block::default()
-                .title(" VOICE WAVEFORM ")
-                .borders(Borders::ALL),
-        )
-        .x_axis(
-            Axis::default()
-                .bounds([0.0, samples.len().saturating_sub(1) as f64])
-                .labels(vec![
-                    Span::raw("0"),
-                    Span::raw(format!("{}", samples.len() - 1)),
-                ]),
-        )
-        .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
-            Span::raw("-1"),
-            Span::raw("0"),
-            Span::raw("1"),
-        ]));
+        let chart = draw_waveform(panel, selected_waveform, String::new());
         frame.render_widget(chart, content[1]);
+
     } else {
         frame.render_stateful_widget(settings, layout[3], &mut state);
     }
@@ -1610,6 +1556,36 @@ fn midi_note_name(note: u8) -> String {
         "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
     ];
     format!("{}{}", NOTE_NAMES[(note % 12) as usize], note / 12 - 1)
+}
+
+fn draw_waveform(panel: &SynthPanel, waveform_index: u8, waveform_name: String) -> Chart {
+    let samples = &panel.waveform_plots[waveform_index as usize];
+    let chart = Chart::new(vec![
+        Dataset::default()
+            .name(format!("Waveform {:03}", waveform_index))
+            .graph_type(GraphType::Line)
+            .style(Style::default().fg(Color::Rgb(100, 10, 50)))
+            .data(samples),
+    ])
+    .block(
+        Block::default()
+            .title(format!(" {waveform_name} WAVEFORM "))
+            .borders(Borders::ALL),
+    )
+    .x_axis(
+        Axis::default()
+            .bounds([0.0, samples.len().saturating_sub(1) as f64])
+            .labels(vec![
+                Span::raw("0"),
+                Span::raw(format!("{}", samples.len() - 1)),
+            ]),
+    )
+    .y_axis(Axis::default().bounds([-1.0, 1.0]).labels(vec![
+        Span::raw("-1"),
+        Span::raw("0"),
+        Span::raw("1"),
+    ]));
+    return chart;
 }
 
 fn build_audio_stream(
